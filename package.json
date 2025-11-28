@@ -1,0 +1,29 @@
+{
+  "name": "leopold-phaser",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "ships:markers": "tsx scripts/generate-markers.ts",
+    "ships:cleanup": "tsx scripts/cleanup-markers.ts"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/pngjs": "^6.0.5",
+    "glob": "^13.0.0",
+    "jsdom": "^27.2.0",
+    "pngjs": "^7.0.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4",
+    "vitest": "^4.0.14"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  }
+}

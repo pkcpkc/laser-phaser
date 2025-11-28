@@ -1,0 +1,962 @@
+[
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 0,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 0,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 0,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 0,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 1,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 1,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 1,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 1,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 2,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 2,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 2,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 2,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 3,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 3,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 3,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 3,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 4,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 4,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 4,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 4,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 5,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 5,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 5,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 5,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 6,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 6,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 6,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 6,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 7,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 7,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 7,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 7,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 8,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 8,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 8,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 8,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 9,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 9,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 9,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 9,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 10,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 10,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 10,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 10,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 11,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 11,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 11,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 11,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 12,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 12,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 12,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 12,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 13,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 13,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 13,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 13,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 14,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 14,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 14,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 14,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 15,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 15,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 15,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 15,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 16,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 16,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 16,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 16,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 18,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 18,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 18,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 18,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 19,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 19,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 19,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 19,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 20,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 20,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 20,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 20,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 21,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 21,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 21,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 21,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 22,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 22,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 22,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 22,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 23,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 23,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 23,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 23,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 24,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 24,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 24,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 24,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 0,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 1,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 2,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 3,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 4,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 5,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 6,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 7,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 12,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 13,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 14,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 15,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 16,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 17,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 18,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 19,
+    "y": 25,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 0,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 1,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 2,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 3,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 4,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 5,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 6,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 7,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 12,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 13,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 14,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 15,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 16,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 17,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 18,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 19,
+    "y": 26,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 0,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 1,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 2,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 3,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 4,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 5,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 6,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 7,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 8,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 9,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 10,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 11,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 12,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 13,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 14,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 15,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 16,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 17,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 18,
+    "y": 27,
+    "angle": 0
+  },
+  {
+    "type": "rocket",
+    "x": 19,
+    "y": 27,
+    "angle": 0
+  }
+]
