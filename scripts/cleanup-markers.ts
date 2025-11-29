@@ -1,46 +1,58 @@
-
 import fs from 'fs';
 import { PNG } from 'pngjs';
 import { glob } from 'glob';
-import { SHIPS_DIR, MarkerConfig } from './marker-config';
+import { DEST_SHIPS_DIR, MarkerConfig } from './marker-config';
 
-
-/**
- * Find a similar color that is not a marker color (hex only)
- * Slightly adjust the color values to avoid exact marker matches
- */
-
-export function cleanupMarkers(inputPath: string, outputPath?: string): void {
-    const output = outputPath || inputPath.replace('.png', '_clean.png');
-
-    console.log(`Cleaning markers from ${inputPath}...`);
-
+export function cleanupMarkers(inputPath: string, outputPath?: string) {
     const data = fs.readFileSync(inputPath);
     const png = PNG.sync.read(data);
 
-    let replacedCount = 0;
-
-    
+    MarkerConfig.removeAllMarkers(png);
 
     const buffer = PNG.sync.write(png);
-    fs.writeFileSync(output, buffer);
-
-    console.log(`Cleaned ${replacedCount} marker pixels. Saved to ${output}`);
+    const targetPath = outputPath || inputPath;
+    fs.writeFileSync(targetPath, buffer);
+    console.log(`Cleaned markers from ${targetPath}`);
 }
 
 async function main() {
-    const files = await glob(`${SHIPS_DIR}/*.png`);
+    // Check if a specific file path was provided as a command-line argument
+    const targetPath = process.argv[2];
 
-    if (files.length === 0) {
-        console.log(`No .png files found in ${SHIPS_DIR}`);
-        return;
-    }
+    if (targetPath) {
+        // Clean up a specific file
+        if (!fs.existsSync(targetPath)) {
+            console.error(`Error: File not found: ${targetPath}`);
+            process.exit(1);
+        }
 
-    for (const file of files) {
-        // Skip already cleaned files
-        if (file.includes('_clean.png')) continue;
+        try {
+            cleanupMarkers(targetPath);
+            console.log(`\nCleaned up 1 file: ${targetPath}`);
+        } catch (err) {
+            console.error(`Error cleaning ${targetPath}:`, err);
+            process.exit(1);
+        }
+    } else {
+        // Clean up all PNG files in DEST_SHIPS_DIR
+        const files = await glob(`${DEST_SHIPS_DIR}/*.png`);
 
-        cleanupMarkers(file);
+        if (files.length === 0) {
+            console.log(`No .png files found in ${DEST_SHIPS_DIR}`);
+            return;
+        }
+
+        let count = 0;
+        for (const file of files) {
+            try {
+                cleanupMarkers(file);
+                count++;
+            } catch (err) {
+                console.error(`Error cleaning ${file}:`, err);
+            }
+        }
+
+        console.log(`\nCleaned up ${count} files in ${DEST_SHIPS_DIR}`);
     }
 }
 

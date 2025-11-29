@@ -1,19 +1,26 @@
 import fs from 'fs';
+import path from 'path';
 import { PNG } from 'pngjs';
 import { glob } from 'glob';
-import { type ShipMarker, SHIPS_DIR, MarkerConfig } from './marker-config';
+import { type ShipMarker, SOURCE_SHIPS_DIR, DEST_SHIPS_DIR, MarkerConfig } from './marker-config';
 
-export async function processFile(filePath: string) {
-    const markerPath = filePath.replace('.png', '.marker.json');
+export async function processFile(sourcePath: string) {
+    const fileName = path.basename(sourcePath);
+    const destPath = path.join(DEST_SHIPS_DIR, fileName);
+    const markerPath = destPath.replace('.png', '.marker.json');
+
+    // Copy source file to destination
+    fs.copyFileSync(sourcePath, destPath);
+    console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
 
     if (fs.existsSync(markerPath)) {
-        console.log(`Skipping ${filePath} (marker file exists)`);
+        console.log(`Skipping marker generation for ${fileName} (marker file exists)`);
         return;
     }
 
-    console.log(`Processing ${filePath}...`);
+    console.log(`Generating markers for ${fileName}...`);
 
-    const data = fs.readFileSync(filePath);
+    const data = fs.readFileSync(destPath);
     const png = PNG.sync.read(data);
     const markers: ShipMarker[] = [];
 
@@ -62,14 +69,20 @@ export async function processFile(filePath: string) {
         fs.writeFileSync(markerPath, JSON.stringify(markers, null, 2));
         console.log(`Created ${markerPath} with ${markers.length} markers.`);
     } else {
-        console.log(`No markers found in ${filePath}.`);
+        console.log(`No markers found in ${fileName}.`);
     }
 }
 
 async function main() {
-    const files = await glob(`${SHIPS_DIR}/*.png`);
+    // Ensure destination directory exists
+    if (!fs.existsSync(DEST_SHIPS_DIR)) {
+        fs.mkdirSync(DEST_SHIPS_DIR, { recursive: true });
+        console.log(`Created directory ${DEST_SHIPS_DIR}`);
+    }
+
+    const files = await glob(`${SOURCE_SHIPS_DIR}/*.png`);
     if (files.length === 0) {
-        console.log(`No .png files found in ${SHIPS_DIR}`);
+        console.log(`No .png files found in ${SOURCE_SHIPS_DIR}`);
         return;
     }
 

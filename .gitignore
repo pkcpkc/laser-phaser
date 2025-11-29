@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Game specific
-res/ships
+public/res/ships/**

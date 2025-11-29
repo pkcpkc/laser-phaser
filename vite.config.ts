@@ -6,4 +6,7 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
     },
+    build: {
+        chunkSizeWarningLimit: 1000, // Phaser is a large library, increase limit to 1000 kB
+    },
 });
