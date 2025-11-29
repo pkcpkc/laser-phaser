@@ -110,5 +110,5 @@ export type ShipMarker = {
     angle: number; // in degrees
 };
 
-export const SOURCE_SHIPS_DIR = 'res/ships';
+export const SOURCE_SHIPS_DIR = 'public/res/ships';
 export const DEST_SHIPS_DIR = 'public/res/ships';
