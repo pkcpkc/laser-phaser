@@ -1,0 +1,98 @@
+[
+  {
+    "type": "armor",
+    "x": 11,
+    "y": 14,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 10,
+    "y": 15,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 13,
+    "y": 16,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 6,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 9,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 12,
+    "y": 17,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 8,
+    "y": 19,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 10,
+    "y": 20,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 8,
+    "y": 36,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 11,
+    "y": 36,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 6,
+    "y": 37,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 9,
+    "y": 37,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 10,
+    "y": 39,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 13,
+    "y": 39,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 19,
+    "y": 39,
+    "angle": 0
+  },
+  {
+    "type": "armor",
+    "x": 11,
+    "y": 40,
+    "angle": 0
+  }
+]
