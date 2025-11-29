@@ -8,10 +8,10 @@ const config: Phaser.Types.Core.GameConfig = {
   height: 600,
   parent: 'app',
   physics: {
-    default: 'arcade',
-    arcade: {
+    default: 'matter',
+    matter: {
       gravity: { x: 0, y: 0 },
-      debug: false
+      debug: false // Set to true if you want to see physics bodies
     }
   },
   scene: [Game]
