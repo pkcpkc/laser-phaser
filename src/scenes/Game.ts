@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import { BigCruiser } from '../ships/big-cruiser';
+import { BloodHunter } from '../ships/blood-hunter';
 
 export default class Game extends Phaser.Scene {
     private ship!: Phaser.Physics.Matter.Image;
@@ -22,8 +24,8 @@ export default class Game extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image('big-cruiser', 'res/ships/big-cruiser.png');
-        this.load.image('blood-hunter', 'res/ships/blood-hunter.png');
+        this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
+        this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
         this.load.atlas('space', 'res/assets/space.png', 'res/assets/space.json');
 
         this.load.on('filecomplete', (key: string, type: string, _data: any) => {
@@ -47,13 +49,13 @@ export default class Game extends Phaser.Scene {
         this.enemyLaserCategory = this.matter.world.nextCategory();
 
         // Add t-ship using Matter.js
-        this.ship = this.matter.add.image(width * 0.5, height - 50, 'big-cruiser');
+        this.ship = this.matter.add.image(width * 0.5, height - 50, BigCruiser.assetKey);
 
         // Configure ship physics
-        this.ship.setAngle(-90);
-        this.ship.setFixedRotation();
-        this.ship.setFrictionAir(0.05);
-        this.ship.setMass(30);
+        this.ship.setAngle(BigCruiser.physics.initialAngle || -90);
+        if (BigCruiser.physics.fixedRotation) this.ship.setFixedRotation();
+        this.ship.setFrictionAir(BigCruiser.physics.frictionAir || 0.05);
+        this.ship.setMass(BigCruiser.physics.mass || 30);
 
         this.ship.setCollisionCategory(this.shipCategory);
         this.ship.setCollidesWith(~this.laserCategory); // Collide with everything except player lasers
@@ -242,16 +244,16 @@ export default class Game extends Phaser.Scene {
             const yOffset = (i % 2 === 0) ? 0 : verticalOffset;
             const y = startY + yOffset;
 
-            const enemy = this.matter.add.image(x, y, 'blood-hunter');
-            enemy.setAngle(90); // Face down (0 is right, 90 is down)
-            enemy.setFixedRotation();
-            enemy.setFrictionAir(0);
+            const enemy = this.matter.add.image(x, y, BloodHunter.assetKey);
+            enemy.setAngle(BloodHunter.physics.initialAngle || 90); // Face down (0 is right, 90 is down)
+            if (BloodHunter.physics.fixedRotation) enemy.setFixedRotation();
+            enemy.setFrictionAir(BloodHunter.physics.frictionAir || 0);
             enemy.setCollisionCategory(this.enemyCategory);
             // Collide with lasers AND ship
             enemy.setCollidesWith(this.laserCategory | this.shipCategory);
 
             // Initial velocity downwards
-            enemy.setVelocityY(2);
+            enemy.setVelocityY(BloodHunter.gameplay.speed || 2);
 
             this.enemies.push({ sprite: enemy, startX: x, timeOffset: i * 0.5 });
 
@@ -330,15 +332,15 @@ export default class Game extends Phaser.Scene {
         // Check if ship is active before controlling it
         if (this.ship.active) {
             if (this.cursors.left.isDown) {
-                this.ship.thrustLeft(0.1);
+                this.ship.thrustLeft(BigCruiser.gameplay.thrust || 0.1);
             } else if (this.cursors.right.isDown) {
-                this.ship.thrustRight(0.1);
+                this.ship.thrustRight(BigCruiser.gameplay.thrust || 0.1);
             }
 
             if (this.cursors.up.isDown) {
-                this.ship.thrust(0.1);
+                this.ship.thrust(BigCruiser.gameplay.thrust || 0.1);
             } else if (this.cursors.down.isDown) {
-                this.ship.thrustBack(0.1);
+                this.ship.thrustBack(BigCruiser.gameplay.thrust || 0.1);
             }
 
             if (this.input.keyboard!.checkDown(this.cursors.space, 250)) {

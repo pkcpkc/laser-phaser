@@ -105,6 +105,7 @@ export default class BloodHuntersScene extends Phaser.Scene {
         this.ship.setFixedRotation();
         this.ship.setFrictionAir(0.05);
         this.ship.setMass(30);
+        this.ship.setSleepThreshold(-1);
         this.ship.setCollisionCategory(this.shipCategory);
         this.ship.setCollidesWith(~this.laserCategory);
     }
@@ -188,6 +189,7 @@ export default class BloodHuntersScene extends Phaser.Scene {
 
     private setupCollisions() {
         this.matter.world.on('collisionstart', (event: Phaser.Physics.Matter.Events.CollisionStartEvent) => {
+            // console.log('Collision started'); // Too spammy, maybe just log count?
             event.pairs.forEach(pair => {
                 const bodyA = pair.bodyA;
                 const bodyB = pair.bodyB;
@@ -266,6 +268,7 @@ export default class BloodHuntersScene extends Phaser.Scene {
     }
 
     update(time: number, _delta: number) {
+        // console.log('Bodies:', this.matter.world.getAllBodies().length);
         if (this.isGameOver) {
             return;
         }
@@ -332,6 +335,7 @@ export default class BloodHuntersScene extends Phaser.Scene {
         const laser = this.matter.add.image(x, y, 'laser');
         laser.setFrictionAir(0);
         laser.setFixedRotation();
+        laser.setSleepThreshold(-1);
         laser.setVelocityY(-10);
 
         laser.setCollisionCategory(this.laserCategory);

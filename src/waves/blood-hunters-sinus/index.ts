@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { BloodHunter } from '../../ships/blood-hunter';
 
 export interface WaveConfig {
     enemyCount: { min: number; max: number };
@@ -72,13 +73,14 @@ export class BloodHuntersSinusWave {
             const yOffset = (i % 2 === 0) ? 0 : this.config.verticalOffset;
             const y = startY + yOffset;
 
-            const enemy = this.scene.matter.add.image(x, y, 'blood-hunter');
-            enemy.setAngle(90); // Face down
-            enemy.setFixedRotation();
-            enemy.setFrictionAir(0);
+            const enemy = this.scene.matter.add.image(x, y, BloodHunter.assetKey);
+            enemy.setAngle(BloodHunter.physics.initialAngle || 90); // Face down
+            if (BloodHunter.physics.fixedRotation) enemy.setFixedRotation();
+            enemy.setFrictionAir(BloodHunter.physics.frictionAir || 0);
             enemy.setCollisionCategory(this.enemyCategory);
             enemy.setCollidesWith(this.laserCategory | this.shipCategory);
-            enemy.setVelocityY(2); // Initial velocity downwards
+            enemy.setSleepThreshold(-1); // Prevent body from sleeping
+            enemy.setVelocityY(BloodHunter.gameplay.speed || 2); // Initial velocity downwards
 
             this.enemies.push({ sprite: enemy, startX: x, timeOffset: i * 0.5 });
 
@@ -113,9 +115,20 @@ export class BloodHuntersSinusWave {
             }
 
             // Apply sinus movement to X
-            const newX = enemyData.startX +
-                Math.sin(time * this.config.frequency + enemyData.timeOffset) * this.config.amplitude;
+            const phase = time * this.config.frequency + enemyData.timeOffset;
+            const newX = enemyData.startX + Math.sin(phase) * this.config.amplitude;
+
             enemy.setPosition(newX, enemy.y);
+
+            // Calculate rotation based on path derivative
+            // vx = d/dt (A sin(wt + off)) = A w cos(wt + off)
+            // We scale vx to match the approximate Y velocity units (pixels per frame)
+            // Y velocity is 2 per frame.
+            // vx (pixels per ms) * 16.66 (ms per frame) gives pixels per frame.
+            const vx = this.config.amplitude * this.config.frequency * Math.cos(phase) * 16.66;
+            const vy = BloodHunter.gameplay.speed || 2; // Constant downward velocity
+
+            enemy.setRotation(Math.atan2(vy, vx));
 
             // Check if out of bounds (bottom)
             if (enemy.y > height + 50) {
@@ -142,6 +155,7 @@ export class BloodHuntersSinusWave {
         const laser = this.scene.matter.add.image(x, y, 'enemy-laser');
         laser.setFrictionAir(0);
         laser.setFixedRotation();
+        laser.setSleepThreshold(-1);
         laser.setVelocityY(10); // Move down
 
         laser.setCollisionCategory(this.enemyLaserCategory);
