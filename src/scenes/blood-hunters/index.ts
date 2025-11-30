@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { BloodHuntersFightLevel } from '../../levels/blood-hunters-fight';
+import { BigCruiser } from '../../ships/big-cruiser';
+import { BloodHunter } from '../../ships/blood-hunter';
+import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
 
 export default class BloodHuntersScene extends Phaser.Scene {
     private ship!: Phaser.Physics.Matter.Image;
@@ -19,14 +22,20 @@ export default class BloodHuntersScene extends Phaser.Scene {
     private emitter!: Phaser.GameObjects.Particles.ParticleEmitter;
     private explosionEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
 
+    private joystick!: VirtualJoystick;
+    private isFiring: boolean = false;
+    private lastFired: number = 0;
+
+    private fireButton!: Phaser.GameObjects.Text;
+
     constructor() {
         super('BloodHunters');
     }
 
     preload() {
-        this.load.image('big-cruiser', 'res/ships/big-cruiser.png');
-        this.load.image('blood-hunter', 'res/ships/blood-hunter.png');
-        this.load.atlas('space', 'res/assets/space.png', 'res/assets/space.json');
+        this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
+        this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
+        // this.load.atlas('space', 'res/assets/space.png', 'res/assets/space.json');
         this.load.atlas('flares', 'res/assets/flares.png', 'res/assets/flares.json');
     }
 
@@ -74,6 +83,61 @@ export default class BloodHuntersScene extends Phaser.Scene {
 
         // Set up keyboard controls
         this.cursors = this.input.keyboard!.createCursorKeys();
+
+        // Mobile Optimizations
+        this.input.addPointer(3);
+        this.game.canvas.style.touchAction = 'none';
+
+        // Joystick
+        this.joystick = new VirtualJoystick(this, {
+            x: 80,
+            y: height - 100,
+            radius: 60,
+            base: this.add.circle(0, 0, 60, 0x888888, 0.3),
+            thumb: this.add.text(0, 0, '✥', { fontSize: '36px' }).setOrigin(0.5),
+            dir: '8dir',
+            forceMin: 16,
+            enable: true
+        });
+
+        // Fire Button
+        this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontSize: '40px', padding: { top: 10, bottom: 10 } })
+            .setOrigin(0.5)
+            .setInteractive()
+            .setInteractive()
+            .on('pointerdown', () => {
+                if (this.isGameOver) {
+                    this.scene.restart();
+                } else {
+                    this.isFiring = true;
+                }
+            })
+            .on('pointerup', () => { this.isFiring = false; })
+            .on('pointerout', () => { this.isFiring = false; });
+
+        // Handle resize
+        this.scale.on('resize', this.handleResize, this);
+    }
+
+    private handleResize(gameSize: Phaser.Structs.Size) {
+        const { width, height } = gameSize;
+
+        // Update world bounds
+        this.matter.world.setBounds(0, 0, width, height);
+
+        // Update UI positions
+        if (this.joystick) {
+            this.joystick.setPosition(80, height - 100);
+        }
+        if (this.fireButton) {
+            this.fireButton.setPosition(width - 80, height - 95);
+        }
+        if (this.gameOverText) {
+            this.gameOverText.setPosition(width * 0.5, height * 0.4);
+        }
+        if (this.restartText) {
+            this.restartText.setPosition(width * 0.5, height * 0.6);
+        }
     }
 
     private createStarfield() {
@@ -100,18 +164,18 @@ export default class BloodHuntersScene extends Phaser.Scene {
     private createPlayerShip() {
         const { width, height } = this.scale;
 
-        this.ship = this.matter.add.image(width * 0.5, height - 50, 'big-cruiser');
-        this.ship.setAngle(-90);
-        this.ship.setFixedRotation();
-        this.ship.setFrictionAir(0.05);
-        this.ship.setMass(30);
+        this.ship = this.matter.add.image(width * 0.5, height - 50, BigCruiser.assetKey);
+        this.ship.setAngle(BigCruiser.physics.initialAngle || -90);
+        if (BigCruiser.physics.fixedRotation) this.ship.setFixedRotation();
+        this.ship.setFrictionAir(BigCruiser.physics.frictionAir || 0.05);
+        this.ship.setMass(BigCruiser.physics.mass || 30);
         this.ship.setSleepThreshold(-1);
         this.ship.setCollisionCategory(this.shipCategory);
         this.ship.setCollidesWith(~this.laserCategory);
     }
 
     private createShipEmitter() {
-        this.emitter = this.add.particles(0, 0, 'space', {
+        this.emitter = this.add.particles(0, 0, 'flares', {
             frame: 'blue',
             speed: {
                 onEmit: () => {
@@ -170,11 +234,11 @@ export default class BloodHuntersScene extends Phaser.Scene {
 
         this.gameOverText = this.add.text(width * 0.5, height * 0.4, 'GAME OVER', {
             fontSize: '64px',
-            color: '#ff0000',
+            color: '#00dd00',
             fontStyle: 'bold'
         }).setOrigin(0.5).setVisible(false).setDepth(100);
 
-        this.restartText = this.add.text(width * 0.5, height * 0.6, 'Press SPACE to Restart', {
+        this.restartText = this.add.text(width * 0.5, height * 0.6, 'Press FIRE', {
             fontSize: '32px',
             color: '#ffffff'
         }).setOrigin(0.5).setVisible(false).setDepth(100);
@@ -295,21 +359,30 @@ export default class BloodHuntersScene extends Phaser.Scene {
 
     private updateShipControls() {
         const { width, height } = this.scale;
+        const time = this.time.now;
 
-        if (this.cursors.left.isDown) {
-            this.ship.thrustLeft(0.1);
-        } else if (this.cursors.right.isDown) {
-            this.ship.thrustRight(0.1);
+        if (this.cursors.left.isDown || this.joystick.left) {
+            this.ship.thrustLeft(BigCruiser.gameplay.thrust || 0.1);
+        } else if (this.cursors.right.isDown || this.joystick.right) {
+            this.ship.thrustRight(BigCruiser.gameplay.thrust || 0.1);
         }
 
-        if (this.cursors.up.isDown) {
-            this.ship.thrust(0.1);
-        } else if (this.cursors.down.isDown) {
-            this.ship.thrustBack(0.1);
+        if (this.cursors.up.isDown || this.joystick.up) {
+            this.ship.thrust(BigCruiser.gameplay.thrust || 0.1);
+        } else if (this.cursors.down.isDown || this.joystick.down) {
+            this.ship.thrustBack(BigCruiser.gameplay.thrust || 0.1);
         }
 
         if (this.input.keyboard!.checkDown(this.cursors.space, 250)) {
             this.fireLaser();
+        }
+
+        // Fire control
+        if (this.isFiring) {
+            if (time > this.lastFired + 250) {
+                this.fireLaser();
+                this.lastFired = time;
+            }
         }
 
         // Keep ship within game boundaries

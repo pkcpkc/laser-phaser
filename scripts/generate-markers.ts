@@ -18,11 +18,6 @@ export async function processFile(sourcePath: string) {
         console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
     }
 
-    if (fs.existsSync(markerPath)) {
-        console.log(`Skipping marker generation for ${fileName} (marker file exists)`);
-        return;
-    }
-
     console.log(`Generating markers for ${fileName}...`);
 
     const data = fs.readFileSync(destPath);
@@ -61,9 +56,6 @@ export async function processFile(sourcePath: string) {
                     }
                 }
 
-                // Only create marker if BOTH conditions are met:
-                // 1. Marker color identified (already checked above)
-                // 2. Orientation marker found in 3x3 area
                 if (angle !== null) {
                     markers.push({ type, x, y, angle });
                 }
@@ -84,6 +76,13 @@ async function main() {
     if (!fs.existsSync(DEST_SHIPS_DIR)) {
         fs.mkdirSync(DEST_SHIPS_DIR, { recursive: true });
         console.log(`Created directory ${DEST_SHIPS_DIR}`);
+    }
+
+    // Delete existing marker files
+    const existingMarkers = await glob(`${DEST_SHIPS_DIR}/*.marker.json`);
+    for (const markerFile of existingMarkers) {
+        fs.unlinkSync(markerFile);
+        console.log(`Deleted existing marker: ${markerFile}`);
     }
 
     const files = await glob(`${SOURCE_SHIPS_DIR}/*.png`);

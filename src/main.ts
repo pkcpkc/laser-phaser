@@ -7,6 +7,14 @@ const config: Phaser.Types.Core.GameConfig = {
   width: 800,
   height: 600,
   parent: 'app',
+  scale: {
+    mode: Phaser.Scale.RESIZE,
+    width: '100%',
+    height: '100%'
+  },
+  input: {
+    activePointers: 3
+  },
   physics: {
     default: 'matter',
     matter: {
@@ -17,4 +25,13 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [BloodHuntersScene]
 };
 
-export default new Phaser.Game(config);
+// Clean up existing game instance if it exists (HMR)
+const existingGame = (window as any).game;
+if (existingGame) {
+  existingGame.destroy(true);
+}
+
+const game = new Phaser.Game(config);
+(window as any).game = game;
+
+export default game;

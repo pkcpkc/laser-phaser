@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BigCruiser } from '../ships/big-cruiser';
 import { BloodHunter } from '../ships/blood-hunter';
+import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
 
 export default class Game extends Phaser.Scene {
     private ship!: Phaser.Physics.Matter.Image;
@@ -19,6 +20,11 @@ export default class Game extends Phaser.Scene {
     private restartText!: Phaser.GameObjects.Text;
     private emitter!: Phaser.GameObjects.Particles.ParticleEmitter;
 
+    private joystick!: VirtualJoystick;
+    // private fireButton!: Phaser.GameObjects.Text; // Removed to fix unused variable error
+    private isFiring: boolean = false;
+    private lastFired: number = 0;
+
     constructor() {
         super('Game');
     }
@@ -26,7 +32,7 @@ export default class Game extends Phaser.Scene {
     preload() {
         this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
         this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
-        this.load.atlas('space', 'res/assets/space.png', 'res/assets/space.json');
+        this.load.atlas('flares', 'res/assets/flares.png', 'res/assets/flares.json');
 
         this.load.on('filecomplete', (key: string, type: string, _data: any) => {
             console.log(`Loaded: ${key} (${type})`);
@@ -64,7 +70,7 @@ export default class Game extends Phaser.Scene {
         this.matter.world.setBounds(0, 0, width, height);
 
         // Create particle emitter
-        this.emitter = this.add.particles(0, 0, 'space', {
+        this.emitter = this.add.particles(0, 0, 'flares', {
             frame: 'blue',
             speed: {
                 onEmit: () => {
@@ -225,6 +231,26 @@ export default class Game extends Phaser.Scene {
 
         // Set up keyboard controls
         this.cursors = this.input.keyboard!.createCursorKeys();
+
+        // Joystick
+        this.joystick = new VirtualJoystick(this, {
+            x: 100,
+            y: height - 100,
+            radius: 60,
+            base: this.add.circle(0, 0, 60, 0x888888, 0.3),
+            thumb: this.add.text(0, 0, '✥', { fontSize: '48px' }).setOrigin(0.5),
+            dir: '8dir',
+            forceMin: 16,
+            enable: true
+        });
+
+        // Fire Button
+        this.add.text(width - 100, height - 100, '🔴', { fontSize: '80px' })
+            .setOrigin(0.5)
+            .setInteractive()
+            .on('pointerdown', () => { this.isFiring = true; })
+            .on('pointerup', () => { this.isFiring = false; })
+            .on('pointerout', () => { this.isFiring = false; });
     }
 
     private spawnEnemyFormation() {
@@ -345,6 +371,27 @@ export default class Game extends Phaser.Scene {
 
             if (this.input.keyboard!.checkDown(this.cursors.space, 250)) {
                 this.fireLaser();
+            }
+
+            // Joystick control
+            if (this.joystick.left) {
+                this.ship.thrustLeft(BigCruiser.gameplay.thrust || 0.1);
+            } else if (this.joystick.right) {
+                this.ship.thrustRight(BigCruiser.gameplay.thrust || 0.1);
+            }
+
+            if (this.joystick.up) {
+                this.ship.thrust(BigCruiser.gameplay.thrust || 0.1);
+            } else if (this.joystick.down) {
+                this.ship.thrustBack(BigCruiser.gameplay.thrust || 0.1);
+            }
+
+            // Fire control
+            if (this.isFiring) {
+                if (time > this.lastFired + 250) {
+                    this.fireLaser();
+                    this.lastFired = time;
+                }
             }
 
             // Keep ship within game boundaries

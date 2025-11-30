@@ -14,3 +14,4 @@ export default defineConfig({
         chunkSizeWarningLimit: 1000, // Phaser is a large library, increase limit to 1000 kB
     },
 });
+// Trigger restart
