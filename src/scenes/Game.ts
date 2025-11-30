@@ -25,6 +25,13 @@ export default class Game extends Phaser.Scene {
         this.load.image('big-cruiser', 'res/ships/big-cruiser.png');
         this.load.image('blood-hunter', 'res/ships/blood-hunter.png');
         this.load.atlas('space', 'res/assets/space.png', 'res/assets/space.json');
+
+        this.load.on('filecomplete', (key: string, type: string, _data: any) => {
+            console.log(`Loaded: ${key} (${type})`);
+        });
+        this.load.on('loaderror', (file: any) => {
+            console.error(`Load Error: ${file.key}`, file);
+        });
     }
 
     create() {
@@ -140,19 +147,17 @@ export default class Game extends Phaser.Scene {
                 const bodyA = pair.bodyA;
                 const bodyB = pair.bodyB;
 
-                // Check for Laser vs Enemy
-                // We need to identify which body is which.
-                const gameObjectA = bodyA.gameObject as Phaser.GameObjects.GameObject;
-                const gameObjectB = bodyB.gameObject as Phaser.GameObjects.GameObject;
-
-                // Check for collision with World Bounds (no gameObject)
+                // Check for Laser vs World Bounds (no gameObject)
                 // This is for lasers hitting walls
-                if ((bodyA.collisionFilter.category === this.laserCategory && !gameObjectB) ||
-                    (bodyB.collisionFilter.category === this.laserCategory && !gameObjectA)) {
-                    if (gameObjectA) gameObjectA.destroy();
-                    if (gameObjectB) gameObjectB.destroy();
+                if ((bodyA.collisionFilter.category === this.laserCategory && !bodyB.gameObject) ||
+                    (bodyB.collisionFilter.category === this.laserCategory && !bodyA.gameObject)) {
+                    if (bodyA.gameObject) bodyA.gameObject.destroy();
+                    if (bodyB.gameObject) bodyB.gameObject.destroy();
                     return;
                 }
+
+                const gameObjectA = bodyA.gameObject as Phaser.GameObjects.GameObject;
+                const gameObjectB = bodyB.gameObject as Phaser.GameObjects.GameObject;
 
                 if (gameObjectA && gameObjectB) {
                     const categoryA = bodyA.collisionFilter.category;

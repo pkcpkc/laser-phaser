@@ -9,8 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ships:markers": "tsx scripts/generate-markers.ts",
-    "ships:cleanup": "tsx scripts/cleanup-markers.ts"
+    "ships:markers": "tsx scripts/generate-markers.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

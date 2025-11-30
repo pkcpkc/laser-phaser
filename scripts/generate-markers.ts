@@ -2,16 +2,21 @@ import fs from 'fs';
 import path from 'path';
 import { PNG } from 'pngjs';
 import { glob } from 'glob';
-import { type ShipMarker, SOURCE_SHIPS_DIR, DEST_SHIPS_DIR, MarkerConfig } from './marker-config';
+import { MarkerConfig, type ShipMarker } from './marker-config';
+
+const SOURCE_SHIPS_DIR = 'public/res/ships';
+const DEST_SHIPS_DIR = 'public/res/ships';
 
 export async function processFile(sourcePath: string) {
     const fileName = path.basename(sourcePath);
     const destPath = path.join(DEST_SHIPS_DIR, fileName);
     const markerPath = destPath.replace('.png', '.marker.json');
 
-    // Copy source file to destination
-    fs.copyFileSync(sourcePath, destPath);
-    console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
+    // Only copy if source and destination are different
+    if (path.resolve(sourcePath) !== path.resolve(destPath)) {
+        fs.copyFileSync(sourcePath, destPath);
+        console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
+    }
 
     if (fs.existsSync(markerPath)) {
         console.log(`Skipping marker generation for ${fileName} (marker file exists)`);
@@ -32,7 +37,7 @@ export async function processFile(sourcePath: string) {
 
             if (type && type !== 'orientation') {
                 // Look for orientation pixel (red) in 3x3 area
-                let angle = 0;
+                let angle: number | null = null;
 
                 // Search 3x3 area centered on marker
                 outer: for (let dy = -1; dy <= 1; dy++) {
@@ -56,11 +61,12 @@ export async function processFile(sourcePath: string) {
                     }
                 }
 
-                // Normalize angle to 0-360 if needed, or keep as is. 
-                // Math.atan2 returns -180 to 180.
-                // Let's keep it consistent with Phaser rotation if possible, but degrees is fine.
-
-                markers.push({ type, x, y, angle });
+                // Only create marker if BOTH conditions are met:
+                // 1. Marker color identified (already checked above)
+                // 2. Orientation marker found in 3x3 area
+                if (angle !== null) {
+                    markers.push({ type, x, y, angle });
+                }
             }
         }
     }

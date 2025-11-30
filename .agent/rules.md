@@ -19,7 +19,7 @@
 ### Workflow
 1. Write/modify code
 2. Write/update corresponding tests
-3. Run tests (`npm test`)
-4. Fix any failing tests
-5. Fix any linting errors
+3. **Fix any linting errors** (`npx tsc --noEmit`)
+4. Run tests (`npm test`)
+5. Fix any failing tests
 6. Verify all checks pass before completion

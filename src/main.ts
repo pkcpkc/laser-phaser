@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import Game from './scenes/Game';
+import BloodHuntersScene from './scenes/blood-hunters';
 import './style.css';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -14,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false // Set to true if you want to see physics bodies
     }
   },
-  scene: [Game]
+  scene: [BloodHuntersScene]
 };
 
 export default new Phaser.Game(config);

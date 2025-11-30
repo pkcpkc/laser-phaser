@@ -5,7 +5,8 @@ import path from 'path';
 import { PNG } from 'pngjs';
 import { processFile } from '../../scripts/generate-markers';
 
-const TEST_DIR = 'res/ships';
+
+const TEST_DIR = 'public/res/ships';
 const TEST_FILE = 'test_ship_vitest.png';
 const TEST_MARKER_FILE = 'test_ship_vitest.marker.json';
 const TEST_PATH = path.join(TEST_DIR, TEST_FILE);

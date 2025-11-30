@@ -13,14 +13,17 @@ Before completing any code changes, ensure you follow the rules in `.agent/rules
    - Use `vitest` for all testing
    - Export functions from source files when needed for testing
 
-2. **Run tests** after writing/updating code
+2. **Fix all linting errors** BEFORE running tests
+   ```bash
+   npx tsc --noEmit
+   ```
+
+3. **Run tests** after fixing linting errors
    ```bash
    npm test
    ```
 
-3. **Fix any failing tests** before considering work complete
-
-4. **Fix all linting errors** before completion
+4. **Fix any failing tests** before considering work complete
 
 5. **Verify all checks pass** before marking work as done
 
@@ -33,6 +36,11 @@ Before completing any code changes, ensure you follow the rules in `.agent/rules
 
 ## Linting
 
-- Address all linting issues
+- **ALWAYS fix linting errors BEFORE running tests**
+- Run TypeScript compiler to check for errors:
+  ```bash
+  npx tsc --noEmit
+  ```
+- Address all linting issues immediately
 - Don't ignore or suppress linting errors
 - Fix root causes, not symptoms
