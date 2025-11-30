@@ -55,11 +55,17 @@ export class SinusWave {
         const startX = width * 0.5;
         const startY = -50; // Start slightly above screen
 
+        // Dynamic ship count based on width
+        const minShips = Math.max(2, Math.floor(width / 250));
+        let maxShips = Math.max(3, Math.floor(width / 150));
+
+        // Ensure max is at least min
+        if (maxShips < minShips) {
+            maxShips = minShips;
+        }
+
         // Random number of enemies
-        const numEnemies = Phaser.Math.Between(
-            this.config.enemyCount.min,
-            this.config.enemyCount.max
-        );
+        const numEnemies = Phaser.Math.Between(minShips, maxShips);
 
         for (let i = 0; i < numEnemies; i++) {
             const x = startX + (i - Math.floor(numEnemies / 2)) * this.config.spacing;

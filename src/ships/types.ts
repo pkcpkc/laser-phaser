@@ -18,13 +18,8 @@ export interface ShipMountConfig {
     primary: new () => Laser;
 }
 
-export interface ExplosionConfig {
-    frame: string;
-    speed?: { min: number; max: number };
-    scale?: { start: number; end: number };
-    lifespan?: number;
-    blendMode?: string | Phaser.BlendModes;
-}
+export type { ExplosionConfig } from './effects/explosion';
+import type { ExplosionConfig } from './effects/explosion';
 
 export interface ShipConfig {
     id: string;
