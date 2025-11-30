@@ -12,8 +12,16 @@ const BloodHunterConfig: ShipConfig = {
         initialAngle: 90
     },
     gameplay: {
-        health: 20,
-        speed: 2
+        health: 3,
+        speed: 2,
+        rotationSpeed: 0.1
+    },
+    explosion: {
+        frame: 'red',
+        speed: { min: 50, max: 150 },
+        scale: { start: 0.4, end: 0 },
+        lifespan: 500,
+        blendMode: 'ADD'
     },
     mounts: {
         primary: RedLaser

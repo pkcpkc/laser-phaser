@@ -14,11 +14,19 @@ const BigCruiserConfig: ShipConfig = {
     },
     gameplay: {
         health: 100,
-        thrust: 0.1,
-        rotationSpeed: 0
+        speed: 200,
+        thrust: 0.2,
+        rotationSpeed: 0.05
     },
     mounts: {
         primary: WhiteLaser
+    },
+    explosion: {
+        frame: 'white', // Assuming blue flare exists, otherwise fallback or use red
+        speed: { min: 50, max: 200 },
+        scale: { start: 0.6, end: 0 },
+        lifespan: 800,
+        blendMode: 'ADD'
     }
 };
 

@@ -1,41 +1,9 @@
 import Phaser from 'phaser';
 import type { Laser } from './mounts/lasers/types';
-import type { ShipEffect, ShipEffectConstructor } from './effects/types';
+import type { ShipEffect } from './effects/types';
 
-export interface ShipPhysicsConfig {
-    mass?: number;
-    frictionAir?: number;
-    fixedRotation?: boolean;
-    initialAngle?: number;
-}
-
-export interface ShipGameplayConfig {
-    health: number;
-    speed?: number;
-    thrust?: number;
-    rotationSpeed?: number;
-}
-
-export interface ShipMountConfig {
-    primary: new () => Laser;
-}
-
-export interface ShipConfig {
-    id: string;
-    assetKey: string;
-    assetPath: string;
-    markerPath: string;
-    physics: ShipPhysicsConfig;
-    gameplay: ShipGameplayConfig;
-    mounts?: ShipMountConfig;
-}
-
-export interface ShipCollisionConfig {
-    category: number;
-    collidesWith: number;
-    laserCategory: number;
-    laserCollidesWith: number;
-}
+export * from './types';
+import type { ShipConfig, ShipCollisionConfig } from './types';
 
 export class Ship {
     readonly sprite: Phaser.Physics.Matter.Image;
@@ -69,11 +37,11 @@ export class Ship {
         }
     }
 
-    setEffect(EffectClass: ShipEffectConstructor) {
+    setEffect(effect: ShipEffect) {
         if (this.effect) {
             this.effect.destroy();
         }
-        this.effect = new EffectClass(this);
+        this.effect = effect;
     }
 
     fireLasers() {
@@ -86,6 +54,36 @@ export class Ship {
             this.collisionConfig.laserCategory,
             this.collisionConfig.laserCollidesWith
         );
+
+        if (this.primaryLaser.recoil) {
+            this.sprite.thrustBack(this.primaryLaser.recoil);
+        }
+    }
+
+    explode() {
+        if (!this.sprite.active) return;
+
+        const explosionConfig = this.config.explosion;
+        if (explosionConfig) {
+            const emitter = this.sprite.scene.add.particles(0, 0, 'flares', {
+                frame: explosionConfig.frame,
+                angle: { min: 0, max: 360 },
+                speed: explosionConfig.speed || { min: 50, max: 150 },
+                scale: explosionConfig.scale || { start: 0.4, end: 0 },
+                lifespan: explosionConfig.lifespan || 500,
+                blendMode: explosionConfig.blendMode || 'ADD',
+                emitting: false
+            });
+            emitter.setDepth(200);
+            emitter.explode(16, this.sprite.x, this.sprite.y);
+
+            // Auto destroy emitter after explosion
+            this.sprite.scene.time.delayedCall(1000, () => {
+                emitter.destroy();
+            });
+        }
+
+        this.destroy();
     }
 
     destroy() {

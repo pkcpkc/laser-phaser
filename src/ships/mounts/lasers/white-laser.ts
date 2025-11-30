@@ -3,6 +3,7 @@ import type { Laser } from './types';
 
 export class WhiteLaser implements Laser {
     readonly TEXTURE_KEY = 'laser';
+    readonly recoil = 0.02;
 
     createTexture(scene: Phaser.Scene) {
         if (!scene.textures.exists(this.TEXTURE_KEY)) {
