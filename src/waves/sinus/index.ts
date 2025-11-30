@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BloodHunter } from '../../ships/blood-hunter';
+import { Ship, type ShipCollisionConfig } from '../../ships/ship';
 
 export interface WaveConfig {
     enemyCount: { min: number; max: number };
@@ -13,33 +13,28 @@ export interface WaveConfig {
 }
 
 export interface EnemyData {
-    sprite: Phaser.Physics.Matter.Image;
+    ship: Ship;
     startX: number;
     timeOffset: number;
 }
 
-export class BloodHuntersSinusWave {
+export class SinusWave {
     private scene: Phaser.Scene;
     private enemies: EnemyData[] = [];
     private config: WaveConfig;
-    private enemyCategory: number;
-    private laserCategory: number;
-    private shipCategory: number;
-    private enemyLaserCategory: number;
+    private shipClass: new (scene: Phaser.Scene, x: number, y: number, collisionConfig: ShipCollisionConfig) => Ship;
+    private collisionConfig: ShipCollisionConfig;
+    private timers: Phaser.Time.TimerEvent[] = [];
 
     constructor(
         scene: Phaser.Scene,
-        enemyCategory: number,
-        laserCategory: number,
-        shipCategory: number,
-        enemyLaserCategory: number,
+        shipClass: new (scene: Phaser.Scene, x: number, y: number, collisionConfig: ShipCollisionConfig) => Ship,
+        collisionConfig: ShipCollisionConfig,
         config?: Partial<WaveConfig>
     ) {
         this.scene = scene;
-        this.enemyCategory = enemyCategory;
-        this.laserCategory = laserCategory;
-        this.shipCategory = shipCategory;
-        this.enemyLaserCategory = enemyLaserCategory;
+        this.shipClass = shipClass;
+        this.collisionConfig = collisionConfig;
 
         // Default configuration
         this.config = {
@@ -73,16 +68,13 @@ export class BloodHuntersSinusWave {
             const yOffset = (i % 2 === 0) ? 0 : this.config.verticalOffset;
             const y = startY + yOffset;
 
-            const enemy = this.scene.matter.add.image(x, y, BloodHunter.assetKey);
-            enemy.setAngle(BloodHunter.physics.initialAngle || 90); // Face down
-            if (BloodHunter.physics.fixedRotation) enemy.setFixedRotation();
-            enemy.setFrictionAir(BloodHunter.physics.frictionAir || 0);
-            enemy.setCollisionCategory(this.enemyCategory);
-            enemy.setCollidesWith(this.laserCategory | this.shipCategory);
-            enemy.setSleepThreshold(-1); // Prevent body from sleeping
-            enemy.setVelocityY(BloodHunter.gameplay.speed || 2); // Initial velocity downwards
+            const ship = new this.shipClass(this.scene, x, y, this.collisionConfig);
+            const enemy = ship.sprite;
+            enemy.setData('ship', ship);
 
-            this.enemies.push({ sprite: enemy, startX: x, timeOffset: i * 0.5 });
+            enemy.setVelocityY(ship.config.gameplay.speed || 2); // Initial velocity downwards
+
+            this.enemies.push({ ship: ship, startX: x, timeOffset: i * 0.5 });
 
             // Shooting behavior
             if (Math.random() < this.config.shootingChance) {
@@ -92,22 +84,24 @@ export class BloodHuntersSinusWave {
                         this.config.shotDelay.max
                     ) + j * 500;
 
-                    this.scene.time.delayedCall(delay, () => {
+                    const timer = this.scene.time.delayedCall(delay, () => {
                         if (enemy.active) {
-                            this.fireEnemyLaser(enemy);
+                            this.fireEnemyLaser(ship);
                         }
                     });
+                    this.timers.push(timer);
                 }
             }
         }
     }
 
     update(time: number) {
+        // console.log('SinusWave update', this.enemies.length);
         const { height } = this.scene.scale;
 
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemyData = this.enemies[i];
-            const enemy = enemyData.sprite;
+            const enemy = enemyData.ship.sprite;
 
             if (!enemy.active) {
                 this.enemies.splice(i, 1);
@@ -126,65 +120,22 @@ export class BloodHuntersSinusWave {
             // Y velocity is 2 per frame.
             // vx (pixels per ms) * 16.66 (ms per frame) gives pixels per frame.
             const vx = this.config.amplitude * this.config.frequency * Math.cos(phase) * 16.66;
-            const vy = BloodHunter.gameplay.speed || 2; // Constant downward velocity
+            const vy = enemyData.ship.config.gameplay.speed || 2; // Constant downward velocity
 
             enemy.setRotation(Math.atan2(vy, vx));
 
             // Check if out of bounds (bottom)
             if (enemy.y > height + 50) {
-                enemy.destroy();
+                enemyData.ship.destroy();
                 this.enemies.splice(i, 1);
             }
         }
     }
 
-    private fireEnemyLaser(enemy: Phaser.Physics.Matter.Image) {
-        if (!enemy.active) return;
+    private fireEnemyLaser(ship: Ship) {
+        if (!ship.sprite.active) return;
 
-        const { x, y } = enemy;
-
-        // Generate red laser texture if not already created
-        if (!this.scene.textures.exists('enemy-laser')) {
-            const graphics = this.scene.make.graphics({ x: 0, y: 0 });
-            graphics.fillStyle(0xff0000, 1);
-            graphics.fillRect(0, 0, 4, 4);
-            graphics.generateTexture('enemy-laser', 4, 4);
-            graphics.destroy();
-        }
-
-        const laser = this.scene.matter.add.image(x, y, 'enemy-laser');
-        laser.setFrictionAir(0);
-        laser.setFixedRotation();
-        laser.setSleepThreshold(-1);
-        laser.setVelocityY(10); // Move down
-
-        laser.setCollisionCategory(this.enemyLaserCategory);
-        laser.setCollidesWith(this.shipCategory);
-
-        const timer = this.scene.time.addEvent({
-            delay: 100,
-            loop: true,
-            callback: () => {
-                if (!laser.active) {
-                    timer.remove();
-                    return;
-                }
-                // Check bounds for cleanup
-                if (laser.y < -100 || laser.y > this.scene.scale.height + 100 ||
-                    laser.x < -100 || laser.x > this.scene.scale.width + 100) {
-                    laser.destroy();
-                    timer.remove();
-                }
-            }
-        });
-
-        laser.setOnCollide((data: any) => {
-            const bodyB = data.bodyB;
-            if (!bodyB.gameObject) {
-                laser.destroy();
-                timer.remove();
-            }
-        });
+        ship.fireLasers();
     }
 
     isComplete(): boolean {
@@ -196,10 +147,10 @@ export class BloodHuntersSinusWave {
     }
 
     destroy() {
+        this.timers.forEach(timer => timer.remove());
+        this.timers = [];
         this.enemies.forEach(enemyData => {
-            if (enemyData.sprite.active) {
-                enemyData.sprite.destroy();
-            }
+            enemyData.ship.destroy();
         });
         this.enemies = [];
     }
