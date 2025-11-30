@@ -65,9 +65,9 @@ export default class BaseScene extends Phaser.Scene {
 
         const collisionConfig = {
             category: categories.shipCategory,
-            collidesWith: ~categories.laserCategory,
+            collidesWith: categories.enemyCategory | categories.enemyLaserCategory,
             laserCategory: categories.laserCategory,
-            laserCollidesWith: ~categories.shipCategory
+            laserCollidesWith: categories.enemyCategory
         };
 
         this.ship = new BigCruiser(this, width * 0.5, height - 50, collisionConfig);
