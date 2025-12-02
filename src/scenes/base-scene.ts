@@ -79,13 +79,13 @@ export default class BaseScene extends Phaser.Scene {
 
         // Joystick
         this.joystick = new VirtualJoystick(this, {
-            x: 80,
+            x: 100,
             y: height - 100,
-            radius: 60,
-            base: this.add.circle(0, 0, 60, 0x888888, 0.3),
+            radius: 100,
+            base: this.add.circle(0, 0, 100, 0x888888, 0.3),
             thumb: this.add.text(0, 0, '✥', { fontSize: '36px' }).setOrigin(0.5),
             dir: '8dir',
-            forceMin: 16,
+            forceMin: 40,
             enable: true
         });
 
@@ -129,7 +129,7 @@ export default class BaseScene extends Phaser.Scene {
 
         // Update UI positions
         if (this.joystick) {
-            this.joystick.setPosition(80, height - 100);
+            this.joystick.setPosition(100, height - 100);
         }
         if (this.fireButton) {
             this.fireButton.setPosition(width - 80, height - 95);
