@@ -7,16 +7,20 @@ export class CollisionManager {
     private laserCategory: number;
     private enemyCategory: number;
     private enemyLaserCategory: number;
+    private lootCategory: number;
     private onGameOver: () => void;
+    private onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void;
 
-    constructor(scene: Phaser.Scene, onGameOver: () => void) {
+    constructor(scene: Phaser.Scene, onGameOver: () => void, onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void) {
         this.scene = scene;
         this.onGameOver = onGameOver;
+        this.onLootCollected = onLootCollected;
 
         this.shipCategory = this.scene.matter.world.nextCategory();
         this.laserCategory = this.scene.matter.world.nextCategory();
         this.enemyCategory = this.scene.matter.world.nextCategory();
         this.enemyLaserCategory = this.scene.matter.world.nextCategory();
+        this.lootCategory = this.scene.matter.world.nextCategory();
     }
 
     public getCategories() {
@@ -24,7 +28,8 @@ export class CollisionManager {
             shipCategory: this.shipCategory,
             laserCategory: this.laserCategory,
             enemyCategory: this.enemyCategory,
-            enemyLaserCategory: this.enemyLaserCategory
+            enemyLaserCategory: this.enemyLaserCategory,
+            lootCategory: this.lootCategory
         };
     }
 
@@ -46,8 +51,17 @@ export class CollisionManager {
                 }
 
                 if (gameObjectA && gameObjectB) {
+                    if (gameObjectA.constructor.name === 'Loot' || gameObjectB.constructor.name === 'Loot') {
+                        console.log('!!! LOOT COLLISION DETECTED !!!');
+                        console.log('A:', gameObjectA.constructor.name, bodyA.collisionFilter.category);
+                        console.log('B:', gameObjectB.constructor.name, bodyB.collisionFilter.category);
+                    }
+
                     const categoryA = bodyA.collisionFilter.category;
                     const categoryB = bodyB.collisionFilter.category;
+
+                    // console.log(`Collision: ${gameObjectA.constructor.name} (${categoryA}) vs ${gameObjectB.constructor.name} (${categoryB})`);
+                    // console.log('Ship Category:', this.shipCategory, 'Loot Category:', this.lootCategory);
 
                     // Laser vs Enemy
                     if ((categoryA === this.laserCategory && categoryB === this.enemyCategory) ||
@@ -60,13 +74,17 @@ export class CollisionManager {
                             const ship = enemy.getData('ship') as Ship;
                             if (ship) ship.explode();
                             else {
-                                if (categoryA === this.enemyCategory) gameObjectA.destroy();
-                                if (categoryB === this.enemyCategory) gameObjectB.destroy();
+                                this.scene.time.delayedCall(0, () => {
+                                    if (categoryA === this.enemyCategory && gameObjectA.active) gameObjectA.destroy();
+                                    if (categoryB === this.enemyCategory && gameObjectB.active) gameObjectB.destroy();
+                                });
                             }
                         }
 
-                        if (categoryA === this.laserCategory) gameObjectA.destroy();
-                        if (categoryB === this.laserCategory) gameObjectB.destroy();
+                        this.scene.time.delayedCall(0, () => {
+                            if (categoryA === this.laserCategory && gameObjectA.active) gameObjectA.destroy();
+                            if (categoryB === this.laserCategory && gameObjectB.active) gameObjectB.destroy();
+                        });
                     }
 
                     // Ship vs Enemy
@@ -78,7 +96,11 @@ export class CollisionManager {
                             if (enemy.active) {
                                 const ship = enemy.getData('ship') as Ship;
                                 if (ship) ship.explode();
-                                else gameObjectA.destroy();
+                                else {
+                                    this.scene.time.delayedCall(0, () => {
+                                        if (gameObjectA.active) gameObjectA.destroy();
+                                    });
+                                }
                             }
                         }
                         if (categoryB === this.enemyCategory) {
@@ -86,7 +108,11 @@ export class CollisionManager {
                             if (enemy.active) {
                                 const ship = enemy.getData('ship') as Ship;
                                 if (ship) ship.explode();
-                                else gameObjectB.destroy();
+                                else {
+                                    this.scene.time.delayedCall(0, () => {
+                                        if (gameObjectB.active) gameObjectB.destroy();
+                                    });
+                                }
                             }
                         }
 
@@ -98,10 +124,22 @@ export class CollisionManager {
                         (categoryB === this.shipCategory && categoryA === this.enemyLaserCategory)) {
 
                         // Destroy enemy laser
-                        if (categoryA === this.enemyLaserCategory && gameObjectA.active) gameObjectA.destroy();
-                        if (categoryB === this.enemyLaserCategory && gameObjectB.active) gameObjectB.destroy();
+                        this.scene.time.delayedCall(0, () => {
+                            if (categoryA === this.enemyLaserCategory && gameObjectA.active) gameObjectA.destroy();
+                            if (categoryB === this.enemyLaserCategory && gameObjectB.active) gameObjectB.destroy();
+                        });
 
                         this.onGameOver();
+                    }
+
+                    // Ship vs Loot
+                    if ((categoryA === this.shipCategory && categoryB === this.lootCategory) ||
+                        (categoryB === this.shipCategory && categoryA === this.lootCategory)) {
+
+                        const loot = categoryA === this.lootCategory ? gameObjectA : gameObjectB;
+                        if (this.onLootCollected) {
+                            this.onLootCollected(loot);
+                        }
                     }
                 }
             });

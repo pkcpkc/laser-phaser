@@ -1,11 +1,12 @@
 import { Ship, type ShipConfig, type ShipCollisionConfig } from './ship';
 import { RedLaser } from './mounts/lasers/red-laser';
+import { markers } from '../generated/blood-hunter';
 
 const BloodHunterConfig: ShipConfig = {
     id: 'blood-hunter',
     assetKey: 'blood-hunter',
     assetPath: 'res/ships/blood-hunter.png',
-    markerPath: 'res/ships/blood-hunter.marker.json',
+    markers: markers,
     physics: {
         frictionAir: 0,
         fixedRotation: true,
@@ -25,6 +26,13 @@ const BloodHunterConfig: ShipConfig = {
     },
     mounts: {
         primary: RedLaser
+    },
+    loot: {
+        text: '🪙',
+        dropChance: 1,
+        lifespan: 3000,
+        type: 'silver',
+        value: 1
     }
 };
 

@@ -22,6 +22,7 @@ vi.mock('phaser', () => {
                         active = true;
                         x = 100;
                         y = 100;
+                        rotation = 0;
                         scene = {};
                     }
                 }
@@ -105,7 +106,7 @@ describe('Ship', () => {
             expect.anything(),
             100,
             100,
-            undefined, // rotation
+            0, // rotation
             4,
             [8]
         );
@@ -128,5 +129,43 @@ describe('Ship', () => {
     it('should destroy correctly', () => {
         ship.destroy();
         expect(ship.sprite.destroy).toHaveBeenCalled();
+    });
+
+    it('should fire lasers from multiple mount points', () => {
+        const multiMountConfig = {
+            ...mockConfig,
+            mountPoints: [
+                { x: 10, y: 0, angle: 0 },
+                { x: -10, y: 0, angle: Math.PI }
+            ]
+        };
+        const multiMountShip = new Ship(mockScene, 100, 100, multiMountConfig, mockCollisionConfig);
+
+        // Ensure sprite rotation is 0 for simplicity
+        multiMountShip.sprite.rotation = 0;
+
+        multiMountShip.fireLasers();
+
+        expect(mockLaserInstance.fire).toHaveBeenCalledTimes(2);
+
+        // First mount point: x=10, y=0, angle=0 -> absX=110, absY=100, absAngle=0
+        expect(mockLaserInstance.fire).toHaveBeenCalledWith(
+            expect.anything(),
+            110,
+            100,
+            0,
+            4,
+            [8]
+        );
+
+        // Second mount point: x=-10, y=0, angle=PI -> absX=90, absY=100, absAngle=PI
+        expect(mockLaserInstance.fire).toHaveBeenCalledWith(
+            expect.anything(),
+            90,
+            100,
+            Math.PI,
+            4,
+            [8]
+        );
     });
 });

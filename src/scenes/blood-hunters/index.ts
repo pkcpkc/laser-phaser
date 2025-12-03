@@ -30,7 +30,9 @@ export default class BloodHuntersScene extends BaseScene {
             category: categories.enemyCategory,
             collidesWith: categories.laserCategory | categories.shipCategory,
             laserCategory: categories.enemyLaserCategory,
-            laserCollidesWith: categories.shipCategory
+            laserCollidesWith: categories.shipCategory,
+            lootCategory: categories.lootCategory,
+            lootCollidesWith: categories.shipCategory
         };
 
         this.level = new Level(

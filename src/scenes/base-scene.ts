@@ -34,7 +34,11 @@ export default class BaseScene extends Phaser.Scene {
 
         // Initialize Managers
         this.gameManager = new GameManager(this);
-        this.collisionManager = new CollisionManager(this, () => this.handleGameOver());
+        this.collisionManager = new CollisionManager(
+            this,
+            () => this.handleGameOver(),
+            (loot) => this.handleLootCollected(loot)
+        );
 
         // Set world bounds
         this.matter.world.setBounds(0, 0, width, height);
@@ -66,17 +70,37 @@ export default class BaseScene extends Phaser.Scene {
 
         const collisionConfig = {
             category: categories.shipCategory,
-            collidesWith: categories.enemyCategory | categories.enemyLaserCategory,
+            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory,
             laserCategory: categories.laserCategory,
-            laserCollidesWith: categories.enemyCategory
+            laserCollidesWith: categories.enemyCategory,
+            lootCategory: categories.lootCategory,
+            lootCollidesWith: categories.shipCategory
         };
 
         this.ship = new BigCruiser(this, width * 0.5, height - 50, collisionConfig);
         this.ship.setEffect(new EngineTrail(this.ship));
     }
 
+    protected goldCount: number = 0;
+    protected silverCount: number = 0;
+    protected gemCount: number = 0;
+    protected mountCount: number = 0;
+    protected goldText!: Phaser.GameObjects.Text;
+    protected silverText!: Phaser.GameObjects.Text;
+    protected gemText!: Phaser.GameObjects.Text;
+    protected mountText!: Phaser.GameObjects.Text;
+
     protected createUI() {
         const { width, height } = this.scale;
+
+        // Coin Counters
+        // Coin Counters
+        // Coin Counters
+        const xPos = width - 20;
+        this.silverText = this.add.text(xPos, 20, '0 🪙', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.goldText = this.add.text(xPos, 50, '0 🌕', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.gemText = this.add.text(xPos, 80, '0 💎', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.mountText = this.add.text(xPos, 110, '0 📦', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
 
         // Joystick
         this.joystick = new VirtualJoystick(this, {
@@ -119,6 +143,38 @@ export default class BaseScene extends Phaser.Scene {
         });
     }
 
+    protected handleLootCollected(lootGameObject: Phaser.GameObjects.GameObject) {
+        if (!lootGameObject.active) return;
+
+        const loot = lootGameObject as any; // Cast to access config
+        if (loot.config) {
+            const value = loot.config.value || 1;
+            const type = loot.config.type || 'silver';
+
+            if (type === 'gold') {
+                this.goldCount += value;
+                this.goldText.setText(`${this.goldCount} 🌕`);
+            } else if (type === 'gem') {
+                this.gemCount += value;
+                this.gemText.setText(`${this.gemCount} 💎`);
+            } else if (type === 'mount') {
+                this.mountCount += value;
+                this.mountText.setText(`${this.mountCount} 📦`);
+                console.log('Mount collected!');
+            } else {
+                this.silverCount += value;
+                this.silverText.setText(`${this.silverCount} 🪙`);
+            }
+        }
+
+        // Defer destruction to avoid physics issues
+        this.time.delayedCall(0, () => {
+            if (lootGameObject.active) {
+                lootGameObject.destroy();
+            }
+        });
+    }
+
     protected setupControls() {
         this.cursors = this.input.keyboard!.createCursorKeys();
         this.playerController = new PlayerController(this, this.ship, this.cursors, this.joystick);
@@ -139,11 +195,22 @@ export default class BaseScene extends Phaser.Scene {
         this.matter.world.setBounds(0, 0, width, height);
 
         // Update UI positions
+        const xPos = width - 20;
+        if (this.silverText) {
+            this.silverText.setPosition(xPos, 20);
+        }
+        if (this.goldText) {
+            this.goldText.setPosition(xPos, 50);
+        }
+        if (this.gemText) {
+            this.gemText.setPosition(xPos, 80);
+        }
+        if (this.mountText) {
+            this.mountText.setPosition(xPos, 110);
+        }
+
         if (this.joystick) {
             this.joystick.setPosition(100, height - 100);
-        }
-        if (this.fireButton) {
-            this.fireButton.setPosition(width - 80, height - 95);
         }
 
         this.gameManager.handleResize(width, height);

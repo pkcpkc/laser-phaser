@@ -1,11 +1,12 @@
 import { Ship, type ShipConfig, type ShipCollisionConfig } from './ship';
 import { WhiteLaser } from './mounts/lasers/white-laser';
+import { markers } from '../generated/big-cruiser';
 
 const BigCruiserConfig: ShipConfig = {
     id: 'big-cruiser',
     assetKey: 'big-cruiser',
     assetPath: 'res/ships/big-cruiser.png',
-    markerPath: 'res/ships/big-cruiser.marker.json',
+    markers: markers,
     physics: {
         mass: 30,
         frictionAir: 0.05,
