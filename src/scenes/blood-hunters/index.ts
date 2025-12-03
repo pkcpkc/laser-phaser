@@ -1,9 +1,10 @@
 import BaseScene from '../base-scene';
 import { BloodHunter } from '../../ships/blood-hunter';
-import { SinusWave } from '../../formations/sinus';
+import { Level } from '../../levels/level';
+import { BloodHuntersLevel } from '../../levels/blood-hunters-level';
 
 export default class BloodHuntersScene extends BaseScene {
-    private currentWave: SinusWave | null = null;
+    private level: Level | null = null;
 
     constructor() {
         super('BloodHunters');
@@ -17,12 +18,12 @@ export default class BloodHuntersScene extends BaseScene {
     create() {
         super.create();
 
-        // Initialize wave
-        this.spawnWave();
+        // Initialize Level
+        this.startLevel();
     }
 
-    private spawnWave() {
-        console.log('Spawning Wave');
+    private startLevel() {
+        console.log('Starting Level');
         const categories = this.collisionManager.getCategories();
 
         const collisionConfig = {
@@ -32,19 +33,19 @@ export default class BloodHuntersScene extends BaseScene {
             laserCollidesWith: categories.shipCategory
         };
 
-        this.currentWave = new SinusWave(
+        this.level = new Level(
             this,
-            BloodHunter,
+            BloodHuntersLevel,
             collisionConfig
         );
-        this.currentWave.spawn();
+        this.level.start();
     }
 
     protected handleGameOver() {
         super.handleGameOver();
-        if (this.currentWave) {
-            this.currentWave.destroy();
-            this.currentWave = null;
+        if (this.level) {
+            this.level.destroy();
+            this.level = null;
         }
     }
 
@@ -55,12 +56,9 @@ export default class BloodHuntersScene extends BaseScene {
             return;
         }
 
-        // Update wave
-        if (this.currentWave) {
-            this.currentWave.update(time);
-            if (this.currentWave.isComplete()) {
-                this.spawnWave();
-            }
+        // Update level
+        if (this.level) {
+            this.level.update(time, delta);
         }
     }
 }

@@ -52,6 +52,7 @@ export class Ship {
             this.sprite.scene,
             this.sprite.x,
             this.sprite.y,
+            this.sprite.rotation,
             this.collisionConfig.laserCategory,
             this.collisionConfig.laserCollidesWith
         );

@@ -26,6 +26,7 @@ export default class BaseScene extends Phaser.Scene {
     preload() {
         this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
         this.load.atlas('flares', 'res/assets/flares.png', 'res/assets/flares.json');
+        this.load.image('nebula', 'res/assets/nebula.png');
     }
 
     create() {

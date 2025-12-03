@@ -7,6 +7,7 @@ export interface Laser {
         scene: Phaser.Scene,
         x: number,
         y: number,
+        angle: number,
         category: number,
         collidesWith: number
     ): Phaser.Physics.Matter.Image;

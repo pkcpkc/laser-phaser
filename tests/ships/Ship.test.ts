@@ -105,6 +105,7 @@ describe('Ship', () => {
             expect.anything(),
             100,
             100,
+            undefined, // rotation
             4,
             [8]
         );

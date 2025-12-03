@@ -4,9 +4,12 @@ export class Starfield {
     private scene: Phaser.Scene;
     private stars: { sprite: Phaser.GameObjects.Image, speed: number }[] = [];
 
+    private nebula!: Phaser.GameObjects.TileSprite;
+
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
         this.createTexture();
+        this.createNebula();
         this.createStars();
     }
 
@@ -18,6 +21,14 @@ export class Starfield {
             graphics.generateTexture('star', 2, 2);
             graphics.destroy();
         }
+    }
+
+    private createNebula() {
+        const { width, height } = this.scene.scale;
+        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, 'nebula');
+        this.nebula.setOrigin(0.5, 0.5);
+        this.nebula.setDepth(-2); // Behind stars
+        this.nebula.setAlpha(0.5); // Slightly transparent
     }
 
     private createStars() {
@@ -34,6 +45,10 @@ export class Starfield {
 
     update() {
         const { width, height } = this.scene.scale;
+
+        // Scroll nebula
+        this.nebula.tilePositionY -= 0.2;
+
         this.stars.forEach(star => {
             star.sprite.y += star.speed;
             if (star.sprite.y > height) {
@@ -44,6 +59,7 @@ export class Starfield {
     }
 
     destroy() {
+        this.nebula.destroy();
         this.stars.forEach(star => star.sprite.destroy());
         this.stars = [];
     }
