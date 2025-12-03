@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SinusWave } from '../../src/waves/sinus/index';
+import { SinusWave } from '../../src/formations/sinus/index';
 import { Ship } from '../../src/ships/ship';
 
 // Mock Phaser

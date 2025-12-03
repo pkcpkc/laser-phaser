@@ -1,6 +1,6 @@
 import BaseScene from '../base-scene';
 import { BloodHunter } from '../../ships/blood-hunter';
-import { SinusWave } from '../../waves/sinus';
+import { SinusWave } from '../../formations/sinus';
 
 export default class BloodHuntersScene extends BaseScene {
     private currentWave: SinusWave | null = null;

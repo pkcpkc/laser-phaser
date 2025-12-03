@@ -31,17 +31,35 @@ export class PlayerController {
 
         const { width, height } = this.scene.scale;
 
-        // Movement
-        if (this.cursors.left.isDown || this.joystick.left) {
+        // Keyboard Movement
+        if (this.cursors.left.isDown) {
             this.ship.sprite.thrustLeft(BigCruiser.gameplay.thrust || 0.1);
-        } else if (this.cursors.right.isDown || this.joystick.right) {
+        } else if (this.cursors.right.isDown) {
             this.ship.sprite.thrustRight(BigCruiser.gameplay.thrust || 0.1);
         }
 
-        if (this.cursors.up.isDown || this.joystick.up) {
+        if (this.cursors.up.isDown) {
             this.ship.sprite.thrust(BigCruiser.gameplay.thrust || 0.1);
-        } else if (this.cursors.down.isDown || this.joystick.down) {
+        } else if (this.cursors.down.isDown) {
             this.ship.sprite.thrustBack(BigCruiser.gameplay.thrust || 0.1);
+        }
+
+        // Joystick Movement (Analog with Sensitivity Curve)
+        if (this.joystick.force > 0) {
+            const maxForce = 100; // Joystick radius
+            const normalizedForce = Math.min(this.joystick.force, maxForce) / maxForce;
+
+            // Quadratic sensitivity curve: slower near center, faster near edge
+            const sensitivity = normalizedForce * normalizedForce;
+
+            const maxThrust = BigCruiser.gameplay.thrust || 0.1;
+            const thrustMagnitude = sensitivity * maxThrust;
+
+            const rotation = this.joystick.rotation;
+            const thrustX = Math.cos(rotation) * thrustMagnitude;
+            const thrustY = Math.sin(rotation) * thrustMagnitude;
+
+            this.ship.sprite.applyForce(new Phaser.Math.Vector2(thrustX, thrustY));
         }
 
         // Fire

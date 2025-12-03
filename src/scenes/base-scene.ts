@@ -94,6 +94,16 @@ export default class BaseScene extends Phaser.Scene {
             .setOrigin(0.5)
             .setInteractive();
 
+        // Hide controls on first space press
+        this.input.keyboard!.once('keydown-SPACE', () => {
+            if (this.joystick) {
+                this.joystick.setVisible(false);
+            }
+            if (this.fireButton) {
+                this.fireButton.setVisible(false);
+            }
+        });
+
         // Restart Listener
         this.input.keyboard!.on('keydown-SPACE', () => {
             if (!this.gameManager.isGameActive()) {
