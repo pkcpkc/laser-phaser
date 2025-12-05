@@ -99,29 +99,36 @@ export class Ship {
                 new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
             }
 
-            if (this.config.loot) {
+            // Loot Spawning Logic
+            // Priority: Mount (5%) -> Standard Loot (Configured Chance)
+
+            let lootSpawned = false;
+
+            // 1. Try to spawn Mount (5% chance)
+            if (Math.random() <= 0.05) {
+                console.log('Spawning MOUNT loot');
+                const mountLootConfig = {
+                    text: '📦',
+                    type: 'mount' as const,
+                    lifespan: 5000
+                };
+                const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, mountLootConfig);
+                if (this.collisionConfig.lootCategory) {
+                    loot.setCollisionCategory(this.collisionConfig.lootCategory);
+                }
+                if (this.collisionConfig.lootCollidesWith) {
+                    loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
+                }
+                lootSpawned = true;
+            }
+
+            // 2. If no Mount spawned, try Standard Loot
+            if (!lootSpawned && this.config.loot) {
                 try {
                     const chance = this.config.loot.dropChance ?? 1;
                     if (Math.random() <= chance) {
-                        console.log('Spawning loot');
+                        console.log('Spawning standard loot');
                         const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, this.config.loot);
-                        if (this.collisionConfig.lootCategory) {
-                            loot.setCollisionCategory(this.collisionConfig.lootCategory);
-                        }
-                        if (this.collisionConfig.lootCollidesWith) {
-                            loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
-                        }
-                    }
-
-                    // 5% chance to drop a random mount
-                    if (Math.random() <= 0.05) {
-                        console.log('Spawning MOUNT loot');
-                        const mountLootConfig = {
-                            text: '📦',
-                            type: 'mount' as const,
-                            lifespan: 5000
-                        };
-                        const loot = new Loot(this.sprite.scene, this.sprite.x + 20, this.sprite.y + 20, mountLootConfig);
                         if (this.collisionConfig.lootCategory) {
                             loot.setCollisionCategory(this.collisionConfig.lootCategory);
                         }

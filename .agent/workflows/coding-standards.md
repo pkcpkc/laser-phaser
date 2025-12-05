@@ -8,10 +8,11 @@ Before completing any code changes, ensure you follow the rules in `.agent/rules
 
 ## Required Steps
 
-1. **Write/update tests** for all code changes
+1. **Write/update tests** for all code changes and new code
    - Place tests in `tests/` directory mirroring source structure
    - Use `vitest` for all testing
    - Export functions from source files when needed for testing
+   - Ensure code coverage of 70-80%
 
 2. **Fix all linting errors** BEFORE running tests
    ```bash
@@ -26,6 +27,8 @@ Before completing any code changes, ensure you follow the rules in `.agent/rules
 4. **Fix any failing tests** before considering work complete
 
 5. **Verify all checks pass** before marking work as done
+
+6. **Update README.md** to reflect any changes made to the project (features, usage, configuration, etc.)
 
 ## Testing Workflow
 

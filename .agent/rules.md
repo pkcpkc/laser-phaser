@@ -23,3 +23,4 @@
 4. Run tests (`npm test`)
 5. Fix any failing tests
 6. Verify all checks pass before completion
+7. **Update README.md** with any relevant changes
