@@ -1,10 +1,10 @@
 # Laser Phaser
 
+[![Play Now](https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white)](https://pkcpkc.github.io/laser-phaser/)
+
 ## Credits
 Designed by **Leopold** and **Thaddeus**.  
 Implemented with the help of **Google Antigravity** and... **Paul** ;)
-
-<video src="gameplay.mp4" controls width="100%"></video>
 
 ## Homage
 This game is a homage to the legendary late 80s shooter games that defined the genre. We draw inspiration from the classics:
