@@ -5,7 +5,7 @@ import { markers } from '../generated/blood-hunter';
 const BloodHunterConfig: ShipConfig = {
     id: 'blood-hunter',
     assetKey: 'blood-hunter',
-    assetPath: 'res/ships/blood-hunter.png',
+    assetPath: 'assets/ships/blood-hunter.png',
     markers: markers,
     physics: {
         frictionAir: 0,

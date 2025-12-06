@@ -5,7 +5,7 @@ import { markers } from '../generated/big-cruiser';
 const BigCruiserConfig: ShipConfig = {
     id: 'big-cruiser',
     assetKey: 'big-cruiser',
-    assetPath: 'res/ships/big-cruiser.png',
+    assetPath: 'assets/ships/big-cruiser.png',
     markers: markers,
     physics: {
         mass: 30,

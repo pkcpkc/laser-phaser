@@ -4,8 +4,8 @@ import { PNG } from 'pngjs';
 import { glob } from 'glob';
 import { MarkerConfig, type ShipMarker } from './marker-config';
 
-const SOURCE_SHIPS_DIR = 'public/res/ships';
-const DEST_SHIPS_DIR = 'public/res/ships';
+const SOURCE_SHIPS_DIR = 'public/assets/ships';
+const DEST_SHIPS_DIR = 'public/assets/ships';
 const GENERATED_DIR = 'src/generated';
 
 export async function processFile(sourcePath: string) {

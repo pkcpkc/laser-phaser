@@ -1,4 +1,6 @@
 import Phaser from 'phaser';
+import BootScene from './scenes/boot-scene';
+import PreloadScene from './scenes/preload-scene';
 import BloodHuntersScene from './scenes/blood-hunters';
 import './style.css';
 
@@ -22,7 +24,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false // Set to true if you want to see physics bodies
     }
   },
-  scene: [BloodHuntersScene]
+  scene: [BootScene, PreloadScene, BloodHuntersScene]
 };
 
 // Clean up existing game instance if it exists (HMR)

@@ -1,5 +1,5 @@
 import BaseScene from '../base-scene';
-import { BloodHunter } from '../../ships/blood-hunter';
+
 import { Level } from '../../levels/level';
 import { BloodHuntersLevel } from '../../levels/blood-hunters-level';
 
@@ -10,10 +10,7 @@ export default class BloodHuntersScene extends BaseScene {
         super('BloodHunters');
     }
 
-    preload() {
-        super.preload();
-        this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
-    }
+
 
     create() {
         super.create();
