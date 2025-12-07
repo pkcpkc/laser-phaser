@@ -3,17 +3,50 @@ import { BaseRocket } from './base-rocket';
 
 export class GreenRocket extends BaseRocket {
     readonly TEXTURE_KEY = 'green-rocket';
+    readonly mountTextureKey = 'green-rocket-mount';
     readonly COLOR = 0x00ff00;
     readonly SPEED = 4; // Slower than laser (8)
     readonly recoil = 0.1;
     readonly width = 2;
     readonly height = 2;
 
+    readonly reloadTime = 2000;
+
     readonly maxAmmo = 20;
 
     constructor() {
         super();
         this.currentAmmo = this.maxAmmo;
+    }
+
+    override createTexture(scene: Phaser.Scene) {
+        // Create standard projectile texture
+        super.createTexture(scene);
+
+        // Create specific mount texture (cluster of dots to mimic the effect)
+        if (!scene.textures.exists(this.mountTextureKey)) {
+            const size = 20; // Enough space for radius 8
+            const graphics = scene.make.graphics({ x: 0, y: 0 });
+
+            // Center is at size/2, size/2
+            const cx = size / 2;
+            const cy = size / 2;
+            const radius = 8;
+
+            graphics.fillStyle(this.COLOR, 1);
+
+            // Central dot
+            graphics.fillRect(cx - 1, cy - 1, 2, 2);
+
+            // Orbiting dots (static)
+            graphics.fillRect(cx + radius - 1, cy - 1, 2, 2); // Right
+            graphics.fillRect(cx - radius - 1, cy - 1, 2, 2); // Left
+            graphics.fillRect(cx - 1, cy + radius - 1, 2, 2); // Down
+            graphics.fillRect(cx - 1, cy - radius - 1, 2, 2); // Up
+
+            graphics.generateTexture(this.mountTextureKey, size, size);
+            graphics.destroy();
+        }
     }
 
     override fire(

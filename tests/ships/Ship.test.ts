@@ -52,11 +52,17 @@ describe('Ship', () => {
     beforeEach(() => {
         mockLaserInstance = {
             fire: vi.fn(),
-            recoil: 5
+            recoil: 5,
+            createTexture: vi.fn(),
+            visibleOnMount: false,
+            TEXTURE_KEY: 'laser'
         };
         mockLaserClass = class {
             fire = mockLaserInstance.fire;
             recoil = mockLaserInstance.recoil;
+            createTexture = mockLaserInstance.createTexture;
+            visibleOnMount = mockLaserInstance.visibleOnMount;
+            TEXTURE_KEY = mockLaserInstance.TEXTURE_KEY;
         };
 
         mockScene = {
@@ -153,6 +159,7 @@ describe('Ship', () => {
             ]
         };
         const multiMountShip = new Ship(mockScene, 100, 100, multiMountConfig, mockCollisionConfig);
+        (multiMountShip.sprite as any).scene = mockScene;
 
         // Ensure sprite rotation is 0 for simplicity
         multiMountShip.sprite.rotation = 0;

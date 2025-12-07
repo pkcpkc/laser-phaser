@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SinusWave } from '../../src/formations/sinus/index';
+import { SinusWave } from '../../src/waves/sinus/index';
 import { Ship } from '../../src/ships/ship';
 
 // Mock Phaser
@@ -26,6 +26,7 @@ vi.mock('../../src/ships/ship', () => {
                 this.sprite = {
                     setData: vi.fn(),
                     setVelocityY: vi.fn(),
+                    setVelocity: vi.fn(),
                     setPosition: vi.fn(),
                     setRotation: vi.fn(),
                     active: true,

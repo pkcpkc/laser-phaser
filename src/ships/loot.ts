@@ -62,8 +62,7 @@ export class Loot extends Phaser.Physics.Matter.Image {
 
         if (config.type === 'mount') {
             // Add flare effect
-            const particles = scene.add.particles(0, 0, 'flares', {
-                frame: 'white',
+            const particles = scene.add.particles(0, 0, 'flare-white', {
                 color: [0xffffff],
                 lifespan: 1000,
                 angle: { min: 0, max: 360 },

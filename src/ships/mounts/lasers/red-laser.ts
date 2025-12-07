@@ -1,9 +1,9 @@
 import { BaseLaser } from './base-laser';
 
 export class RedLaser extends BaseLaser {
-    readonly TEXTURE_KEY = 'red-laser';
+    readonly TEXTURE_KEY = 'red-laser-v2';
     readonly COLOR = 0xff0000;
     readonly SPEED = 5;
-    readonly width = 2;
-    readonly height = 2;
+    readonly width = 3;
+    readonly height = 3;
 }

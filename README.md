@@ -1,6 +1,6 @@
 # Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a>
 
-![Laser Phaser Logo](docs/res/laser-phaser-logo.png)
+![Laser Phaser Logo](./docs/assets/laser-phaser-logo.png)
 
 ## Credits
 Concept and design by **Leopold** and **Thaddeus**.  
@@ -31,6 +31,21 @@ This game is a homage to the legendary late 80s shooter games that defined the g
 *   **Language**: [TypeScript](https://www.typescriptlang.org/) - For type-safe, maintainable code.
 *   **Build Tool**: [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling for lightning-fast development servers and optimized builds.
 *   **Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework.
+
+### Game Entities
+
+```mermaid
+graph TD
+    Level --> |Contains| Wave
+    Wave --> |Uses| WaveType(WaveType<br/>e.g. Sinus)
+    Wave --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
+    WaveType --> |Spawns| Ship
+    Ship --> |Configured by| ShipConfig
+    Ship --> |Has| Mount
+    Mount --> |Equips| Weapon
+    Weapon --> |Type| Laser
+    Weapon --> |Type| Rocket
+```
 
 ### Getting Started
 

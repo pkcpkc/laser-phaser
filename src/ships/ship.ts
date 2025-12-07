@@ -13,12 +13,15 @@ interface ActiveMount {
     y: number;
     angle: number;
     weapon: Laser;
+    lastFired?: number;
 }
 
 export class Ship {
     readonly sprite: Phaser.Physics.Matter.Image;
     private activeMounts: ActiveMount[] = [];
+    private mountSprites: Map<ActiveMount, Phaser.GameObjects.Image> = new Map();
     private effect?: ShipEffect;
+    private updateListener?: () => void;
 
     constructor(
         scene: Phaser.Scene,
@@ -55,12 +58,58 @@ export class Ship {
                 const mountY = m.marker.y - (this.sprite.height * 0.5);
                 const mountAngle = m.marker.angle * (Math.PI / 180);
 
-                return {
+                const mountData = {
                     x: mountX,
                     y: mountY,
                     angle: mountAngle,
                     weapon: new m.weapon()
                 };
+
+                // Create texture if needed
+                mountData.weapon.createTexture(scene);
+
+                // Create sprite if visible on mount
+                if (mountData.weapon.visibleOnMount) {
+                    // Create a visual-only sprite (no physics)
+                    // Use the mountTextureKey if available, otherwise TEXTURE_KEY
+                    const weapon = mountData.weapon as any;
+                    const textureKey = weapon.mountTextureKey || weapon.TEXTURE_KEY;
+
+                    if (textureKey) {
+                        const mountSprite = scene.add.image(x + mountX, y + mountY, textureKey);
+
+                        // Initial rotation
+                        mountSprite.setRotation(this.sprite.rotation + mountAngle);
+                        mountSprite.setDepth(this.sprite.depth + 1); // Ensure on top
+                        // Inherit scale if present
+                        if (mountData.weapon.scale) {
+                            mountSprite.setScale(mountData.weapon.scale);
+                        }
+                        this.mountSprites.set(mountData, mountSprite);
+                    } else {
+                        console.warn('No texture key for visible mount weapon');
+                    }
+                }
+
+                return mountData;
+            });
+        }
+
+        // Setup update listener to sync mount sprites
+        if (this.mountSprites.size > 0) {
+            this.updateListener = () => this.updateMounts();
+            this.sprite.scene.events.on('update', this.updateListener);
+
+            // cleanup on destroy is important
+            this.sprite.once('destroy', () => {
+                this.destroy();
+            });
+            // Force initial update to set correct position and visibility
+            this.updateMounts();
+
+            // Checking for load race conditions: Update again after a short delay to ensure dimensions are loaded
+            scene.time.delayedCall(100, () => {
+                this.updateMounts();
             });
         }
     }
@@ -76,8 +125,21 @@ export class Ship {
         if (!this.sprite.active) return;
 
         let totalRecoil = 0;
+        const now = this.sprite.scene.time.now;
 
         for (const mount of this.activeMounts) {
+            // Check reload cooldown
+            if (mount.weapon.reloadTime && mount.lastFired) {
+                if (now - mount.lastFired < mount.weapon.reloadTime) {
+                    continue; // Still reloading
+                }
+            }
+
+            // Check ammo
+            if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
+                continue; // Out of ammo (BaseRocket checks this too, but good to check here for consistency/optimization)
+            }
+
             const rotation = this.sprite.rotation;
 
             // Rotate mount point offset
@@ -91,7 +153,7 @@ export class Ship {
             const absoluteY = this.sprite.y + rotatedY;
             const absoluteAngle = rotation + (mount.angle || 0);
 
-            mount.weapon.fire(
+            const projectile = mount.weapon.fire(
                 this.sprite.scene,
                 absoluteX,
                 absoluteY,
@@ -99,6 +161,10 @@ export class Ship {
                 this.collisionConfig.laserCategory,
                 this.collisionConfig.laserCollidesWith
             );
+
+            if (projectile) {
+                mount.lastFired = now; // Mark time fired
+            }
 
             if (mount.weapon.recoil) {
                 totalRecoil += mount.weapon.recoil;
@@ -112,7 +178,57 @@ export class Ship {
         }
     }
 
+    private updateMounts() {
+        if (!this.sprite.active) return;
+
+        const rotation = this.sprite.rotation;
+        const cos = Math.cos(rotation);
+        const sin = Math.sin(rotation);
+
+        this.mountSprites.forEach((sprite, mount) => {
+            // Check ammo visibility
+            const now = this.sprite.scene.time.now;
+
+            // 1. Check Ammo
+            if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
+                sprite.setVisible(false);
+                return;
+            }
+
+            // 2. Check Reload State
+            if (mount.weapon.reloadTime && mount.lastFired) {
+                if (now - mount.lastFired < mount.weapon.reloadTime) {
+                    sprite.setVisible(false); // Reloading -> Hide
+                    return;
+                }
+            }
+
+            // 2. Check Reload State
+            if (mount.weapon.reloadTime && mount.lastFired) {
+                if (now - mount.lastFired < mount.weapon.reloadTime) {
+                    sprite.setVisible(false); // Reloading -> Hide
+                    return;
+                }
+            }
+
+            // Default: Visible
+            sprite.setVisible(true);
+
+            // Sync position
+            const rotatedX = mount.x * cos - mount.y * sin;
+            const rotatedY = mount.x * sin + mount.y * cos;
+
+            const absoluteX = this.sprite.x + rotatedX;
+            const absoluteY = this.sprite.y + rotatedY;
+            const absoluteAngle = rotation + (mount.angle || 0);
+
+            sprite.setPosition(absoluteX, absoluteY);
+            sprite.setRotation(absoluteAngle);
+        });
+    }
+
     private isExploding = false;
+    private isDestroyed = false;
 
     explode() {
         if (!this.sprite.active || this.isExploding) return;
@@ -180,10 +296,22 @@ export class Ship {
     }
 
     destroy() {
+        if (this.isDestroyed) return;
+        this.isDestroyed = true;
+
         if (this.effect) {
             this.effect.destroy();
             this.effect = undefined;
         }
+
+        // Clean up mount sprites
+        if (this.updateListener) {
+            this.sprite?.scene?.events?.off('update', this.updateListener);
+            this.updateListener = undefined;
+        }
+        this.mountSprites.forEach(sprite => sprite.destroy());
+        this.mountSprites.clear();
+
         if (this.sprite && this.sprite.active) {
             this.sprite.destroy();
         }

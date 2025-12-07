@@ -12,8 +12,7 @@ export class Explosion {
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
     constructor(scene: Phaser.Scene, x: number, y: number, config: ExplosionConfig) {
-        this.emitter = scene.add.particles(0, 0, 'flares', {
-            frame: config.frame,
+        this.emitter = scene.add.particles(0, 0, `flare-${config.frame}`, {
             angle: { min: 0, max: 360 },
             speed: config.speed || { min: 50, max: 150 },
             scale: config.scale || { start: 0.4, end: 0 },

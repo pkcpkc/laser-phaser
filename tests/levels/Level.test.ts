@@ -43,8 +43,8 @@ class MockWave {
     update = vi.fn();
     destroy = vi.fn();
     isComplete = vi.fn(() => true);
-    constructor(scene: any, shipClass: any, collisionConfig: any, config: any) {
-        void scene; void shipClass; void collisionConfig; void config;
+    constructor(scene: any, shipClass: any, collisionConfig: any, config: any, shipConfig: any) {
+        void scene; void shipClass; void collisionConfig; void config; void shipConfig;
         MockWave.instances.push(this);
     }
 }
@@ -82,7 +82,7 @@ describe('Level', () => {
             name: 'Test Level',
             waves: [
                 {
-                    formationType: MockWave,
+                    waveType: MockWave,
                     shipClass: MockShip,
                     count: 1
                 }
@@ -101,7 +101,7 @@ describe('Level', () => {
             name: 'Test Level',
             waves: [
                 {
-                    formationType: MockWave,
+                    waveType: MockWave,
                     shipClass: MockShip,
                     count: 2,
                     interval: 100

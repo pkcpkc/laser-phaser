@@ -3,7 +3,8 @@ import { BaseLaser } from '../lasers/base-laser';
 
 export abstract class BaseRocket extends BaseLaser {
     abstract readonly maxAmmo: number;
-    protected currentAmmo: number | undefined;
+    readonly visibleOnMount = true;
+    currentAmmo: number | undefined;
 
     constructor() {
         super();

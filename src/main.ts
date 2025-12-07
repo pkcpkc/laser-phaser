@@ -14,7 +14,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: '100%',
     height: '100%'
   },
-  pixelArt: true,
+  pixelArt: false,
   input: {
     activePointers: 3
   },

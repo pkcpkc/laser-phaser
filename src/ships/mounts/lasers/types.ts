@@ -3,6 +3,11 @@ import Phaser from 'phaser';
 export interface Laser {
     createTexture(scene: Phaser.Scene): void;
     recoil?: number;
+    scale?: number;
+    visibleOnMount?: boolean;
+    mountTextureKey?: string;
+    reloadTime?: number;
+    currentAmmo?: number;
     fire(
         scene: Phaser.Scene,
         x: number,

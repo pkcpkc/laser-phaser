@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { BigCruiser } from '../ships/big-cruiser';
 import { BloodHunter } from '../ships/blood-hunter';
 import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
+import { generateFlareTextures } from '../utils/flare-generator';
 
 export default class PreloadScene extends Phaser.Scene {
     private startTime: number = 0;
@@ -26,7 +27,6 @@ export default class PreloadScene extends Phaser.Scene {
         // Load Game Assets
         // From BaseScene
         this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
-        this.load.atlas('flares', 'assets/particles/flares.png', 'assets/particles/flares.json');
         this.load.image('nebula', 'assets/backgrounds/nebula.png');
 
         // From BloodHuntersScene
@@ -36,6 +36,9 @@ export default class PreloadScene extends Phaser.Scene {
 
     create() {
         console.log('PreloadScene: create started');
+
+        // Generate procedural textures
+        generateFlareTextures(this);
 
         // Create the loading text initially
         this.loadingText = this.add.text(0, 0, 'LOADING...', {

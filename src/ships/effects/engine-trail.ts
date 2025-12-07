@@ -8,8 +8,7 @@ export class EngineTrail implements ShipEffect {
     constructor(ship: Ship) {
         const scene = ship.sprite.scene;
 
-        this.emitter = scene.add.particles(0, 0, 'flares', {
-            frame: 'blue',
+        this.emitter = scene.add.particles(0, 0, 'flare-white', {
             speed: {
                 onEmit: () => {
                     if (ship.sprite.active && ship.sprite.body) {

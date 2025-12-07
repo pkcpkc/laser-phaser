@@ -1,9 +1,11 @@
 import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../ships/ship';
+import type { ShipConfig } from '../ships/types';
 
 export interface WaveConfig {
-    formationType: any; // Constructor for the wave (e.g., SinusWave)
-    shipClass: new (scene: Phaser.Scene, x: number, y: number, collisionConfig: ShipCollisionConfig) => Ship;
+    waveType: any; // Constructor for the wave (e.g., SinusWave)
+    shipClass?: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
+    shipConfig?: ShipConfig;
     config?: any; // Specific config for the wave (e.g., SinusWaveConfig)
     count?: number; // Number of times to repeat this wave
     interval?: number; // Delay between repeats in ms
@@ -83,12 +85,16 @@ export class Level {
     }
 
     private spawnWave(waveConfig: WaveConfig) {
-        console.log(`Spawning wave: ${waveConfig.formationType.name} with ${waveConfig.shipClass.name}`);
-        this.currentWaveInstance = new waveConfig.formationType(
+        const shipClass = waveConfig.shipClass || Ship;
+        const shipConfig = waveConfig.shipConfig;
+
+        console.log(`Spawning wave: ${waveConfig.waveType.name} with ${shipClass.name}`);
+        this.currentWaveInstance = new waveConfig.waveType(
             this.scene,
-            waveConfig.shipClass,
+            shipClass,
             this.collisionConfig,
-            waveConfig.config
+            waveConfig.config,
+            shipConfig
         );
         this.currentWaveInstance.spawn();
     }

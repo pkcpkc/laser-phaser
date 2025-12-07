@@ -8,6 +8,13 @@ export abstract class BaseLaser implements Laser {
 
     // Optional recoil property
     readonly recoil?: number;
+    // Optional scale property
+    readonly scale?: number;
+
+    readonly reloadTime?: number;
+    readonly mountTextureKey?: string;
+
+    readonly visibleOnMount: boolean = false;
 
     abstract readonly width: number;
     abstract readonly height: number;
@@ -38,6 +45,9 @@ export abstract class BaseLaser implements Laser {
         laser.setSleepThreshold(-1);
 
         laser.setRotation(angle);
+        if (this.scale) {
+            laser.setScale(this.scale);
+        }
 
         // Calculate velocity vector from angle and speed
         // Phaser rotation is in radians. 0 is right, PI/2 is down, PI is left, -PI/2 is up.
