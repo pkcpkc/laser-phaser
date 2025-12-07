@@ -7,7 +7,8 @@ vi.mock('phaser', () => {
         default: {
             Physics: {
                 Matter: {
-                    Events: {}
+                    Events: {},
+                    Image: class { }
                 }
             },
             GameObjects: {
@@ -25,13 +26,16 @@ describe('CollisionManager', () => {
 
     beforeEach(() => {
         mockWorld = {
-            nextCategory: vi.fn().mockReturnValueOnce(1).mockReturnValueOnce(2).mockReturnValueOnce(4).mockReturnValueOnce(8),
+            nextCategory: vi.fn().mockReturnValueOnce(1).mockReturnValueOnce(2).mockReturnValueOnce(4).mockReturnValueOnce(8).mockReturnValueOnce(16),
             on: vi.fn()
         };
 
         mockScene = {
             matter: {
                 world: mockWorld
+            },
+            time: {
+                delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
             }
         };
 
@@ -86,7 +90,7 @@ describe('CollisionManager', () => {
         it('should destroy laser and explode enemy when they collide', () => {
             const mockLaserBody = {
                 collisionFilter: { category: 2 }, // laserCategory
-                gameObject: { destroy: vi.fn() }
+                gameObject: { destroy: vi.fn(), active: true }
             };
 
             const mockShip = { explode: vi.fn() };

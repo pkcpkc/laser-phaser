@@ -1,42 +1,13 @@
-import { Ship, type ShipConfig, type ShipCollisionConfig } from './ship';
-import { WhiteLaser } from './mounts/lasers/white-laser';
-import { markers } from '../generated/big-cruiser';
-
-const BigCruiserConfig: ShipConfig = {
-    id: 'big-cruiser',
-    assetKey: 'big-cruiser',
-    assetPath: 'assets/ships/big-cruiser.png',
-    markers: markers,
-    physics: {
-        mass: 30,
-        frictionAir: 0.05,
-        fixedRotation: true,
-        initialAngle: -90
-    },
-    gameplay: {
-        health: 100,
-        speed: 200,
-        thrust: 0.2,
-        rotationSpeed: 0.05
-    },
-    mounts: {
-        primary: WhiteLaser
-    },
-    explosion: {
-        frame: 'white', // Assuming blue flare exists, otherwise fallback or use red
-        speed: { min: 50, max: 200 },
-        scale: { start: 0.6, end: 0 },
-        lifespan: 800,
-        blendMode: 'ADD'
-    }
-};
+import { Ship, type ShipCollisionConfig } from './ship';
+import { BigCruiserDefinition } from './definitions/big-cruiser';
+import { BigCruiser1L } from './configurations/big-cruiser-1l';
 
 export class BigCruiser extends Ship {
-    static assetKey = BigCruiserConfig.assetKey;
-    static assetPath = BigCruiserConfig.assetPath;
-    static gameplay = BigCruiserConfig.gameplay;
+    static assetKey = BigCruiserDefinition.assetKey;
+    static assetPath = BigCruiserDefinition.assetPath;
+    static gameplay = BigCruiserDefinition.gameplay;
 
     constructor(scene: Phaser.Scene, x: number, y: number, collisionConfig: ShipCollisionConfig) {
-        super(scene, x, y, BigCruiserConfig, collisionConfig);
+        super(scene, x, y, BigCruiser1L, collisionConfig);
     }
 }

@@ -4,15 +4,21 @@ import type { ShipEffect } from './effects/types';
 import { Explosion } from './effects/explosion';
 
 export * from './types';
-import type { ShipConfig, ShipCollisionConfig, MountPoint } from './types';
+import type { ShipConfig, ShipCollisionConfig } from './types';
 
 import { Loot } from './loot';
 
+interface ActiveMount {
+    x: number;
+    y: number;
+    angle: number;
+    weapon: Laser;
+}
+
 export class Ship {
     readonly sprite: Phaser.Physics.Matter.Image;
-    private primaryLaser?: Laser;
+    private activeMounts: ActiveMount[] = [];
     private effect?: ShipEffect;
-    private mountPoints: MountPoint[];
 
     constructor(
         scene: Phaser.Scene,
@@ -21,14 +27,16 @@ export class Ship {
         public readonly config: ShipConfig,
         private readonly collisionConfig: ShipCollisionConfig
     ) {
-        this.sprite = scene.matter.add.image(x, y, config.assetKey);
+        // Use definition for asset loading
+        this.sprite = scene.matter.add.image(x, y, config.definition.assetKey);
         this.sprite.setData('ship', this);
 
+        const phys = config.definition.physics;
         // Apply Physics Config
-        this.sprite.setAngle(config.physics.initialAngle || 0);
-        if (config.physics.fixedRotation) this.sprite.setFixedRotation();
-        if (config.physics.frictionAir !== undefined) this.sprite.setFrictionAir(config.physics.frictionAir);
-        if (config.physics.mass) this.sprite.setMass(config.physics.mass);
+        this.sprite.setAngle(phys.initialAngle || 0);
+        if (phys.fixedRotation) this.sprite.setFixedRotation();
+        if (phys.frictionAir !== undefined) this.sprite.setFrictionAir(phys.frictionAir);
+        if (phys.mass) this.sprite.setMass(phys.mass);
 
         this.sprite.setSleepThreshold(-1);
 
@@ -37,10 +45,23 @@ export class Ship {
         this.sprite.setCollidesWith(collisionConfig.collidesWith);
 
         // Initialize Mounts
-        this.mountPoints = config.mountPoints || [{ x: 0, y: 0, angle: 0 }];
+        this.activeMounts = [];
+        if (config.mounts) {
+            this.activeMounts = config.mounts.map(m => {
+                // Determine relative position based on sprite center
+                // Markers are usually absolute pixels on the original image? 
+                // Previous code assumed marker x/y are pixels on the image.
+                const mountX = m.marker.x - (this.sprite.width * 0.5);
+                const mountY = m.marker.y - (this.sprite.height * 0.5);
+                const mountAngle = m.marker.angle * (Math.PI / 180);
 
-        if (config.mounts?.primary) {
-            this.primaryLaser = new config.mounts.primary();
+                return {
+                    x: mountX,
+                    y: mountY,
+                    angle: mountAngle,
+                    weapon: new m.weapon()
+                };
+            });
         }
     }
 
@@ -52,9 +73,11 @@ export class Ship {
     }
 
     fireLasers() {
-        if (!this.sprite.active || !this.primaryLaser) return;
+        if (!this.sprite.active) return;
 
-        for (const mount of this.mountPoints) {
+        let totalRecoil = 0;
+
+        for (const mount of this.activeMounts) {
             const rotation = this.sprite.rotation;
 
             // Rotate mount point offset
@@ -68,7 +91,7 @@ export class Ship {
             const absoluteY = this.sprite.y + rotatedY;
             const absoluteAngle = rotation + (mount.angle || 0);
 
-            this.primaryLaser.fire(
+            mount.weapon.fire(
                 this.sprite.scene,
                 absoluteX,
                 absoluteY,
@@ -76,10 +99,16 @@ export class Ship {
                 this.collisionConfig.laserCategory,
                 this.collisionConfig.laserCollidesWith
             );
+
+            if (mount.weapon.recoil) {
+                totalRecoil += mount.weapon.recoil;
+            }
         }
 
-        if (this.primaryLaser.recoil) {
-            this.sprite.thrustBack(this.primaryLaser.recoil);
+        // Apply average or total recoil? Usually concurrent fire adds up.
+        // If getting too crazy, might want to damp it, but let's try sum first.
+        if (totalRecoil > 0) {
+            this.sprite.thrustBack(totalRecoil / (this.activeMounts.length || 1)); // Averaging recoil for stability for now
         }
     }
 
@@ -94,7 +123,7 @@ export class Ship {
             // console.log('Ship exploding deferred execution');
             if (!this.sprite.active) return; // Double check in case already destroyed
 
-            const explosionConfig = this.config.explosion;
+            const explosionConfig = this.config.definition.explosion;
             if (explosionConfig) {
                 new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
             }
@@ -106,7 +135,7 @@ export class Ship {
 
             // 1. Try to spawn Mount (5% chance)
             if (Math.random() <= 0.05) {
-                console.log('Spawning MOUNT loot');
+                // console.log('Spawning MOUNT loot');
                 const mountLootConfig = {
                     text: '📦',
                     type: 'mount' as const,
@@ -123,11 +152,16 @@ export class Ship {
             }
 
             // 2. If no Mount spawned, try Standard Loot
+            // Loot config is now on the definition or the instance?
+            // Types says ShipConfig has loot, but ShipDefinition doesn't have it explicitly in my previous step?
+            // Checking types.ts content I wrote:
+            // ShipConfig has loot?: LootConfig
+
             if (!lootSpawned && this.config.loot) {
                 try {
                     const chance = this.config.loot.dropChance ?? 1;
                     if (Math.random() <= chance) {
-                        console.log('Spawning standard loot');
+                        // console.log('Spawning standard loot');
                         const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, this.config.loot);
                         if (this.collisionConfig.lootCategory) {
                             loot.setCollisionCategory(this.collisionConfig.lootCategory);

@@ -24,6 +24,9 @@ vi.mock('phaser', () => {
                         y = 100;
                         rotation = 0;
                         scene = {};
+                        width = 32;
+                        height = 32;
+                        setData = vi.fn();
                     }
                 }
             }
@@ -61,23 +64,32 @@ describe('Ship', () => {
                 add: {
                     image: vi.fn().mockImplementation(() => new Phaser.Physics.Matter.Image(mockScene.matter.world, 0, 0, ''))
                 }
+            },
+            time: {
+                delayedCall: vi.fn().mockImplementation((_d, cb) => cb())
             }
         };
 
         mockConfig = {
-            assetKey: 'ship',
-            physics: {
-                initialAngle: 90,
-                fixedRotation: true,
-                frictionAir: 0.1,
-                mass: 10
+            definition: {
+                assetKey: 'ship',
+                physics: {
+                    initialAngle: 90,
+                    fixedRotation: true,
+                    frictionAir: 0.1,
+                    mass: 10
+                },
+                explosion: {
+                    someConfig: true
+                },
+                gameplay: {
+                    speed: 5
+                }
             },
-            mounts: {
-                primary: mockLaserClass
-            },
-            explosion: {
-                someConfig: true
-            }
+            mounts: [{
+                marker: { x: 10, y: 0, angle: 0 },
+                weapon: mockLaserClass
+            }]
         };
 
         mockCollisionConfig = {
@@ -88,6 +100,7 @@ describe('Ship', () => {
         };
 
         ship = new Ship(mockScene, 100, 100, mockConfig, mockCollisionConfig);
+        (ship.sprite as any).scene = mockScene; // Fix for scene access
     });
 
     it('should initialize correctly', () => {
@@ -104,8 +117,8 @@ describe('Ship', () => {
         ship.fireLasers();
         expect(mockLaserInstance.fire).toHaveBeenCalledWith(
             expect.anything(),
-            100,
-            100,
+            94,
+            84,
             0, // rotation
             4,
             [8]
@@ -134,9 +147,9 @@ describe('Ship', () => {
     it('should fire lasers from multiple mount points', () => {
         const multiMountConfig = {
             ...mockConfig,
-            mountPoints: [
-                { x: 10, y: 0, angle: 0 },
-                { x: -10, y: 0, angle: Math.PI }
+            mounts: [
+                { marker: { x: 10, y: 0, angle: 0 }, weapon: mockLaserClass },
+                { marker: { x: -10, y: 0, angle: 180 }, weapon: mockLaserClass }
             ]
         };
         const multiMountShip = new Ship(mockScene, 100, 100, multiMountConfig, mockCollisionConfig);
@@ -151,18 +164,18 @@ describe('Ship', () => {
         // First mount point: x=10, y=0, angle=0 -> absX=110, absY=100, absAngle=0
         expect(mockLaserInstance.fire).toHaveBeenCalledWith(
             expect.anything(),
-            110,
-            100,
+            94,
+            84,
             0,
             4,
             [8]
         );
 
-        // Second mount point: x=-10, y=0, angle=PI -> absX=90, absY=100, absAngle=PI
+        // Second mount point: x=-10, y=0, angle=180 -> absX=74, absY=84, absAngle=PI
         expect(mockLaserInstance.fire).toHaveBeenCalledWith(
             expect.anything(),
-            90,
-            100,
+            74,
+            84,
             Math.PI,
             4,
             [8]

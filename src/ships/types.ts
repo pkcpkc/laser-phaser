@@ -20,6 +20,7 @@ export interface MountPoint {
     angle?: number; // relative angle in radians, 0 is forward
 }
 
+// Deprecated: Old way of assigning primary laser
 export interface ShipMountConfig {
     primary: new () => Laser;
 }
@@ -42,16 +43,33 @@ export interface LootConfig {
     type?: 'gold' | 'silver' | 'gem' | 'mount';
 }
 
-export interface ShipConfig {
+// --- New Architecture ---
+
+/**
+ * Static definition of a ship's chassis/hull.
+ * Defines what options are AVAILABLE.
+ */
+export interface ShipDefinition {
     id: string;
     assetKey: string;
     assetPath: string;
-    markers?: ShipMarker[];
     physics: ShipPhysicsConfig;
     gameplay: ShipGameplayConfig;
-    mountPoints?: MountPoint[];
-    mounts?: ShipMountConfig;
     explosion?: ExplosionConfig;
+    // All possible markers on this hull
+    markers: ShipMarker[];
+}
+
+/**
+ * Configuration for a specific instance of a ship type.
+ * Combines the static definition with a specific loadout.
+ */
+export interface ShipConfig {
+    definition: ShipDefinition;
+    mounts: {
+        marker: ShipMarker;
+        weapon: new () => Laser;
+    }[];
     loot?: LootConfig;
 }
 

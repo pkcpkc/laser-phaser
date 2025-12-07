@@ -8,14 +8,17 @@ import { processFile } from '../../scripts/generate-markers';
 
 const TEST_DIR = 'public/res/ships';
 const TEST_FILE = 'test_ship_vitest.png';
-const TEST_MARKER_FILE = 'test_ship_vitest.marker.json';
+const TEST_MARKER_FILE = 'test_ship_vitest.markers.ts';
 const TEST_PATH = path.join(TEST_DIR, TEST_FILE);
-const MARKER_PATH = path.join(TEST_DIR, TEST_MARKER_FILE);
+const MARKER_PATH = path.join('src/generated', TEST_MARKER_FILE);
 
 describe('Marker Generator', () => {
     beforeAll(() => {
         if (!fs.existsSync(TEST_DIR)) {
             fs.mkdirSync(TEST_DIR, { recursive: true });
+        }
+        if (!fs.existsSync('src/generated')) {
+            fs.mkdirSync('src/generated', { recursive: true });
         }
         createTestPng(TEST_PATH);
     });
@@ -34,7 +37,10 @@ describe('Marker Generator', () => {
         expect(fs.existsSync(MARKER_PATH)).toBe(true);
 
         const content = fs.readFileSync(MARKER_PATH, 'utf-8');
-        const markers = JSON.parse(content);
+        // Extract JSON from TS file
+        const jsonMatch = content.match(/export const markers: ShipMarker\[] = (\[[\s\S]*]);/);
+        if (!jsonMatch) throw new Error('Could not find markers array in generated file');
+        const markers = JSON.parse(jsonMatch[1]);
 
         expect(markers).toHaveLength(4);
 

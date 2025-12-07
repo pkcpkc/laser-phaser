@@ -5,4 +5,6 @@ export class WhiteLaser extends BaseLaser {
     readonly COLOR = 0xffffff;
     readonly SPEED = 10;
     readonly recoil = 0.02;
+    readonly width = 4;
+    readonly height = 4;
 }

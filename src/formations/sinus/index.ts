@@ -78,7 +78,7 @@ export class SinusWave {
             const enemy = ship.sprite;
             enemy.setData('ship', ship);
 
-            enemy.setVelocityY(ship.config.gameplay.speed || 2); // Initial velocity downwards
+            enemy.setVelocityY(ship.config.definition.gameplay.speed || 2); // Initial velocity downwards
 
             this.enemies.push({ ship: ship, startX: x, timeOffset: i * 0.5 });
 
@@ -126,7 +126,7 @@ export class SinusWave {
             // Y velocity is 2 per frame.
             // vx (pixels per ms) * 16.66 (ms per frame) gives pixels per frame.
             const vx = this.config.amplitude * this.config.frequency * Math.cos(phase) * 16.66;
-            const vy = enemyData.ship.config.gameplay.speed || 2; // Constant downward velocity
+            const vy = enemyData.ship.config.definition.gameplay.speed || 2; // Constant downward velocity
 
             enemy.setRotation(Math.atan2(vy, vx));
 

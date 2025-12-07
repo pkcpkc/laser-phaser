@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { BigCruiser } from '../ships/big-cruiser';
 import { BloodHunter } from '../ships/blood-hunter';
+import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
 
 export default class PreloadScene extends Phaser.Scene {
     private startTime: number = 0;
@@ -30,6 +31,7 @@ export default class PreloadScene extends Phaser.Scene {
 
         // From BloodHuntersScene
         this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
+        this.load.image(GreenRocketCarrier.assetKey, GreenRocketCarrier.assetPath);
     }
 
     create() {

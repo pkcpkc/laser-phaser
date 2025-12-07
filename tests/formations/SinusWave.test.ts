@@ -33,8 +33,10 @@ vi.mock('../../src/ships/ship', () => {
                     x: 0
                 };
                 this.config = {
-                    gameplay: {
-                        speed: 2
+                    definition: {
+                        gameplay: {
+                            speed: 2
+                        }
                     }
                 };
             }
