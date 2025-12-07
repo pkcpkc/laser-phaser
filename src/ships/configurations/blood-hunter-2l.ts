@@ -2,6 +2,7 @@ import type { ShipConfig } from '../types';
 import { BloodHunterDefinition } from '../definitions/blood-hunter';
 import { RedLaser } from '../mounts/lasers/red-laser';
 
+console.log('Evaluating BloodHunter2L module. Definition:', BloodHunterDefinition);
 export const BloodHunter2L: ShipConfig = {
     definition: BloodHunterDefinition,
     mounts: BloodHunterDefinition.markers.map(m => ({

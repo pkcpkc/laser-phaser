@@ -1,6 +1,7 @@
 import type { ShipDefinition } from '../types';
 import { markers as allMarkers } from '../../generated/blood-hunter.markers';
 
+console.log('Evaluating BloodHunterDefinition module');
 export const BloodHunterDefinition: ShipDefinition = {
     id: 'blood-hunter',
     assetKey: 'blood-hunter',

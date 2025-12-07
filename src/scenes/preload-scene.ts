@@ -23,6 +23,7 @@ export default class PreloadScene extends Phaser.Scene {
         // Display logo (loaded in BootScene)
         this.logo = this.add.image(width / 2, height / 2, 'logo');
         this.logo.setOrigin(0.5, 0.5);
+        this.logo.setAlpha(0); // Hide initially to prevent size jump
 
         // Load Game Assets
         // From BaseScene
@@ -128,6 +129,9 @@ export default class PreloadScene extends Phaser.Scene {
         const textY = logoBottom + 40; // 40px padding
 
         this.loadingText.setPosition(width / 2, textY);
+
+        // 5. Show the logo (if it was hidden)
+        this.logo.setAlpha(1);
     }
 
     private startGame() {

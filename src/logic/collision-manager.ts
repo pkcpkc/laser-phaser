@@ -21,6 +21,14 @@ export class CollisionManager {
         this.enemyCategory = this.scene.matter.world.nextCategory();
         this.enemyLaserCategory = this.scene.matter.world.nextCategory();
         this.lootCategory = this.scene.matter.world.nextCategory();
+
+        console.log('CollisionManager Initialized. Categories:', {
+            ship: this.shipCategory,
+            laser: this.laserCategory,
+            enemy: this.enemyCategory,
+            enemyLaser: this.enemyLaserCategory,
+            loot: this.lootCategory
+        });
     }
 
     public getCategories() {
