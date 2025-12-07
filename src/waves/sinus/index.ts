@@ -19,6 +19,7 @@ export interface EnemyData {
     startX: number;
     timeOffset: number;
     spawnTime: number;
+    verticalOffset: number;
 }
 
 export class SinusWave {
@@ -91,7 +92,8 @@ export class SinusWave {
                 ship: ship,
                 startX: x,
                 timeOffset: i * 0.5,
-                spawnTime: this.scene.time.now
+                spawnTime: this.scene.time.now,
+                verticalOffset: yOffset
             });
 
             // Shooting behavior: Generic handling
@@ -155,7 +157,7 @@ export class SinusWave {
             const newX = enemyData.startX + Math.sin(phase) * this.config.amplitude;
 
             // Y movement: Linear based on time (ignoring physics recoil)
-            const newY = -50 + (i % 2 === 0 ? 0 : this.config.verticalOffset) + (speed * (elapsed / 16.66)); // 16.66ms per frame reference
+            const newY = -50 + enemyData.verticalOffset + (speed * (elapsed / 16.66)); // 16.66ms per frame reference
 
             enemy.setPosition(newX, newY);
             enemy.setVelocity(0, 0); // Override physics velocity to prevent recoil

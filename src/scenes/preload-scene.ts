@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { BigCruiser } from '../ships/big-cruiser';
 import { BloodHunter } from '../ships/blood-hunter';
 import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
-import { generateFlareTextures } from '../utils/flare-generator';
+import { createFlareTexture } from '../utils/texture-generator';
 
 export default class PreloadScene extends Phaser.Scene {
     private startTime: number = 0;
@@ -38,7 +38,7 @@ export default class PreloadScene extends Phaser.Scene {
         console.log('PreloadScene: create started');
 
         // Generate procedural textures
-        generateFlareTextures(this);
+        this.generateFlares();
 
         // Create the loading text initially
         this.loadingText = this.add.text(0, 0, 'LOADING...', {
@@ -133,5 +133,22 @@ export default class PreloadScene extends Phaser.Scene {
     private startGame() {
         this.scale.off('resize', this.resize, this); // Clean up listener
         this.scene.start('BloodHunters');
+    }
+
+
+    private generateFlares() {
+        const colors = {
+            'flare-blue': 0x0000ff,
+            'flare-green': 0x00ff00,
+            'flare-red': 0xff0000,
+            'flare-white': 0xffffff,
+            'flare-yellow': 0xffff00
+        };
+
+        console.log('Generating flare textures...');
+
+        Object.entries(colors).forEach(([key, color]) => {
+            createFlareTexture(this, key, color);
+        });
     }
 }
