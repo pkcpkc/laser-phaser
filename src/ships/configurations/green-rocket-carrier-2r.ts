@@ -8,5 +8,11 @@ export const GreenRocketCarrier2R: ShipConfig = {
         marker: m,
         weapon: GreenRocket
     })),
-    loot: undefined
+    loot: {
+        text: '🪙',
+        dropChance: 1,
+        lifespan: 3000,
+        type: 'silver',
+        value: 1
+    }
 };

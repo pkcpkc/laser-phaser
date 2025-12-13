@@ -50,6 +50,15 @@ graph TD
         Ship --> |Has| Mount
         Mount --> |Equips| Weapon
     end
+
+    subgraph PlanetMap Architecture
+        PlanetMapScene --> |Uses| PlanetRegistry(Data)
+        PlanetMapScene --> |Uses| PlanetVisuals(Visuals)
+        PlanetMapScene --> |Uses| MapInteractionManager(UI)
+        PlanetVisuals --> |Manages| EarthVisual
+        PlanetVisuals --> |Manages| RingWorldVisual
+        PlanetVisuals --> |Manages| AdjustableMoonVisual
+    end
 ```
 
 ### Directory Structure

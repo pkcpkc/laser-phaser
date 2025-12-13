@@ -70,7 +70,15 @@ describe('Ship', () => {
         mockScene = {
             add: {
                 existing: vi.fn(),
-                sprite: vi.fn().mockReturnThis()
+                sprite: vi.fn().mockReturnThis(),
+                particles: vi.fn().mockReturnValue({
+                    createEmitter: vi.fn().mockReturnValue({
+                        setPosition: vi.fn(),
+                        explode: vi.fn()
+                    }),
+                    setDepth: vi.fn(),
+                    destroy: vi.fn()
+                })
             },
             matter: {
                 add: {

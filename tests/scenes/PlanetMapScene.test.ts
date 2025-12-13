@@ -62,6 +62,27 @@ vi.mock('phaser', () => {
                         })
                     }
                 };
+                textures = {
+                    exists: vi.fn().mockReturnValue(false),
+                    get: vi.fn().mockReturnValue({
+                        getSourceImage: vi.fn().mockReturnValue({ width: 0, height: 0 })
+                    }),
+                    createCanvas: vi.fn().mockReturnValue({
+                        getContext: vi.fn().mockReturnValue({
+                            createRadialGradient: vi.fn().mockReturnValue({ addColorStop: vi.fn() }),
+                            fillRect: vi.fn()
+                        }),
+                        add: vi.fn()
+                    })
+                };
+                make = {
+                    graphics: vi.fn().mockReturnValue({
+                        fillStyle: vi.fn(),
+                        fillRect: vi.fn(),
+                        generateTexture: vi.fn(),
+                        destroy: vi.fn()
+                    })
+                };
             },
             keyboard: {
                 addKey: vi.fn()
@@ -69,7 +90,17 @@ vi.mock('phaser', () => {
             GameObjects: {
                 Text: class { },
                 Image: class { },
-                Container: class { }
+                Container: class { },
+                Graphics: class { }
+            },
+            Math: {
+                DegToRad: (deg: number) => deg * (Math.PI / 180),
+                Distance: {
+                    Between: (x1: number, y1: number, x2: number, y2: number) => Math.hypot(x2 - x1, y2 - y1)
+                },
+                Angle: {
+                    Between: (x1: number, y1: number, x2: number, y2: number) => Math.atan2(y2 - y1, x2 - x1)
+                }
             }
         }
     };

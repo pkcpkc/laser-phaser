@@ -11,7 +11,7 @@ export const BloodHunter2L: ShipConfig = {
     })),
     loot: {
         text: '🪙',
-        dropChance: 1,
+        dropChance: .5,
         lifespan: 3000,
         type: 'silver',
         value: 1
