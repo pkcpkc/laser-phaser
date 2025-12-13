@@ -27,6 +27,8 @@ vi.mock('phaser', () => {
                         width = 32;
                         height = 32;
                         setData = vi.fn();
+                        setBounce = vi.fn();
+                        setSensor = vi.fn();
                     }
                 }
             }
@@ -66,13 +68,29 @@ describe('Ship', () => {
         };
 
         mockScene = {
+            add: {
+                existing: vi.fn(),
+                sprite: vi.fn().mockReturnThis()
+            },
             matter: {
                 add: {
                     image: vi.fn().mockImplementation(() => new Phaser.Physics.Matter.Image(mockScene.matter.world, 0, 0, ''))
                 }
             },
             time: {
-                delayedCall: vi.fn().mockImplementation((_d, cb) => cb())
+                now: 0,
+                delayedCall: vi.fn().mockImplementation((_delay, callback) => {
+                    if (callback) callback();
+                    return { remove: vi.fn() };
+                })
+            },
+            textures: {
+                exists: vi.fn().mockReturnValue(true)
+            },
+            registry: {
+                values: {
+                    levelConfigs: {}
+                }
             }
         };
 

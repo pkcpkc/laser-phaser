@@ -1,7 +1,12 @@
 import Phaser from 'phaser';
 import BootScene from './scenes/boot-scene';
 import PreloadScene from './scenes/preload-scene';
-import BloodHuntersScene from './scenes/blood-hunters';
+import BloodHuntersScene from './scenes/shoot-em-ups/blood-hunters';
+import PlanetMapScene from './scenes/planet-map-scene';
+import TraderScene from './scenes/traders/trader-scene';
+import ShipyardScene from './scenes/shipyards/shipyard-scene';
+import TowerDefenseScene from './scenes/tower-defenses/tower-defense-scene';
+
 import './style.css';
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -25,7 +30,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false // Set to true if you want to see physics bodies
     }
   },
-  scene: [BootScene, PreloadScene, BloodHuntersScene]
+  scene: [BootScene, PreloadScene, PlanetMapScene, BloodHuntersScene, TraderScene, ShipyardScene, TowerDefenseScene]
 };
 
 // Clean up existing game instance if it exists (HMR)

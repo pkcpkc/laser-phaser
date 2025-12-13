@@ -128,15 +128,19 @@ export default class BaseScene extends Phaser.Scene {
         // Restart Listener
         this.input.keyboard!.on('keydown-SPACE', () => {
             if (!this.gameManager.isGameActive()) {
-                this.scene.restart();
+                this.onGameOverInput();
             }
         });
 
         this.fireButton.on('pointerdown', () => {
             if (!this.gameManager.isGameActive()) {
-                this.scene.restart();
+                this.onGameOverInput();
             }
         });
+    }
+
+    protected onGameOverInput() {
+        this.scene.restart();
     }
 
     protected handleLootCollected(lootGameObject: Phaser.GameObjects.GameObject) {

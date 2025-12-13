@@ -32,20 +32,35 @@ This game is a homage to the legendary late 80s shooter games that defined the g
 *   **Build Tool**: [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling for lightning-fast development servers and optimized builds.
 *   **Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework.
 
-### Game Entities
+### Game Entities & Architecture
 
 ```mermaid
 graph TD
-    Level --> |Contains| Wave
-    Wave --> |Uses| WaveType(WaveType<br/>e.g. Sinus)
-    Wave --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
-    WaveType --> |Spawns| Ship
-    Ship --> |Configured by| ShipConfig
-    Ship --> |Has| Mount
-    Mount --> |Equips| Weapon
-    Weapon --> |Type| Laser
-    Weapon --> |Type| Rocket
+    PlanetMapScene --> |Navigates to| ShootEmUpScene
+    PlanetMapScene --> |Navigates to| TraderScene
+    PlanetMapScene --> |Navigates to| ShipyardScene
+    
+    subgraph ShootEmUp Architecture
+        ShootEmUpScene --> |Contains| Level
+        Level --> |Contains| Wave
+        Wave --> |Uses| WaveType(WaveType<br/>e.g. Sinus)
+        Wave --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
+        WaveType --> |Spawns| Ship
+        Ship --> |Configured by| ShipConfig
+        Ship --> |Has| Mount
+        Mount --> |Equips| Weapon
+    end
 ```
+
+### Directory Structure
+
+The project follows a domain-driven structure for scenes:
+
+*   `src/scenes/planet-map-scene.ts`: The main hub.
+*   `src/scenes/shoot-em-ups/`: Contains active gameplay levels (e.g., `blood-hunters.ts`).
+*   `src/scenes/traders/`: Trading interfaces.
+*   `src/scenes/shipyards/`: Upgrade interfaces.
+*   `src/scenes/tower-defenses/`: Future tower defense modes.
 
 ### Getting Started
 

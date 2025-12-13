@@ -136,7 +136,7 @@ export default class PreloadScene extends Phaser.Scene {
 
     private startGame() {
         this.scale.off('resize', this.resize, this); // Clean up listener
-        this.scene.start('BloodHunters');
+        this.scene.start('PlanetMapScene');
     }
 
 
