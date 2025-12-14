@@ -14,6 +14,8 @@ export default class PlanetMapScene extends Phaser.Scene {
 
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
+    private lastShipPos: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+
 
     constructor() {
         super('PlanetMapScene');
@@ -33,7 +35,7 @@ export default class PlanetMapScene extends Phaser.Scene {
         console.log('PlanetMapScene: creating background');
         // Background
         this.add.rectangle(0, 0, width, height, 0x000011).setOrigin(0).setDepth(-100);
-        this.add.image(width / 2, height / 2, 'backgrounds', 'nebula').setAlpha(0.3).setScale(1.5).setDepth(-100);
+        this.add.image(width / 2, height / 2, 'nebula').setAlpha(0.3).setScale(1.5).setDepth(-100);
 
         console.log('PlanetMapScene: creating starfield');
         // Starfield Effect
@@ -43,7 +45,6 @@ export default class PlanetMapScene extends Phaser.Scene {
         // Initialize Data
         this.planetRegistry.initPlanets(width, height);
 
-        // Draw Connections
 
 
         console.log('PlanetMapScene: creating visuals');
@@ -53,6 +54,8 @@ export default class PlanetMapScene extends Phaser.Scene {
         console.log('PlanetMapScene: creating player ship');
         // Create Player Ship
         this.createPlayerShip();
+        console.log('PlanetMapScene: Ship created:', this.playerShip);
+        console.log('PlanetMapScene: Ship visible:', this.playerShip.visible, 'active:', this.playerShip.active, 'alpha:', this.playerShip.alpha);
 
         // Start Animations
         // Animations start automatically in visuals
@@ -100,7 +103,10 @@ export default class PlanetMapScene extends Phaser.Scene {
             .setAngle(-90)
             .setOrigin(0.5)
             .setDepth(10);
+        console.log('createPlayerShip: Created at 0,0');
     }
+
+
 
     private handlePlanetClick(planet: PlanetData) {
         if (this.currentPlanetId === planet.id) {
@@ -218,5 +224,25 @@ export default class PlanetMapScene extends Phaser.Scene {
     update(time: number, delta: number) {
         this.handleInput();
         this.visuals.update(time, delta);
+
+        // Calculate ship speed for starfield effect
+        if (this.playerShip && this.starfield) {
+            const currentPos = new Phaser.Math.Vector2(this.playerShip.x, this.playerShip.y);
+
+            // Distance moved this frame
+            const dist = currentPos.distance(this.lastShipPos);
+
+            // Pixels per second
+            const speedPxPerSec = (dist / delta) * 1000;
+
+            // Normalize speed to a factor (e.g., max expected speed is ~500px/s?)
+            // If speed is 0, factor is 0.
+            const speedFactor = Phaser.Math.Clamp(speedPxPerSec / 500, 0, 5);
+
+            // Smooth the transition if needed, but direct mapping might feel more responsive
+            this.starfield.setSpeed(speedFactor);
+
+            this.lastShipPos.copy(currentPos);
+        }
     }
 }

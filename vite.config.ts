@@ -2,14 +2,12 @@
 import { defineConfig } from 'vitest/config';
 import Terminal from 'vite-plugin-terminal';
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
     plugins: [
-        {
-            ...Terminal({
-                console: 'terminal',
-            }),
-            apply: 'serve',
-        },
+        // Only use Terminal plugin in dev mode to avoid build errors
+        ...(command === 'serve' ? [Terminal({
+            console: 'terminal',
+        })] : []),
     ],
     base: '/laser-phaser/',
     publicDir: 'public',
@@ -22,5 +20,5 @@ export default defineConfig({
         emptyOutDir: true,
         chunkSizeWarningLimit: 1000, // Phaser is a large library, increase limit to 1000 kB
     },
-});
+}));
 // Trigger restart

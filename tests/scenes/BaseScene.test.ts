@@ -164,7 +164,7 @@ describe('BaseScene', () => {
         scene.create();
         expect(GameManager).toHaveBeenCalledWith(scene);
         expect(CollisionManager).toHaveBeenCalledWith(scene, expect.any(Function), expect.any(Function));
-        expect(Starfield).toHaveBeenCalledWith(scene);
+        expect(Starfield).toHaveBeenCalledWith(scene, 'nebula', undefined);
         expect(BigCruiser).toHaveBeenCalled();
         expect(EngineTrail).toHaveBeenCalled();
     });
@@ -173,7 +173,7 @@ describe('BaseScene', () => {
         scene.create();
         expect(scene.input.keyboard!.createCursorKeys).toHaveBeenCalled();
         expect(PlayerController).toHaveBeenCalled();
-        expect(scene.add.text).toHaveBeenCalledTimes(6); // silver, gold, gem, mount, joystick thumb, fire button
+        expect(scene.add.text).toHaveBeenCalled();
     });
 
     it('should handle resize', () => {

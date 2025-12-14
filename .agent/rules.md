@@ -7,6 +7,7 @@
 - **ALWAYS update tests** when modifying existing code
 - **ALWAYS run tests** after writing/updating them (`npm test`)
 - **ALWAYS fix failing tests** before considering work complete
+- **ALWAYS fix linting errors** before considering work complete
 - Use `vitest` for all testing
 - Place tests in `tests/` directory mirroring source structure
 - Export functions from source files when needed for testing
@@ -23,5 +24,6 @@
 4. **Fix any linting errors** (`npx tsc --noEmit`)
 5. Run tests (`npm test`)
 6. Fix any failing tests
-7. Verify all checks pass before completion
-8. **Update README.md** with any relevant changes
+7. Run build and fix build errors (`npm run build`)
+8. Verify all checks pass before completion
+9. **Update README.md** with any relevant changes

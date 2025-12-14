@@ -41,7 +41,7 @@ export class SatelliteEffect {
         const effectiveConfig = { ...DEFAULT_CONFIG, ...config };
         this.tint = effectiveConfig.tint;
 
-        this.ensureStarTexture();
+        this.ensureSatelliteTexture();
         this.createSatellites(effectiveConfig);
 
         // Create update listener
@@ -49,19 +49,21 @@ export class SatelliteEffect {
         this.scene.events.on('update', this.updateListener);
     }
 
-    private ensureStarTexture() {
-        // Create 'star' texture if it doesn't exist (same as warp-starfield)
-        if (!this.scene.textures.exists('star')) {
+    private ensureSatelliteTexture() {
+        if (!this.scene.textures.exists('satellite-round')) {
             const graphics = this.scene.make.graphics({ x: 0, y: 0 });
             graphics.fillStyle(0xffffff, 1);
-            graphics.fillRect(0, 0, 2, 2);
-            graphics.generateTexture('star', 2, 2);
+            graphics.fillCircle(16, 16, 16);
+            graphics.generateTexture('satellite-round', 32, 32);
             graphics.destroy();
         }
     }
 
     private createSatellites(config: SatelliteConfig) {
         const scale = this.planet.visualScale || 1.0;
+        // Base size of the original "star" texture was 2px.
+        // New texture is 32px. We need to scale down to match visual size.
+        const textureScaleFactor = 2.0 / 32.0;
 
         for (let i = 0; i < config.count; i++) {
             // Randomize orbit properties for each satellite
@@ -91,16 +93,16 @@ export class SatelliteEffect {
             // Random rotation of the orbital plane around vertical axis
             const orbitRotation = Phaser.Math.FloatBetween(0, Math.PI * 2);
 
-            // Satellite size varies slightly
-            const size = Phaser.Math.FloatBetween(config.minSize, config.maxSize) * scale;
+            // Satellite size varies slightly (unscaled base size)
+            const size = Phaser.Math.FloatBetween(config.minSize, config.maxSize);
 
             // Create trail graphics
             const trail = this.scene.add.graphics();
             trail.setBlendMode(Phaser.BlendModes.ADD);
 
-            // Create image using star texture
-            const image = this.scene.add.image(0, 0, 'star');
-            image.setScale(size);
+            // Create image using round texture
+            const image = this.scene.add.image(0, 0, 'satellite-round');
+            image.setScale(size * scale * textureScaleFactor);
             image.setTint(this.tint);
             image.setBlendMode(Phaser.BlendModes.ADD);
 
@@ -125,6 +127,7 @@ export class SatelliteEffect {
         const centerX = this.planet.x;
         const centerY = this.planet.y;
         const scale = this.planet.visualScale || 1.0;
+        const textureScaleFactor = 2.0 / 32.0;
 
         for (const sat of this.satellites) {
             // Update angle
@@ -149,11 +152,12 @@ export class SatelliteEffect {
             const finalZ = -localX * Math.sin(sat.orbitRotation) + tiltedZ * Math.cos(sat.orbitRotation);
             const finalY = tiltedY;
 
-            // Project to 2D: X stays X, Y becomes screen Y (with perspective flattening)
-            // Z is used for depth
-            const perspectiveFlatten = 0.3; // How much to flatten the vertical component
+            // Project to 2D:
+            // finalY is the actual vertical height (from orbital tilt) -> Should be 1:1 on screen
+            // finalZ is depth -> Contributes to screen Y due to camera angle (perspective)
+            const perspectiveFlatten = 0.3; // View angle foreshortening
             const screenX = centerX + finalX;
-            const screenY = centerY + finalY * perspectiveFlatten;
+            const screenY = centerY + finalY + finalZ * perspectiveFlatten;
 
             // Depth based on Z position (behind planet = negative Z = lower depth)
             const isFront = finalZ > 0;
@@ -199,7 +203,7 @@ export class SatelliteEffect {
             // Scale satellites slightly based on depth for subtle 3D effect
             const normalizedZ = (finalZ / sat.orbitRadius + 1) / 2; // 0 to 1
             const depthScale = 0.7 + normalizedZ * 0.3;
-            sat.image.setScale(sat.size * depthScale * scale);
+            sat.image.setScale(sat.size * scale * depthScale * textureScaleFactor);
 
             // Fade satellites slightly when at the back
             sat.image.setAlpha(alpha);

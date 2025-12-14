@@ -1,6 +1,5 @@
 import Phaser from 'phaser';
 import { BigCruiser } from '../ships/big-cruiser';
-import VirtualJoystick from 'phaser3-rex-plugins/plugins/virtualjoystick.js';
 import { Starfield } from '../backgrounds/starfield';
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
@@ -12,12 +11,14 @@ export default class BaseScene extends Phaser.Scene {
     protected ship!: Ship;
     protected cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
     protected starfield!: Starfield;
-    protected joystick!: VirtualJoystick;
     protected fireButton!: Phaser.GameObjects.Text;
 
     protected collisionManager!: CollisionManager;
     protected playerController!: PlayerController;
     protected gameManager!: GameManager;
+
+    protected backgroundTexture: string = 'nebula';
+    protected backgroundFrame: string | undefined = undefined;
 
     constructor(key: string) {
         super(key);
@@ -40,7 +41,7 @@ export default class BaseScene extends Phaser.Scene {
         this.matter.world.setBounds(0, 0, width, height);
 
         // Create starfield
-        this.starfield = new Starfield(this);
+        this.starfield = new Starfield(this, this.backgroundTexture, this.backgroundFrame);
 
         // Create Player Ship
         this.createPlayerShip();
@@ -98,17 +99,7 @@ export default class BaseScene extends Phaser.Scene {
         this.gemText = this.add.text(xPos, 80, '0 💎', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
         this.mountText = this.add.text(xPos, 110, '0 📦', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
 
-        // Joystick
-        this.joystick = new VirtualJoystick(this, {
-            x: 100,
-            y: height - 100,
-            radius: 100,
-            base: this.add.circle(0, 0, 100, 0x888888, 0.3),
-            thumb: this.add.text(0, 0, '✥', { fontSize: '36px' }).setOrigin(0.5),
-            dir: '8dir',
-            forceMin: 40,
-            enable: true
-        });
+
 
         // Fire Button
         this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontSize: '40px', padding: { top: 10, bottom: 10 } })
@@ -117,9 +108,7 @@ export default class BaseScene extends Phaser.Scene {
 
         // Hide controls on first space press
         this.input.keyboard!.once('keydown-SPACE', () => {
-            if (this.joystick) {
-                this.joystick.setVisible(false);
-            }
+
             if (this.fireButton) {
                 this.fireButton.setVisible(false);
             }
@@ -177,7 +166,7 @@ export default class BaseScene extends Phaser.Scene {
 
     protected setupControls() {
         this.cursors = this.input.keyboard!.createCursorKeys();
-        this.playerController = new PlayerController(this, this.ship, this.cursors, this.joystick);
+        this.playerController = new PlayerController(this, this.ship, this.cursors);
         this.playerController.setFireButton(this.fireButton);
     }
 
@@ -207,10 +196,6 @@ export default class BaseScene extends Phaser.Scene {
         }
         if (this.mountText) {
             this.mountText.setPosition(xPos, 110);
-        }
-
-        if (this.joystick) {
-            this.joystick.setPosition(100, height - 100);
         }
 
         this.gameManager.handleResize(width, height);

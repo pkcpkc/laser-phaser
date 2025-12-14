@@ -7,16 +7,30 @@ export interface PlanetData {
     y: number;
     name: string;
     unlocked?: boolean; // Defaults to false
-
     visualScale?: number;
-    levelId?: string;
-    hasTrader?: boolean;
-    hasShipyard?: boolean;
     tint?: number; // Optional color tint
-    ringColor?: number;
-    hasSatellites?: boolean; // Enable orbiting satellite effect
-    satelliteTint?: number;  // Satellite color (defaults to white)
-    satelliteCount?: number; // Number of satellites (defaults to 5)
+
+    // Configuration Objects
+    satellites?: {
+        tint?: number;
+        count?: number;
+    };
+    rings?: {
+        color: number;
+        lifespan?: number; // Duration of ring particles in ms (default 800)
+        angle?: number;    // Tilt angle in degrees (default -20)
+    };
+    interaction?: {
+        levelId?: string;
+        hasTrader?: boolean;
+        hasShipyard?: boolean;
+    };
+    miniMoon?: {
+        tilt?: number;   // Tilt angle in degrees
+        tint?: number;   // Optional tint override
+    };
+
+    hasDistortionOrbiter?: boolean; // Enable distortion orbiter effect
 
     // Runtime references
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
@@ -25,6 +39,7 @@ export interface PlanetData {
     usingOverlay?: boolean;
     emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
+    miniMoonEffect?: import('./visuals/mini-moon-effect').MiniMoonEffect;
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -65,7 +80,9 @@ export class PlanetRegistry {
                 unlocked: true,
                 tint: 0x4488FF, // Blue - prime moon
                 visualScale: 1.0, // Slightly larger for main?
-                levelId: 'blood-hunters',
+                interaction: {
+                    levelId: 'blood-hunters'
+                },
                 x: cx,
                 y: cy,
                 orbitAngle: 0,
@@ -75,15 +92,25 @@ export class PlanetRegistry {
                 id: 'moon-base',
                 name: 'Dark Moon',
                 tint: 0x4A4A6A, // Deep purple-gray - dark/mysterious
-                levelId: 'blood-hunters',
+                interaction: {
+                    levelId: 'blood-hunters'
+                },
                 visualScale: 0.6,
+                hasDistortionOrbiter: false,
+                unlocked: false,
                 x: 0, y: 0 // placeholder
             },
             {
                 id: 'ring-world',
-                name: 'Ring Moon', // Was Ring World
-                ringColor: 0xcccccc,
-                levelId: 'blood-hunters',
+                name: 'Ring Moon',
+                rings: {
+                    color: 0xcccccc,
+                    lifespan: 1200,
+                    angle: 45
+                },
+                interaction: {
+                    levelId: 'blood-hunters'
+                },
                 tint: 0xffffff,
                 visualScale: 0.8,
                 x: 0, y: 0
@@ -93,9 +120,15 @@ export class PlanetRegistry {
                 name: 'Red Moon',
                 tint: 0xFF4444, // Bright red - blood moon
                 visualScale: 0.5,
-                levelId: 'blood-hunters',
-                hasTrader: true,
-                hasShipyard: true,
+                interaction: {
+                    levelId: 'blood-hunters',
+                    hasTrader: true,
+                    hasShipyard: true
+                },
+                miniMoon: {
+                    tilt: 50,
+                    tint: 0xFFD580 // Light Orange
+                },
                 x: 0, y: 0
             },
             {
@@ -103,17 +136,25 @@ export class PlanetRegistry {
                 name: 'Ice Moon',
                 tint: 0x88EEFF, // Cyan/ice blue
                 visualScale: 1.0,
-                levelId: 'blood-hunters',
-                hasSatellites: true, // Orbiting satellite effect
+                interaction: {
+                    levelId: 'blood-hunters'
+                },
+                satellites: {}, // Enable satellites with default config
                 x: 0, y: 0
             },
             {
                 id: 'toxic-moon',
                 name: 'Toxic Moon',
-                levelId: 'blood-hunters',
+                interaction: {
+                    levelId: 'blood-hunters'
+                },
                 visualScale: 1.5,
                 tint: 0x8844FF, // Violet/purple - toxic moon
-                ringColor: 0x88FF66, // Toxic green ring
+                rings: {
+                    color: 0x88FF66, // Toxic green ring
+                    lifespan: 2000,
+                    angle: -10
+                },
                 x: 0, y: 0
             }
         ];

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import packer from 'free-tex-packer-core';
+import { PNG } from 'pngjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,6 +27,18 @@ async function generateAtlases() {
 
             if (imageFiles.length === 0) {
                 console.log(`No images found in ${dir}, skipping.`);
+                continue;
+            }
+
+            // Special handling for backgrounds: copy directly, do not pack
+            if (dir === 'backgrounds') {
+                console.log(`Skipping atlas generation for ${dir}, copying files directly...`);
+                for (const file of imageFiles) {
+                    const srcPath = path.join(sourceDir, file);
+                    const destPath = path.join(outputDir, file);
+                    fs.copyFileSync(srcPath, destPath);
+                    console.log(`Copied ${file} to ${outputDir}`);
+                }
                 continue;
             }
 

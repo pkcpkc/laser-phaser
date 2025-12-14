@@ -6,8 +6,18 @@ export class Starfield {
 
     private nebula!: Phaser.GameObjects.TileSprite;
 
-    constructor(scene: Phaser.Scene) {
+    private backgroundTexture: string;
+    private backgroundFrame?: string;
+
+    constructor(scene: Phaser.Scene, texture: string = 'nebula', frame?: string) {
         this.scene = scene;
+        this.backgroundTexture = texture;
+        this.backgroundFrame = frame;
+
+        // if (texture === 'backgrounds' && !frame) {
+        //     this.backgroundFrame = 'nebula';
+        // }
+
         this.createTexture();
         this.createNebula();
         this.createStars();
@@ -25,7 +35,7 @@ export class Starfield {
 
     private createNebula() {
         const { width, height } = this.scene.scale;
-        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, 'backgrounds', 'nebula');
+        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, this.backgroundTexture, this.backgroundFrame);
         this.nebula.setOrigin(0.5, 0.5);
         this.nebula.setDepth(-2); // Behind stars
         this.nebula.setAlpha(0.5); // Slightly transparent

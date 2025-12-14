@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { BasePlanetVisual } from './base-planet-visual';
 import type { PlanetData } from '../planet-registry';
 import { SatelliteEffect } from './satellite-effect';
+import { DistortionOrbiterEffect } from './distortion-orbiter-effect';
+import { MiniMoonEffect } from './mini-moon-effect';
 
 export class AdjustableMoonVisual extends BasePlanetVisual {
     private moonFrames = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];
@@ -17,7 +19,7 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
         // Occluder (Black circle behind moon to block ring)
         // Only needed if we have a ring
-        if (this.planet.ringColor !== undefined) {
+        if (this.planet.rings?.color !== undefined) {
             this.occluder = this.scene.add.graphics();
             this.occluder.fillStyle(0x000000, 1);
             // Use larger radius (24) to fully cover moon including transparency
@@ -52,19 +54,27 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
         this.planet.gameObject = visualObject;
 
         // Optional Ring Effect (Particle based)
-        if (this.planet.ringColor !== undefined) {
+        if (this.planet.rings?.color !== undefined) {
             this.createRingEmitters();
         }
 
         // Optional Satellite Effect (Orbiting dots)
-        if (this.planet.hasSatellites) {
+        if (this.planet.satellites) {
             this.planet.satelliteEffect = new SatelliteEffect(this.scene, this.planet, {
-                tint: this.planet.satelliteTint ?? 0xffffff,
-                count: this.planet.satelliteCount ?? 8
+                tint: this.planet.satellites.tint ?? 0xffffff,
+                count: this.planet.satellites.count ?? 8
             });
             // Initially hide if planet is locked
             if (!this.planet.unlocked) {
                 this.planet.satelliteEffect.setVisible(false);
+            }
+        }
+
+        // Optional Mini Moon Effect
+        if (this.planet.miniMoon) {
+            this.planet.miniMoonEffect = new MiniMoonEffect(this.scene, this.planet);
+            if (!this.planet.unlocked) {
+                this.planet.miniMoonEffect.setVisible(false);
             }
         }
 
@@ -74,6 +84,16 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
         // Front Emitter: 2
         visualObject.setDepth(1);
         overlay.setDepth(1);
+
+        if (this.planet.hasDistortionOrbiter) {
+            // @ts-ignore - attaching custom prop for cleanup if needed, or just let it exist
+            this.planet.distortionEffect = new DistortionOrbiterEffect(this.scene, this.planet);
+            // Hide initially if locked
+            if (!this.planet.unlocked) {
+                // @ts-ignore
+                this.planet.distortionEffect.setVisible(false);
+            }
+        }
 
         if (!this.planet.unlocked) {
             this.addLockedParticleEffect();
@@ -93,7 +113,7 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
     }
 
     private createRingEmitters() {
-        const ringColor = this.planet.ringColor ?? (this.planet.tint || 0xffffff);
+        const ringColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
         const scale = this.planet.visualScale || 1.0;
 
         // 1. Reduce diameter (was 60/16) -> User requested broader: 55 -> Back to 48 but thicker
@@ -101,7 +121,8 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
         const radiusY = 8 * scale; // Reduced from 14 to 8 for flatter look
         const thickness = 8 * scale; // Slightly reduced thickness (was 10)
         const yOffset = 5 * scale;
-        const tilt = Phaser.Math.DegToRad(-20);
+        const tiltDeg = this.planet.rings?.angle ?? -20;
+        const tilt = Phaser.Math.DegToRad(tiltDeg);
 
         // Use arrow functions that reference this.planet directly for dynamic positioning
         const getCenterX = () => this.planet.x;
@@ -112,7 +133,7 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
                 color: [ringColor],
                 alpha: { start: 0.5, end: 0 }, // Reduced alpha for higher density
                 scale: { start: 0.15 * scale, end: 0 }, // Slightly smaller particles
-                lifespan: 800, // Increased life (was 400)
+                lifespan: this.planet.rings?.lifespan || 800, // Configurable lifespan
                 blendMode: 'ADD',
                 frequency: 5, // Much more dense (was 40)
                 emitCallback: (particle: Phaser.GameObjects.Particles.Particle) => {
@@ -291,9 +312,11 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
         this.planet.usingOverlay = !this.planet.usingOverlay;
 
+        // Update visibility of effects based on unlocked state
+        const unlocked = this.planet.unlocked ?? false;
+
         // Update ring visibility
         if (this.planet.ringEmitters) {
-            const unlocked = this.planet.unlocked ?? false;
             this.planet.ringEmitters.forEach(emitter => {
                 emitter.setVisible(unlocked);
                 emitter.active = unlocked;
@@ -302,8 +325,19 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
         // Update satellite visibility
         if (this.planet.satelliteEffect) {
-            const unlocked = this.planet.unlocked ?? false;
             this.planet.satelliteEffect.setVisible(unlocked);
+        }
+
+        // Update distortion visibility
+        // @ts-ignore
+        if (this.planet.distortionEffect) {
+            // @ts-ignore
+            this.planet.distortionEffect.setVisible(unlocked);
+        }
+
+        // Update mini moon visibility
+        if (this.planet.miniMoonEffect) {
+            this.planet.miniMoonEffect.setVisible(unlocked);
         }
     }
 }

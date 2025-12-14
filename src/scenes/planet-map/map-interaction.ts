@@ -37,15 +37,16 @@ export class MapInteractionManager {
 
         const icons: Phaser.GameObjects.Text[] = [];
 
-        if (planet.levelId) {
+        if (planet.interaction?.levelId) {
+            const levelId = planet.interaction.levelId;
             const playBtn = this.scene.add.text(0, 0, '🔫', { fontSize: '24px', padding: { x: 5, y: 5 } })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.launchLevel(planet.levelId!));
+                .on('pointerdown', () => this.launchLevel(levelId));
             icons.push(playBtn);
         }
 
-        if (planet.hasTrader) {
+        if (planet.interaction?.hasTrader) {
             const traderBtn = this.scene.add.text(0, 0, '💰', { fontSize: '24px', padding: { x: 5, y: 5 } })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
@@ -53,7 +54,7 @@ export class MapInteractionManager {
             icons.push(traderBtn);
         }
 
-        if (planet.hasShipyard) {
+        if (planet.interaction?.hasShipyard) {
             const shipyardBtn = this.scene.add.text(0, 0, '🛠️', { fontSize: '24px', padding: { x: 5, y: 5 } })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
@@ -93,8 +94,8 @@ export class MapInteractionManager {
     }
 
     public launchLevelIfAvailable(planet: PlanetData) {
-        if (planet.levelId) {
-            this.launchLevel(planet.levelId);
+        if (planet.interaction?.levelId) {
+            this.launchLevel(planet.interaction.levelId);
         }
     }
 }

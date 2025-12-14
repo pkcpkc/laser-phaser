@@ -36,7 +36,11 @@ const mockScene = {
             setScale: vi.fn().mockReturnThis()
         }),
         text: vi.fn().mockReturnValue({
-            setOrigin: vi.fn().mockReturnThis()
+            setOrigin: vi.fn().mockReturnThis(),
+            setInteractive: vi.fn().mockReturnThis(), // Added setInteractive
+            on: vi.fn().mockReturnThis(), // Added on for chaining
+            setPosition: vi.fn().mockReturnThis(), // Added setPosition
+            width: 100
         })
     },
     scene: {
@@ -66,12 +70,17 @@ describe('MapInteractionManager', () => {
             x: 100,
             y: 100,
             name: 'Test Planet',
-            unlocked: true
+            unlocked: true,
+            visualScale: 1.0,
+            interaction: {
+                levelId: 'some-level'
+            }
         };
 
         manager.showInteractionUI(planet);
         expect(mockScene.add.container().setVisible).toHaveBeenCalledWith(true);
-        expect(mockScene.add.container().setPosition).toHaveBeenCalledWith(100 + 30 + 5, 100);
+        // Base Radius 30 * Scale 1.0 + Gap 15 = 45 offset
+        expect(mockScene.add.container().setPosition).toHaveBeenCalledWith(100 + 45, 100);
     });
 
     it('should launch level if available', () => {
@@ -80,7 +89,10 @@ describe('MapInteractionManager', () => {
             x: 0, y: 0,
             name: 'Level',
             unlocked: true,
-            levelId: 'blood-hunters'
+            visualScale: 1.0,
+            interaction: {
+                levelId: 'blood-hunters'
+            }
         };
 
         manager.launchLevelIfAvailable(planet);
@@ -92,7 +104,9 @@ describe('MapInteractionManager', () => {
             id: 'safe-planet',
             x: 0, y: 0,
             name: 'Safe',
-            unlocked: true
+            unlocked: true,
+            visualScale: 1.0,
+            interaction: {}
         };
 
         manager.launchLevelIfAvailable(planet);

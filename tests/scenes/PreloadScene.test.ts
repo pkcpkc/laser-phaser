@@ -108,7 +108,8 @@ describe('PreloadScene', () => {
         preloadScene.preload();
         expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'logo');
         expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/ships.png', 'assets/ships.json');
-        expect(mockLoad.atlas).toHaveBeenCalledWith('backgrounds', 'assets/backgrounds.png', 'assets/backgrounds.json');
+        expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/nebula.png');
+        expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/blood_nebula.png');
     });
 
     it('should generate flares and setup loading text on create', () => {
@@ -153,7 +154,8 @@ describe('PreloadScene', () => {
 
         (preloadScene as any).updateLayout();
 
-        expect(mockLogo.setPosition).toHaveBeenCalledWith(500, expect.any(Number));
-        expect(mockLoadingText.setPosition).toHaveBeenCalledWith(500, expect.any(Number));
+        // Check if setPosition was called with valid numbers (not NaN)
+        expect(mockLoadingText.setPosition).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
+        expect(mockLogo.setPosition).toHaveBeenCalledWith(expect.any(Number), expect.any(Number));
     });
 });

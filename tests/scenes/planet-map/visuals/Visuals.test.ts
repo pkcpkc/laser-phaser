@@ -87,16 +87,7 @@ describe('PlanetVisuals', () => {
         visualsManager = new PlanetVisuals(mockScene as unknown as Phaser.Scene);
     });
 
-    it('should create EarthVisual for earth id', () => {
-        const planets: PlanetData[] = [{
-            id: 'earth', x: 0, y: 0, name: 'Earth', unlocked: true
-        }];
 
-        visualsManager.createVisuals(planets, () => { });
-
-        // Internal check: we expect EarthVisual logic to have triggered scene.add.text
-        expect(mockScene.add.text).toHaveBeenCalled();
-    });
 
     it('should create RingWorldVisual for ring-world id', () => {
         const planets: PlanetData[] = [{

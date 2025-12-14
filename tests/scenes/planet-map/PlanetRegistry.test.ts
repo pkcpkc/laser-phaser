@@ -42,6 +42,20 @@ describe('PlanetRegistry', () => {
         expect(earth.unlocked).toBe(true);
     });
 
+    it('should configure specific planets with correct properties', () => {
+        registry.initPlanets(800, 600);
+
+        const ringWorld = registry.getById('ring-world')!;
+        expect(ringWorld.rings).toBeDefined();
+        expect(ringWorld.rings!.angle).toBe(45);
+        expect(ringWorld.rings!.color).toBe(0xcccccc);
+
+        const redMoon = registry.getById('red-moon')!;
+        expect(redMoon.miniMoon).toBeDefined();
+        expect(redMoon.miniMoon!.tilt).toBe(50);
+        expect(redMoon.miniMoon!.tint).toBe(0xFFD580);
+    });
+
     it('should update positions based on screen size', () => {
         registry.initPlanets(800, 600);
         const redMoon = registry.getById('red-moon')!;

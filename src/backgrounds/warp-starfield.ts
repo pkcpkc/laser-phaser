@@ -49,4 +49,15 @@ export class WarpStarfield {
             this.emitter.destroy();
         }
     }
+
+    public setSpeed(speedFactor: number) {
+        if (this.emitter) {
+            // Use timeScale to speed up the simulation (movement and lifespan)
+            // 1.0 is default.
+            // speedFactor 0 => timeScale 1
+            // speedFactor 5 => timeScale 6 (or whatever feels right)
+
+            this.emitter.timeScale = 1 + (speedFactor * 2);
+        }
+    }
 }

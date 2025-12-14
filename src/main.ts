@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+console.log('Main.ts: initializing game...');
 import BootScene from './scenes/boot-scene';
 import PreloadScene from './scenes/preload-scene';
 import BloodHuntersScene from './scenes/shoot-em-ups/blood-hunters';
