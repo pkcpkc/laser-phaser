@@ -25,7 +25,7 @@ export class Starfield {
 
     private createNebula() {
         const { width, height } = this.scene.scale;
-        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, 'nebula');
+        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, 'backgrounds', 'nebula');
         this.nebula.setOrigin(0.5, 0.5);
         this.nebula.setDepth(-2); // Behind stars
         this.nebula.setAlpha(0.5); // Slightly transparent
@@ -38,6 +38,7 @@ export class Starfield {
             const y = Phaser.Math.Between(0, height);
             const star = this.scene.add.image(x, y, 'star');
             star.setDepth(-1);
+            star.setScale(Phaser.Math.FloatBetween(0.5, 1.5));
             const speed = Phaser.Math.FloatBetween(0.5, 2);
             this.stars.push({ sprite: star, speed });
         }
@@ -54,6 +55,7 @@ export class Starfield {
             if (star.sprite.y > height) {
                 star.sprite.y = 0;
                 star.sprite.x = Phaser.Math.Between(0, width);
+                star.sprite.setScale(Phaser.Math.FloatBetween(0.5, 1.5));
             }
         });
     }

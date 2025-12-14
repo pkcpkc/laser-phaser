@@ -9,7 +9,7 @@ export class RingWorldVisual extends BasePlanetVisual {
     }
 
     public create(onClick: (planet: PlanetData) => void): void {
-        const initialVisual = (this.planet.unlocked || this.planet.type === 'main') ? this.planet.visual : '🌑';
+        const initialVisual = '🌑'; // Always moon emoji
 
         const visualObject = this.scene.add.text(this.planet.x, this.planet.y, initialVisual, {
             fontSize: '48px',
@@ -41,8 +41,20 @@ export class RingWorldVisual extends BasePlanetVisual {
         }
     }
 
-    public update(_time: number, _delta: number): void {
-        // Ring world might rotate slowly or just be static
+    public update(_time: number, delta: number): void {
+        const visual = this.planet.gameObject;
+        if (!visual || !(visual instanceof Phaser.GameObjects.Text)) return;
+
+        // Rotation speed inversely proportional to size
+        const scale = this.planet.visualScale || 1.0;
+        const baseSpeed = 0.02; // degrees per ms
+        const speed = baseSpeed / scale;
+
+        visual.angle += speed * delta;
+
+        if (this.planet.overlayGameObject) {
+            this.planet.overlayGameObject.angle = visual.angle;
+        }
     }
 
     public animate(): void {
@@ -52,13 +64,6 @@ export class RingWorldVisual extends BasePlanetVisual {
     public override updateVisibility(): void {
         super.updateVisibility();
 
-        if (this.planet.unlocked && this.planet.gameObject instanceof Phaser.GameObjects.Text) {
-            // Ensure the visual is updated from the locked state
-            this.planet.gameObject.setText(this.planet.visual);
-
-            if (this.planet.overlayGameObject) {
-                this.planet.overlayGameObject.setText(this.planet.visual);
-            }
-        }
+        // Visual doesn't change, already '🌑'
     }
 }

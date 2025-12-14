@@ -136,7 +136,7 @@ describe('Ship', () => {
     });
 
     it('should initialize correctly', () => {
-        expect(mockScene.matter.add.image).toHaveBeenCalledWith(100, 100, 'ship');
+        expect(mockScene.matter.add.image).toHaveBeenCalledWith(100, 100, 'ship', undefined);
         expect(ship.sprite.setAngle).toHaveBeenCalledWith(90);
         expect(ship.sprite.setFixedRotation).toHaveBeenCalled();
         expect(ship.sprite.setFrictionAir).toHaveBeenCalledWith(0.1);

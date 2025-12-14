@@ -3,7 +3,8 @@ import { markers as allMarkers } from '../../generated/big-cruiser.markers';
 
 export const BigCruiserDefinition: ShipDefinition = {
     id: 'big-cruiser',
-    assetKey: 'big-cruiser',
+    assetKey: 'ships',
+    frame: 'big-cruiser',
     assetPath: 'assets/ships/big-cruiser.png',
     markers: allMarkers,
     physics: {

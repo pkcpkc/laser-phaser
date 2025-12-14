@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 import type { PlanetData } from './planet-registry';
 import { BasePlanetVisual } from './visuals/base-planet-visual';
-import { EarthVisual } from './visuals/earth-visual';
-import { RingWorldVisual } from './visuals/ring-world-visual';
+
+
 import { AdjustableMoonVisual } from './visuals/adjustable-moon-visual';
 
 export class PlanetVisuals {
@@ -17,16 +17,11 @@ export class PlanetVisuals {
         planets.forEach(planet => {
             let visual: BasePlanetVisual;
 
-            if (planet.id === 'earth') {
-                visual = new EarthVisual(this.scene, planet);
-            } else if (planet.id === 'ring-world') {
-                visual = new RingWorldVisual(this.scene, planet);
-            } else if (planet.type === 'moon') {
-                visual = new AdjustableMoonVisual(this.scene, planet);
-            } else {
-                // Fallback or generic planet
-                visual = new RingWorldVisual(this.scene, planet); // Default to static-ish
-            }
+            // Since we defeatured everything to be moons, we default to AdjustableMoonVisual
+            // We can still use ID to use RingWorldVisual for fallback or specific cases if needed,
+            // but the user instruction implies a replacement with matching moon variants.
+            visual = new AdjustableMoonVisual(this.scene, planet);
+
 
             visual.create(onClick);
             this.visuals.set(planet.id, visual);
@@ -40,5 +35,9 @@ export class PlanetVisuals {
                 visual.updateVisibility();
             }
         });
+    }
+
+    public update(time: number, delta: number) {
+        this.visuals.forEach(visual => visual.update(time, delta));
     }
 }

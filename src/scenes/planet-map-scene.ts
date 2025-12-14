@@ -11,7 +11,7 @@ export default class PlanetMapScene extends Phaser.Scene {
 
     private playerShip!: Phaser.GameObjects.Image;
     private currentPlanetId: string = 'earth';
-    private connectionGraphics!: Phaser.GameObjects.Graphics;
+
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
 
@@ -22,47 +22,57 @@ export default class PlanetMapScene extends Phaser.Scene {
     }
 
     create() {
+        console.log('PlanetMapScene: create() started');
         const { width, height } = this.scale;
 
+        console.log('PlanetMapScene: initializing managers');
         // Initialize Managers
         this.interactions = new MapInteractionManager(this);
         this.visuals = new PlanetVisuals(this); // Re-assign to ensure scene is valid
 
+        console.log('PlanetMapScene: creating background');
         // Background
         this.add.rectangle(0, 0, width, height, 0x000011).setOrigin(0).setDepth(-100);
-        this.add.image(width / 2, height / 2, 'nebula').setAlpha(0.3).setScale(1.5).setDepth(-100);
+        this.add.image(width / 2, height / 2, 'backgrounds', 'nebula').setAlpha(0.3).setScale(1.5).setDepth(-100);
 
+        console.log('PlanetMapScene: creating starfield');
         // Starfield Effect
         this.starfield = new WarpStarfield(this, width, height);
 
+        console.log('PlanetMapScene: initializing planets');
         // Initialize Data
         this.planetRegistry.initPlanets(width, height);
 
         // Draw Connections
-        this.connectionGraphics = this.add.graphics();
-        this.connectionGraphics.setDepth(-50);
-        this.drawConnections();
 
+
+        console.log('PlanetMapScene: creating visuals');
         // Draw Planets
         this.visuals.createVisuals(this.planetRegistry.getAll(), (planet) => this.handlePlanetClick(planet));
 
+        console.log('PlanetMapScene: creating player ship');
         // Create Player Ship
         this.createPlayerShip();
 
         // Start Animations
         // Animations start automatically in visuals
 
+        console.log('PlanetMapScene: updating visibility and moving to planet');
         // Initial State Update
         this.visuals.updateVisibility(this.planetRegistry.getAll());
         this.moveToPlanet(this.currentPlanetId, true);
 
+        console.log('PlanetMapScene: setting up resize handler');
         // Handle Resize
         this.scale.on('resize', this.handleResize, this);
 
+        console.log('PlanetMapScene: setting up input');
         // Input
         if (this.input.keyboard) {
             this.cursorKeys = this.input.keyboard.createCursorKeys();
         }
+
+        console.log('PlanetMapScene: create() complete');
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {
@@ -71,8 +81,7 @@ export default class PlanetMapScene extends Phaser.Scene {
         // Update positions in registry
         this.planetRegistry.updatePositions(width, height);
 
-        // Redraw connections
-        this.drawConnections();
+
 
         // Move ship if needed
         this.moveToPlanet(this.currentPlanetId, true);
@@ -83,23 +92,10 @@ export default class PlanetMapScene extends Phaser.Scene {
         }
     }
 
-    private drawConnections() {
-        this.connectionGraphics.clear();
-        this.connectionGraphics.lineStyle(4, 0x4444ff, 0.3);
 
-        this.planetRegistry.getAll().forEach(planet => {
-            planet.connections.forEach(targetId => {
-                const target = this.planetRegistry.getById(targetId);
-                if (target) {
-                    this.connectionGraphics.moveTo(planet.x, planet.y);
-                    this.connectionGraphics.lineTo(target.x, target.y);
-                }
-            });
-        });
-    }
 
     private createPlayerShip() {
-        this.playerShip = this.add.image(0, 0, 'big-cruiser')
+        this.playerShip = this.add.image(0, 0, 'ships', 'big-cruiser')
             .setScale(0.4)
             .setAngle(-90)
             .setOrigin(0.5)
@@ -219,7 +215,8 @@ export default class PlanetMapScene extends Phaser.Scene {
         }
     }
 
-    update(_time: number, _delta: number) {
+    update(time: number, delta: number) {
         this.handleInput();
+        this.visuals.update(time, delta);
     }
 }

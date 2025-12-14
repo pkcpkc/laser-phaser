@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
-import { BigCruiser } from '../ships/big-cruiser';
-import { BloodHunter } from '../ships/blood-hunter';
-import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
+// import { BigCruiser } from '../ships/big-cruiser';
+// import { BloodHunter } from '../ships/blood-hunter';
+// import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
 import { createFlareTexture } from '../utils/texture-generator';
 
 export default class PreloadScene extends Phaser.Scene {
@@ -25,14 +25,23 @@ export default class PreloadScene extends Phaser.Scene {
         this.logo.setOrigin(0.5, 0.5);
         this.logo.setAlpha(0); // Hide initially to prevent size jump
 
+        // Add error handlers for asset loading
+        this.load.on('loaderror', (file: any) => {
+            console.error('Error loading file:', file.key, file.src);
+        });
+
+        this.load.on('filecomplete', (key: string) => {
+            console.log('File loaded:', key);
+        });
+
+        this.load.on('complete', () => {
+            console.log('All assets loaded successfully');
+        });
+
         // Load Game Assets
         // From BaseScene
-        this.load.image(BigCruiser.assetKey, BigCruiser.assetPath);
-        this.load.image('nebula', 'assets/backgrounds/nebula.png');
-
-        // From BloodHuntersScene
-        this.load.image(BloodHunter.assetKey, BloodHunter.assetPath);
-        this.load.image(GreenRocketCarrier.assetKey, GreenRocketCarrier.assetPath);
+        this.load.atlas('ships', 'assets/ships.png', 'assets/ships.json');
+        this.load.atlas('backgrounds', 'assets/backgrounds.png', 'assets/backgrounds.json');
     }
 
     create() {
@@ -42,10 +51,15 @@ export default class PreloadScene extends Phaser.Scene {
         this.generateFlares();
 
         // Create the loading text initially
+        // Use left origin (0, 0.5) so text doesn't shift when dot count changes
         this.loadingText = this.add.text(0, 0, 'LOADING...', {
             fontSize: '24px',
             color: '#ffffff'
-        }).setOrigin(0.5);
+        }).setOrigin(0, 0.5);
+
+        // Animate the dots by creating a fade effect
+        // We'll create separate text objects for each dot and animate them
+        this.animateLoadingDots();
 
         // Initial layout update
         this.updateLayout();
@@ -60,21 +74,8 @@ export default class PreloadScene extends Phaser.Scene {
         console.log(`PreloadScene: elapsed ${elapsedTime}ms, waiting ${remainingTime}ms`);
 
         const onLoadingComplete = () => {
-            console.log('PreloadScene: loading complete, waiting for input');
-            this.loadingText.setText('Press FIRE to Start');
-
-            // Blink effect for the text
-            this.tweens.add({
-                targets: this.loadingText,
-                alpha: 0,
-                duration: 500,
-                yoyo: true,
-                repeat: -1
-            });
-
-            // Input listeners
-            this.input.on('pointerdown', () => this.startGame());
-            this.input.keyboard!.on('keydown-SPACE', () => this.startGame());
+            console.log('PreloadScene: loading complete, starting game');
+            this.startGame();
         };
 
         if (remainingTime > 0) {
@@ -82,6 +83,22 @@ export default class PreloadScene extends Phaser.Scene {
         } else {
             onLoadingComplete();
         }
+    }
+
+    private animateLoadingDots() {
+        // Create a simple animation by changing the text periodically
+        const baseText = 'LOADING';
+        let dotCount = 0;
+
+        this.time.addEvent({
+            delay: 400, // Change every 400ms
+            callback: () => {
+                dotCount = (dotCount + 1) % 4; // Cycle through 0, 1, 2, 3 dots
+                const dots = '.'.repeat(dotCount);
+                this.loadingText.setText(baseText + dots);
+            },
+            loop: true
+        });
     }
 
     resize() {
@@ -128,7 +145,12 @@ export default class PreloadScene extends Phaser.Scene {
         const logoBottom = logoY + (this.logo.displayHeight / 2);
         const textY = logoBottom + 40; // 40px padding
 
-        this.loadingText.setPosition(width / 2, textY);
+        // Position text so "LOADING..." (max width) appears centered
+        // Since origin is (0, 0.5), offset by half the max text width
+        const maxText = 'LOADING...';
+        this.loadingText.setText(maxText);
+        const textWidth = this.loadingText.width;
+        this.loadingText.setPosition((width - textWidth) / 2, textY);
 
         // 5. Show the logo (if it was hidden)
         this.logo.setAlpha(1);

@@ -4,24 +4,24 @@ import { PNG } from 'pngjs';
 import { glob } from 'glob';
 import { MarkerConfig, type ShipMarker } from './marker-config';
 
-const SOURCE_SHIPS_DIR = 'public/assets/ships';
-const DEST_SHIPS_DIR = 'public/assets/ships';
+const SOURCE_SHIPS_DIR = 'res/ships';
+// const DEST_SHIPS_DIR = 'public/assets/ships'; // No longer executing copy
 const GENERATED_DIR = 'src/generated';
 
 export async function processFile(sourcePath: string) {
     const fileName = path.basename(sourcePath);
     const shipId = fileName.replace('.png', '');
-    const destPath = path.join(DEST_SHIPS_DIR, fileName);
+    // const destPath = path.join(DEST_SHIPS_DIR, fileName);
 
     // Only copy if source and destination are different
-    if (path.resolve(sourcePath) !== path.resolve(destPath)) {
-        fs.copyFileSync(sourcePath, destPath);
-        console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
-    }
+    // if (path.resolve(sourcePath) !== path.resolve(destPath)) {
+    //     fs.copyFileSync(sourcePath, destPath);
+    //     console.log(`Copied ${fileName} to ${DEST_SHIPS_DIR}`);
+    // }
 
     console.log(`Generating markers for ${fileName}...`);
 
-    const data = fs.readFileSync(destPath);
+    const data = fs.readFileSync(sourcePath);
     const png = PNG.sync.read(data);
     const markers: ShipMarker[] = [];
 
@@ -78,10 +78,10 @@ export const markers: ShipMarker[] = ${JSON.stringify(markers, null, 4)};
 
 async function main() {
     // Ensure destination directory exists
-    if (!fs.existsSync(DEST_SHIPS_DIR)) {
-        fs.mkdirSync(DEST_SHIPS_DIR, { recursive: true });
-        console.log(`Created directory ${DEST_SHIPS_DIR}`);
-    }
+    // if (!fs.existsSync(DEST_SHIPS_DIR)) {
+    //     fs.mkdirSync(DEST_SHIPS_DIR, { recursive: true });
+    //     console.log(`Created directory ${DEST_SHIPS_DIR}`);
+    // }
 
     // Ensure generated directory exists
     if (!fs.existsSync(GENERATED_DIR)) {
@@ -90,11 +90,11 @@ async function main() {
     }
 
     // Delete existing marker files (legacy cleanup)
-    const existingMarkers = await glob(`${DEST_SHIPS_DIR}/*.marker.json`);
-    for (const markerFile of existingMarkers) {
-        fs.unlinkSync(markerFile);
-        console.log(`Deleted legacy marker file: ${markerFile}`);
-    }
+    // const existingMarkers = await glob(`${DEST_SHIPS_DIR}/*.marker.json`);
+    // for (const markerFile of existingMarkers) {
+    //     fs.unlinkSync(markerFile);
+    //     console.log(`Deleted legacy marker file: ${markerFile}`);
+    // }
 
     const files = await glob(`${SOURCE_SHIPS_DIR}/*.png`);
     if (files.length === 0) {

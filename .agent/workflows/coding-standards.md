@@ -4,6 +4,15 @@ description: Coding standards and quality requirements
 
 # Coding Standards
 
+## Before Completing Any Work
+
+1. **Delete all unused code and tests** - Remove dead code, unused imports, and obsolete test files
+2. **Cover everything with tests** - Write comprehensive tests for all new and modified code
+3. **Run and fix tests** - Execute `npm test` and fix any failures
+4. **Update README** - Keep documentation in sync with changes
+
+---
+
 Before completing any code changes, ensure you follow the rules in `.agent/rules.md`:
 
 ## Required Steps

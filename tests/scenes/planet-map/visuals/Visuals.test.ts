@@ -9,6 +9,11 @@ import Phaser from 'phaser';
 // Let's test PlanetVisuals manager logic primarily for delegation.
 
 vi.mock('phaser', () => {
+    const mockColorMatrix = {
+        saturate: vi.fn().mockReturnThis(),
+        multiply: vi.fn().mockReturnThis(),
+    };
+
     const MockTextClass = class {
         setInteractive = vi.fn().mockReturnThis();
         on = vi.fn().mockReturnThis();
@@ -19,12 +24,19 @@ vi.mock('phaser', () => {
         setText = vi.fn().mockReturnThis();
         setAlpha = vi.fn().mockReturnThis();
         setPosition = vi.fn().mockReturnThis();
+        setDepth = vi.fn().mockReturnThis();
+        clearTint = vi.fn().mockReturnThis();
+        postFX = {
+            clear: vi.fn(),
+            addColorMatrix: vi.fn().mockReturnValue(mockColorMatrix),
+        };
     };
 
     return {
         default: {
             Math: {
                 DegToRad: (deg: number) => deg * (Math.PI / 180),
+                FloatBetween: (min: number, max: number) => min + (max - min) * 0.5,
                 Distance: {
                     Between: (x1: number, y1: number, x2: number, y2: number) => Math.hypot(x2 - x1, y2 - y1)
                 }
@@ -77,7 +89,7 @@ describe('PlanetVisuals', () => {
 
     it('should create EarthVisual for earth id', () => {
         const planets: PlanetData[] = [{
-            id: 'earth', type: 'main', x: 0, y: 0, name: 'Earth', unlocked: true, connections: [], visual: 'E'
+            id: 'earth', x: 0, y: 0, name: 'Earth', unlocked: true
         }];
 
         visualsManager.createVisuals(planets, () => { });
@@ -88,7 +100,7 @@ describe('PlanetVisuals', () => {
 
     it('should create RingWorldVisual for ring-world id', () => {
         const planets: PlanetData[] = [{
-            id: 'ring-world', type: 'planet', x: 0, y: 0, name: 'Ring', unlocked: true, connections: [], visual: 'R'
+            id: 'ring-world', x: 0, y: 0, name: 'Ring', unlocked: true
         }];
         visualsManager.createVisuals(planets, () => { });
         expect(mockScene.add.text).toHaveBeenCalled();
@@ -96,7 +108,7 @@ describe('PlanetVisuals', () => {
 
     it('should update visual content on unlock', () => {
         const planet: PlanetData = {
-            id: 'ring-world', type: 'planet', x: 0, y: 0, name: 'Ring', unlocked: false, connections: [], visual: 'R',
+            id: 'ring-world', x: 0, y: 0, name: 'Ring', unlocked: false,
             gameObject: mockGameObject as unknown as Phaser.GameObjects.Text
         };
         const planets = [planet];
@@ -107,12 +119,12 @@ describe('PlanetVisuals', () => {
         planet.unlocked = true;
         visualsManager.updateVisibility(planets);
 
-        expect((planet.gameObject as any).setText).toHaveBeenCalledWith('R');
+        expect((planet.gameObject as any).setText).toHaveBeenCalled();
     });
 
     it('should update visibility', () => {
         const planet: PlanetData = {
-            id: 'earth', type: 'main', x: 0, y: 0, name: 'Earth', unlocked: true, connections: [], visual: 'E',
+            id: 'earth', x: 0, y: 0, name: 'Earth', unlocked: true,
             gameObject: mockGameObject as unknown as Phaser.GameObjects.Text
         };
         const planets = [planet];

@@ -58,6 +58,7 @@ export interface ShipDefinition {
     explosion?: ExplosionConfig;
     // All possible markers on this hull
     markers: ShipMarker[];
+    frame?: string;
 }
 
 /**

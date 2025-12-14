@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run ships:markers && tsc && vite build",
+    "build": "npm run build:atlases && npm run build:markers && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ships:markers": "tsx scripts/generate-markers.ts"
+    "build:markers": "tsx scripts/generate-markers.ts",
+    "build:atlases": "node scripts/generate-atlases.js"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
@@ -20,9 +21,11 @@
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
+    "vite-plugin-terminal": "^1.3.0",
     "vitest": "^4.0.14"
   },
   "dependencies": {
+    "free-tex-packer-core": "^0.3.5",
     "phaser": "^3.90.0",
     "phaser3-rex-plugins": "^1.80.17"
   }

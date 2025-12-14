@@ -1,7 +1,16 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
+import Terminal from 'vite-plugin-terminal';
 
 export default defineConfig({
+    plugins: [
+        {
+            ...Terminal({
+                console: 'terminal',
+            }),
+            apply: 'serve',
+        },
+    ],
     base: '/laser-phaser/',
     publicDir: 'public',
     test: {

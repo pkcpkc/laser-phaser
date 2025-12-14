@@ -1,26 +1,34 @@
 import Phaser from 'phaser';
+import type { SatelliteEffect } from './visuals/satellite-effect';
 
 export interface PlanetData {
     id: string;
     x: number;
     y: number;
-    type: 'main' | 'moon' | 'planet';
     name: string;
-    unlocked: boolean;
-    connections: string[];
-    visualType?: 'emoji' | 'sprite'; // Default to emoji
-    visual: string; // The emoji char or asset key
+    unlocked?: boolean; // Defaults to false
+
     visualScale?: number;
     levelId?: string;
     hasTrader?: boolean;
     hasShipyard?: boolean;
     tint?: number; // Optional color tint
-    angle?: number; // Optional rotation angle
+    ringColor?: number;
+    hasSatellites?: boolean; // Enable orbiting satellite effect
+    satelliteTint?: number;  // Satellite color (defaults to white)
+    satelliteCount?: number; // Number of satellites (defaults to 5)
+
     // Runtime references
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
+    ringEmitters?: Phaser.GameObjects.Particles.ParticleEmitter[]; // Back and Front emitters
     overlayGameObject?: Phaser.GameObjects.Text;
     usingOverlay?: boolean;
     emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
+    satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
+
+    // Positioning persistence
+    orbitAngle?: number; // radians
+    orbitRadius?: number; // relative distance factor (0 to 1, where 1 is max radius)
 }
 
 export class PlanetRegistry {
@@ -30,143 +38,147 @@ export class PlanetRegistry {
 
     public initPlanets(width: number, height: number) {
         const cx = width / 2;
-        const earthX = cx;
-        const earthYPos = Math.min(height - 100, height * 0.8);
+        const cy = height / 2;
 
-        // Standard orbit radius
-        const orbitRadius = Math.min(width, height) * 0.35;
+        // Constants for layout
+        // Planet radius approx 30px visual, plus padding.
+        const PLANET_RADIUS = 40;
+        const BORDER_PADDING = 20;
+        const EARTH_GAP = 20;
 
-        // Position calculations
-        const moonAngle = Phaser.Math.DegToRad(-135);
-        const moonX = earthX + Math.cos(moonAngle) * orbitRadius;
-        const moonYPos = earthYPos + Math.sin(moonAngle) * orbitRadius;
+        // Inner limit: Earth Radius + Gap + Planet Radius
+        const innerLimit = PLANET_RADIUS + EARTH_GAP + PLANET_RADIUS;
 
-        const ringAngle = Phaser.Math.DegToRad(-90);
-        const ringX = earthX + Math.cos(ringAngle) * orbitRadius;
-        const ringYPos = earthYPos + Math.sin(ringAngle) * orbitRadius;
+        // Outer limit: Min Screen Dimension / 2 - (Planet Radius + Border Padding)
+        const minDim = Math.min(width, height);
+        const outerLimit = (minDim / 2) - (PLANET_RADIUS + BORDER_PADDING);
 
-        // Red Moon: 0 deg
-        const redX = earthX + Math.cos(0) * orbitRadius;
-        const redY = earthYPos + Math.sin(0) * orbitRadius;
+        // Sanity check: if screen is too small, clamp outerLimit to innerLimit + tiny offset
+        const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
 
-        // Ice Moon: -45 deg
-        const iceRad = Phaser.Math.DegToRad(-45);
-        const iceX = earthX + Math.cos(iceRad) * orbitRadius;
-        const iceY = earthYPos + Math.sin(iceRad) * orbitRadius;
 
-        // Toxic Moon: 180 deg
-        const toxicRad = Phaser.Math.DegToRad(180);
-        const toxicX = earthX + Math.cos(toxicRad) * orbitRadius;
-        const toxicY = earthYPos + Math.sin(toxicRad) * orbitRadius;
 
         this.planets = [
             {
-                id: 'earth',
-                x: earthX,
-                y: earthYPos,
-                type: 'main',
-                name: 'Earth',
+                id: 'earth', // Keeping ID 'earth' for compatibility, but visual is moon
+                name: 'Prime Moon', // Was Earth
                 unlocked: true,
-                connections: ['moon-base', 'ring-world', 'red-moon', 'ice-moon', 'toxic-moon'],
-                visual: '🌍',
-                visualScale: 0.8
+                tint: 0x4488FF, // Blue - prime moon
+                visualScale: 1.0, // Slightly larger for main?
+                levelId: 'blood-hunters',
+                x: cx,
+                y: cy,
+                orbitAngle: 0,
+                orbitRadius: 0
             },
             {
                 id: 'moon-base',
-                x: moonX,
-                y: moonYPos,
-                type: 'moon',
                 name: 'Dark Moon',
-                unlocked: false,
-                connections: ['earth', 'ring-world'],
-                visual: '🌑',
-                visualScale: 0.6
+                tint: 0x4A4A6A, // Deep purple-gray - dark/mysterious
+                levelId: 'blood-hunters',
+                visualScale: 0.6,
+                x: 0, y: 0 // placeholder
             },
             {
                 id: 'ring-world',
-                x: ringX,
-                y: ringYPos,
-                type: 'planet',
-                name: 'Ring World',
-                unlocked: false,
-                connections: ['earth', 'moon-base'],
-                visual: '🪐',
-                visualScale: 1.2
+                name: 'Ring Moon', // Was Ring World
+                ringColor: 0xcccccc,
+                levelId: 'blood-hunters',
+                tint: 0xffffff,
+                visualScale: 0.8,
+                x: 0, y: 0
             },
             {
                 id: 'red-moon',
-                x: redX,
-                y: redY,
-                type: 'moon',
                 name: 'Red Moon',
-                unlocked: false,
-                connections: ['earth'],
-                visual: '🌑',
-                tint: 0xff8888,
-                angle: 45,
+                tint: 0xFF4444, // Bright red - blood moon
                 visualScale: 0.5,
                 levelId: 'blood-hunters',
                 hasTrader: true,
                 hasShipyard: true,
+                x: 0, y: 0
             },
             {
                 id: 'ice-moon',
-                x: iceX,
-                y: iceY,
-                type: 'moon',
                 name: 'Ice Moon',
-                unlocked: false,
-                connections: ['earth'],
-                visual: '🌑',
-                tint: 0x8888ff,
-                angle: -45,
-                visualScale: 1.0
+                tint: 0x88EEFF, // Cyan/ice blue
+                visualScale: 1.0,
+                levelId: 'blood-hunters',
+                hasSatellites: true, // Orbiting satellite effect
+                x: 0, y: 0
             },
             {
                 id: 'toxic-moon',
-                x: toxicX,
-                y: toxicY,
-                type: 'moon',
                 name: 'Toxic Moon',
-                unlocked: false,
-                connections: ['earth'],
-                visual: '🌑',
-                tint: 0x88ff88,
-                angle: 180,
-                visualScale: 1.5
+                levelId: 'blood-hunters',
+                visualScale: 1.5,
+                tint: 0x8844FF, // Violet/purple - toxic moon
+                ringColor: 0x88FF66, // Toxic green ring
+                x: 0, y: 0
             }
         ];
+
+        const satellitesCount = this.planets.length - 1; // Exclude Earth
+        const angleStep = (Math.PI * 2) / satellitesCount;
+        const startAngle = Phaser.Math.FloatBetween(0, Math.PI * 2); // Randomize start orientation
+
+        // Assign positions
+        let satelliteIndex = 0;
+        for (let i = 0; i < this.planets.length; i++) {
+            const p = this.planets[i];
+
+            // Skip Earth (index 0 usually, but checking ID is safer if logic changes)
+            if (p.id === 'earth') continue;
+
+            const angle = startAngle + (satelliteIndex * angleStep);
+            satelliteIndex++;
+
+            // Random radius logic preserved
+            const rawRadius = Phaser.Math.FloatBetween(innerLimit, effectiveOuterLimit);
+            const bandWidth = effectiveOuterLimit - innerLimit;
+            const factor = (rawRadius - innerLimit) / bandWidth;
+
+            p.orbitAngle = angle;
+            p.orbitRadius = factor;
+
+            // Initial calc just so they have valid coords immediately
+            const actualRadius = innerLimit + (factor * bandWidth);
+
+            p.x = cx + Math.cos(p.orbitAngle) * actualRadius;
+            p.y = cy + Math.sin(p.orbitAngle) * actualRadius;
+        }
     }
 
     public updatePositions(width: number, height: number) {
         const cx = width / 2;
-        const orbitRadius = Math.min(width, height) * 0.35;
+        const cy = height / 2;
 
-        // Earth
-        const earth = this.getById('earth');
-        const earthX = cx;
-        const earthYPos = Math.min(height - 100, height * 0.8);
+        // Recalculate limits based on new size
+        const PLANET_RADIUS = 40;
+        const BORDER_PADDING = 20;
+        const EARTH_GAP = 20;
 
-        if (earth) {
-            this.setPlanetPosition(earth, earthX, earthYPos);
-        }
+        const innerLimit = PLANET_RADIUS + EARTH_GAP + PLANET_RADIUS;
+        const minDim = Math.min(width, height);
+        const outerLimit = (minDim / 2) - (PLANET_RADIUS + BORDER_PADDING);
+        const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
+        const bandWidth = effectiveOuterLimit - innerLimit;
 
-        // Helper to set relative pos
-        const setRelativePos = (id: string, angleDeg: number) => {
-            const planet = this.getById(id);
-            if (planet) {
-                const rad = Phaser.Math.DegToRad(angleDeg);
-                const px = earthX + Math.cos(rad) * orbitRadius;
-                const py = earthYPos + Math.sin(rad) * orbitRadius;
-                this.setPlanetPosition(planet, px, py);
+        this.planets.forEach(p => {
+            if (p.id === 'earth') {
+                this.setPlanetPosition(p, cx, cy);
+            } else {
+                const angle = p.orbitAngle ?? 0;
+                // Default to middle of band if undefined
+                const rFactor = p.orbitRadius ?? 0.5;
+
+                const radius = innerLimit + (rFactor * bandWidth);
+
+                const px = cx + Math.cos(angle) * radius;
+                const py = cy + Math.sin(angle) * radius;
+                this.setPlanetPosition(p, px, py);
             }
-        };
-
-        setRelativePos('moon-base', -135);
-        setRelativePos('ring-world', -90);
-        setRelativePos('red-moon', 0);
-        setRelativePos('ice-moon', -45);
-        setRelativePos('toxic-moon', 180);
+        });
     }
 
     private setPlanetPosition(planet: PlanetData, x: number, y: number) {

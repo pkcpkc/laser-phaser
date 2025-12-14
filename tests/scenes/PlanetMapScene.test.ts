@@ -95,6 +95,7 @@ vi.mock('phaser', () => {
             },
             Math: {
                 DegToRad: (deg: number) => deg * (Math.PI / 180),
+                FloatBetween: (min: number, max: number) => min + (max - min) * 0.5, // Return midpoint for deterministic tests
                 Distance: {
                     Between: (x1: number, y1: number, x2: number, y2: number) => Math.hypot(x2 - x1, y2 - y1)
                 },

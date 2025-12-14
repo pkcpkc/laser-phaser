@@ -25,3 +25,6 @@ dist-ssr
 
 # Generated files
 src/generated
+
+# Tests
+tests/temp/

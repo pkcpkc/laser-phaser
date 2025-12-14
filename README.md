@@ -23,6 +23,27 @@ This game is a homage to the legendary late 80s shooter games that defined the g
 | [**Blood Money**](https://en.wikipedia.org/wiki/Blood_Money_(video_game)) | ![Blood Money Cover](https://upload.wikimedia.org/wikipedia/en/thumb/7/71/Blood_Money_Coverart.png/250px-Blood_Money_Coverart.png) | ![Blood Money Gameplay](https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Blood_Money_gameplay_screenshot.jpg/250px-Blood_Money_gameplay_screenshot.jpg) |
 | [**Katakis**](https://en.wikipedia.org/wiki/Katakis) | ![Katakis Cover](https://upload.wikimedia.org/wikipedia/en/thumb/4/4e/Katakis_Coverart.png/250px-Katakis_Coverart.png) | ![Katakis Gameplay](https://upload.wikimedia.org/wikipedia/en/thumb/5/59/KatakisC64_01.png/250px-KatakisC64_01.png) |
 
+## Markers Setup
+
+Markers are special pixels defined directly in the ship's source image (`res/ships/*.png`) to define attachment points for components. They are stripped during atlas generation but used to generate metadata.
+
+### Marker Types
+
+| Type | Color (Hex) | RGB | Description |
+| :--- | :--- | :--- | :--- |
+| **Thruster** | `#FFA500` | `255, 165, 0` | Positioning for engine trails. |
+| **Laser** | `#00FF00` | `0, 255, 0` | Attachment point for laser cannons. |
+| **Rocket** | `#FFFFFF` | `255, 255, 255` | Attachment point for rocket launchers. |
+| **Armor** | `#000000` | `0, 0, 0` | (Future Use) Armor plate attachment. |
+
+### Setting Orientation
+
+To define the rotation (angle) of a marker (e.g., a side-firing cannon), place a **Red Pixel** (`#FF0000` / `255, 0, 0`) adjacent to the marker pixel within a 3x3 grid.
+
+*   The generator looks at the 8 neighbors of the marker pixel.
+*   If a red pixel is found, the angle is calculated from the vector `(Marker -> Red Pixel)`.
+*   **Example**: Placing a red pixel directly to the **right** of a Green (Laser) pixel will set that laser's angle to 0° (firing right). Placing it **below** sets it to 90° (firing down).
+
 ## Technical Overview
 
 **Laser Phaser** is a modern web-based shoot 'em up built with robust technologies to ensure high performance and a smooth development experience.
@@ -30,7 +51,14 @@ This game is a homage to the legendary late 80s shooter games that defined the g
 *   **Engine**: [Phaser 3](https://phaser.io/) - A fast, free, and fun open-source HTML5 game framework.
 *   **Language**: [TypeScript](https://www.typescriptlang.org/) - For type-safe, maintainable code.
 *   **Build Tool**: [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling for lightning-fast development servers and optimized builds.
-*   **Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework.
+*   **Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework. (Current Coverage: 100% of source files)
+
+## Asset Pipeline
+
+We use a custom asset pipeline to optimize game performance and development workflow:
+
+*   **Texture Atlases**: Automatically generated from `public/assets` folders using `free-tex-packer-core`. Run `npm run build:atlases` to regenerate.
+*   **Marker Generation**: Ship attachment points (markers) are defined in JSON/Typescript and validated. Run `npm run build:markers` to update.
 
 ### Game Entities & Architecture
 
@@ -63,13 +91,15 @@ graph TD
 
 ### Directory Structure
 
-The project follows a domain-driven structure for scenes:
+The project follows a domain-driven structure for scenes and content:
 
-*   `src/scenes/planet-map-scene.ts`: The main hub.
-*   `src/scenes/shoot-em-ups/`: Contains active gameplay levels (e.g., `blood-hunters.ts`).
-*   `src/scenes/traders/`: Trading interfaces.
-*   `src/scenes/shipyards/`: Upgrade interfaces.
-*   `src/scenes/tower-defenses/`: Future tower defense modes.
+*   `src/scenes/`: Scene logic (Planet Map, Base Scene, etc.)
+    *   `planet-map/`: Visuals and logic for the navigation map.
+    *   `shoot-em-ups/`: Active gameplay levels.
+    *   `traders/` & `shipyards/`: Meta-game interfaces.
+*   `src/ships/`: Ship definitions, configurations, and component logic.
+*   `src/logic/`: Core game managers (Collision, Game State, Player Control).
+*   `src/levels/` & `src/waves/`: Level definitions and wave spawning logic.
 
 ### Getting Started
 
@@ -80,17 +110,23 @@ To fire up the engines and start developing:
     npm install
     ```
 
-2.  **Start the development server:**
+2.  **Generate Assets (Atlases & Markers):**
+    ```bash
+    npm run build:atlases
+    npm run build:markers
+    ```
+
+3.  **Start the development server:**
     ```bash
     npm run dev
     ```
 
-3.  **Build for production:**
+4.  **Build for production:**
     ```bash
     npm run build
     ```
 
-4.  **Run tests:**
+5.  **Run tests:**
     ```bash
     npm test
     ```

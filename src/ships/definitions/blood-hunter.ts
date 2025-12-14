@@ -4,7 +4,8 @@ import { markers as allMarkers } from '../../generated/blood-hunter.markers';
 console.log('Evaluating BloodHunterDefinition module');
 export const BloodHunterDefinition: ShipDefinition = {
     id: 'blood-hunter',
-    assetKey: 'blood-hunter',
+    assetKey: 'ships',
+    frame: 'blood-hunter',
     assetPath: 'assets/ships/blood-hunter.png',
     markers: allMarkers,
     physics: {

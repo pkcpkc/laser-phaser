@@ -17,10 +17,11 @@
 - Address all linting issues, don't ignore them
 
 ### Workflow
-1. Write/modify code
-2. Write/update corresponding tests
-3. **Fix any linting errors** (`npx tsc --noEmit`)
-4. Run tests (`npm test`)
-5. Fix any failing tests
-6. Verify all checks pass before completion
-7. **Update README.md** with any relevant changes
+1. **Delete all unused code and tests** - Remove dead code, unused imports, and obsolete test files
+2. Write/modify code
+3. Write/update corresponding tests - Cover everything with tests
+4. **Fix any linting errors** (`npx tsc --noEmit`)
+5. Run tests (`npm test`)
+6. Fix any failing tests
+7. Verify all checks pass before completion
+8. **Update README.md** with any relevant changes

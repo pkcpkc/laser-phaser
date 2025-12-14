@@ -3,7 +3,8 @@ import { markers as allMarkers } from '../../generated/green-rocket-carrier.mark
 
 export const GreenRocketCarrierDefinition: ShipDefinition = {
     id: 'green-rocket-carrier',
-    assetKey: 'green-rocket-carrier',
+    assetKey: 'ships',
+    frame: 'green-rocket-carrier',
     assetPath: 'assets/ships/green-rocket-carrier.png',
     markers: allMarkers.map(m => ({ ...m, type: 'rocket' })),
     physics: {

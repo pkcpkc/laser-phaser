@@ -31,7 +31,7 @@ export class Ship {
         private readonly collisionConfig: ShipCollisionConfig
     ) {
         // Use definition for asset loading
-        this.sprite = scene.matter.add.image(x, y, config.definition.assetKey);
+        this.sprite = scene.matter.add.image(x, y, config.definition.assetKey, config.definition.frame);
         this.sprite.setData('ship', this);
 
         const phys = config.definition.physics;

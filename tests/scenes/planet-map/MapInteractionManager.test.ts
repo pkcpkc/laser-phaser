@@ -25,6 +25,7 @@ const mockScene = {
             setPosition: vi.fn(),
             setVisible: vi.fn(),
             setDepth: vi.fn(),
+            setAlpha: vi.fn(),
             removeAll: vi.fn(),
             destroy: vi.fn()
         }),
@@ -40,6 +41,9 @@ const mockScene = {
     },
     scene: {
         start: vi.fn()
+    },
+    tweens: {
+        add: vi.fn()
     }
 };
 
@@ -61,27 +65,21 @@ describe('MapInteractionManager', () => {
             id: 'test-planet',
             x: 100,
             y: 100,
-            type: 'planet',
             name: 'Test Planet',
-            unlocked: true,
-            connections: [],
-            visual: 'P'
+            unlocked: true
         };
 
         manager.showInteractionUI(planet);
         expect(mockScene.add.container().setVisible).toHaveBeenCalledWith(true);
-        expect(mockScene.add.container().setPosition).toHaveBeenCalledWith(100 + 60, 100);
+        expect(mockScene.add.container().setPosition).toHaveBeenCalledWith(100 + 30 + 5, 100);
     });
 
     it('should launch level if available', () => {
         const planet: PlanetData = {
             id: 'level-planet',
             x: 0, y: 0,
-            type: 'moon',
             name: 'Level',
             unlocked: true,
-            connections: [],
-            visual: 'M',
             levelId: 'blood-hunters'
         };
 
@@ -93,11 +91,8 @@ describe('MapInteractionManager', () => {
         const planet: PlanetData = {
             id: 'safe-planet',
             x: 0, y: 0,
-            type: 'main',
             name: 'Safe',
-            unlocked: true,
-            connections: [],
-            visual: 'S'
+            unlocked: true
         };
 
         manager.launchLevelIfAvailable(planet);

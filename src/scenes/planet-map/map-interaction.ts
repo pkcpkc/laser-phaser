@@ -20,13 +20,19 @@ export class MapInteractionManager {
         this.interactionContainer.removeAll(true);
 
         // No icons for main planet (Earth)
-        if (planet.type === 'main') {
+        if (planet.id === 'earth') {
             this.interactionContainer.setVisible(false);
             return;
         }
 
-        // Position - to the right of the planet
-        this.interactionContainer.setPosition(planet.x + 60, planet.y);
+        // Position - 5px from the planet edge, accounting for planet's visual scale
+        const basePlanetRadius = 30; // Base visual radius
+        const planetRadius = basePlanetRadius * (planet.visualScale ?? 1.0);
+        const gap = 15;
+        this.interactionContainer.setPosition(planet.x + planetRadius + gap, planet.y);
+
+        // Start invisible for smooth fade-in
+        this.interactionContainer.setAlpha(0);
         this.interactionContainer.setVisible(true);
 
         const icons: Phaser.GameObjects.Text[] = [];
@@ -63,6 +69,14 @@ export class MapInteractionManager {
         icons.forEach((icon, index) => {
             icon.setPosition(0, startY + (index * spacing));
             this.interactionContainer.add(icon);
+        });
+
+        // Smooth fade-in animation
+        this.scene.tweens.add({
+            targets: this.interactionContainer,
+            alpha: 1,
+            duration: 300,
+            ease: 'Power2'
         });
     }
 

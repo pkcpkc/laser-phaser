@@ -16,11 +16,11 @@ export class CollisionManager {
         this.onGameOver = onGameOver;
         this.onLootCollected = onLootCollected;
 
-        this.shipCategory = this.scene.matter.world.nextCategory();
-        this.laserCategory = this.scene.matter.world.nextCategory();
-        this.enemyCategory = this.scene.matter.world.nextCategory();
-        this.enemyLaserCategory = this.scene.matter.world.nextCategory();
-        this.lootCategory = this.scene.matter.world.nextCategory();
+        this.shipCategory = 0x0001;
+        this.laserCategory = 0x0002;
+        this.enemyCategory = 0x0004;
+        this.enemyLaserCategory = 0x0008;
+        this.lootCategory = 0x0010;
 
         console.log('CollisionManager Initialized. Categories:', {
             ship: this.shipCategory,
@@ -51,8 +51,8 @@ export class CollisionManager {
                 const gameObjectB = bodyB.gameObject as Phaser.GameObjects.GameObject;
 
                 // Laser hitting world bounds
-                if ((bodyA.collisionFilter.category === this.laserCategory && !gameObjectB) ||
-                    (bodyB.collisionFilter.category === this.laserCategory && !gameObjectA)) {
+                if (((bodyA.collisionFilter.category === this.laserCategory || bodyA.collisionFilter.category === this.enemyLaserCategory) && !gameObjectB) ||
+                    ((bodyB.collisionFilter.category === this.laserCategory || bodyB.collisionFilter.category === this.enemyLaserCategory) && !gameObjectA)) {
                     if (gameObjectA) gameObjectA.destroy();
                     if (gameObjectB) gameObjectB.destroy();
                     return;
