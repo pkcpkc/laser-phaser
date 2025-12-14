@@ -19,34 +19,43 @@ export class MiniMoonEffect {
 
     // Config
     private sizeScale: number = 0.4; // 40% of parent size
+    private tint?: number;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: {
+        tint?: number,
+        tilt?: number,
+        size?: number,
+        orbitRadius?: number,
+        orbitSpeed?: number,
+        startAngle?: number
+    } = {}) {
         this.scene = scene;
         this.planet = planet;
+        this.tint = config.tint;
+
+        // Apply config overrides
+        if (config.size !== undefined) this.sizeScale = config.size;
+
+        // Orbital setup
+        const parentScale = this.planet.visualScale || 1.0;
+        this.orbitRadius = (config.orbitRadius ?? 50) * parentScale;
+        this.orbitSpeed = config.orbitSpeed ?? 0.02;
+        this.currentAngle = config.startAngle ?? Phaser.Math.FloatBetween(0, Math.PI * 2);
+
+        // Tilt
+        const tiltDeg = config.tilt ?? 0;
+        this.orbitTilt = Phaser.Math.DegToRad(tiltDeg);
 
         // Create the text object
-        // Use the same emoji as parent - we'll assume a standard moon if not specified, 
-        // but ideally we check the parent's current frame or just use a default moon.
-        // but ideally we check the parent's current frame or just use a default moon.
-        // Since AdjustableMoonVisual uses an array, we'll pick a static one '🌕' for consistency
-        // as the "Red Moon" identity.
         this.miniMoon = this.scene.add.text(0, 0, '🌕', {
             fontSize: '48px', // Base size, will be scaled down
             padding: { x: 10, y: 10 }
         }).setOrigin(0.5);
 
-        // Match parent's optional tint
-        this.applyTint();
-
-        const parentScale = this.planet.visualScale || 1.0;
-        this.orbitRadius = 50 * parentScale;
-
-        // Use configured tilt (degrees -> radians) or default to 0
-        const tiltDeg = this.planet.miniMoon?.tilt ?? 0;
-        this.orbitTilt = Phaser.Math.DegToRad(tiltDeg);
-
-        // Start at random angle
-        this.currentAngle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+        // Defer tint application to ensure postFX is ready
+        this.scene.time.delayedCall(100, () => {
+            this.applyTint();
+        });
 
         // Create update listener
         this.updateListener = () => this.update();
@@ -54,29 +63,35 @@ export class MiniMoonEffect {
     }
 
     private applyTint() {
-        const tint = this.planet.miniMoon?.tint ?? this.planet.tint;
+        const tint = this.tint ?? this.planet.tint;
+        console.log('[MiniMoon] Applying tint:', tint?.toString(16), 'for planet:', this.planet.name);
         if (tint === undefined) return;
 
-        // Use the same tinting logic as AdjustableMoonVisual
-        // Desaturate first
-        if (this.miniMoon.postFX) {
-            this.miniMoon.postFX.clear();
-            const colorMatrix = this.miniMoon.postFX.addColorMatrix();
-            colorMatrix.saturate(-1);
+        // Clear any existing tint and postFX
+        this.miniMoon.clearTint();
+        this.miniMoon.postFX.clear();
 
-            // Apply color
-            const r = ((tint >> 16) & 0xFF) / 255;
-            const g = ((tint >> 8) & 0xFF) / 255;
-            const b = (tint & 0xFF) / 255;
+        // Use postFX color matrix approach (same as AdjustableMoonVisual)
+        // First desaturate to grayscale
+        const colorMatrix = this.miniMoon.postFX.addColorMatrix();
+        colorMatrix.saturate(-1);
 
-            const tintMatrix = this.miniMoon.postFX.addColorMatrix();
-            tintMatrix.multiply([
-                r, 0, 0, 0, 0,
-                0, g, 0, 0, 0,
-                0, 0, b, 0, 0,
-                0, 0, 0, 1, 0
-            ]);
-        }
+        // Then apply color through matrix multiplication
+        const r = ((tint >> 16) & 0xFF) / 255;
+        const g = ((tint >> 8) & 0xFF) / 255;
+        const b = (tint & 0xFF) / 255;
+
+        console.log('[MiniMoon] RGB values:', { r, g, b });
+
+        const tintMatrix = this.miniMoon.postFX.addColorMatrix();
+        tintMatrix.multiply([
+            r, 0, 0, 0, 0,
+            0, g, 0, 0, 0,
+            0, 0, b, 0, 0,
+            0, 0, 0, 1, 0
+        ]);
+
+        console.log('[MiniMoon] Tint applied successfully');
     }
 
     private update() {

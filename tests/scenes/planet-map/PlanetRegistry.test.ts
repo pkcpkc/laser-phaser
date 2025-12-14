@@ -48,12 +48,22 @@ describe('PlanetRegistry', () => {
         const ringWorld = registry.getById('ring-world')!;
         expect(ringWorld.rings).toBeDefined();
         expect(ringWorld.rings!.angle).toBe(45);
-        expect(ringWorld.rings!.color).toBe(0xcccccc);
+        expect(ringWorld?.rings?.color).toBe(0xCC9944);
+        expect(ringWorld?.rings?.type).toBe('solid');
+        expect(ringWorld?.tint).toBe(0xB8860B);
+
 
         const redMoon = registry.getById('red-moon')!;
-        expect(redMoon.miniMoon).toBeDefined();
-        expect(redMoon.miniMoon!.tilt).toBe(50);
-        expect(redMoon.miniMoon!.tint).toBe(0xFFD580);
+        expect(redMoon.miniMoons).toBeDefined();
+        expect(redMoon.miniMoons!.length).toBeGreaterThan(0);
+        expect(redMoon.miniMoons![0].tint).toBe(0xFFAAAA);
+
+        const whiteMoon = registry.getById('white-planet')!;
+        expect(whiteMoon).toBeDefined();
+        expect(whiteMoon.glimmeringSnow).toBeDefined();
+        expect(whiteMoon.glimmeringSnow?.color).toBe(0xFFFFFF);
+        expect(whiteMoon.unlocked).toBe(true);
+        expect(whiteMoon.tint).toBe(0x444444);
     });
 
     it('should update positions based on screen size', () => {

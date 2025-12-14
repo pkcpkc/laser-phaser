@@ -2,13 +2,16 @@ import Phaser from 'phaser';
 import { BasePlanetVisual } from './base-planet-visual';
 import type { PlanetData } from '../planet-registry';
 import { SatelliteEffect } from './satellite-effect';
-import { DistortionOrbiterEffect } from './distortion-orbiter-effect';
+import { GhostShadeEffect } from './ghost-shade-effect';
 import { MiniMoonEffect } from './mini-moon-effect';
+import { GlimmeringSnowEffect } from './glimmering-snow-effect';
 
 export class AdjustableMoonVisual extends BasePlanetVisual {
     private moonFrames = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];
     private frameIdx = 0;
     private occluder?: Phaser.GameObjects.Graphics;
+    private ghostShadeEffect?: GhostShadeEffect;
+    private glimmeringSnowEffect?: GlimmeringSnowEffect;
 
     constructor(scene: Phaser.Scene, planet: PlanetData) {
         super(scene, planet);
@@ -53,9 +56,13 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
         this.planet.gameObject = visualObject;
 
-        // Optional Ring Effect (Particle based)
+        // Optional Ring Effect
         if (this.planet.rings?.color !== undefined) {
-            this.createRingEmitters();
+            if (this.planet.rings.type === 'solid') {
+                this.createSolidRings();
+            } else {
+                this.createRingEmitters();
+            }
         }
 
         // Optional Satellite Effect (Orbiting dots)
@@ -70,11 +77,46 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
             }
         }
 
-        // Optional Mini Moon Effect
-        if (this.planet.miniMoon) {
-            this.planet.miniMoonEffect = new MiniMoonEffect(this.scene, this.planet);
+        // Optional Mini Moon Effects
+        if (this.planet.miniMoons && this.planet.miniMoons.length > 0) {
+            this.planet.miniMoonEffects = [];
+
+            this.planet.miniMoons.forEach(config => {
+                // Generate random properties as requested
+                // "assign the mini moons random small sizes" -> 0.15 to 0.35
+                const size = config.size ?? Phaser.Math.FloatBetween(0.15, 0.35);
+
+                // Vary orbit parameters so they don't stack
+                const radius = Phaser.Math.FloatBetween(45, 75);
+                const speed = Phaser.Math.FloatBetween(0.01, 0.03) * (Math.random() > 0.5 ? 1 : -1);
+                const startAngle = Phaser.Math.FloatBetween(0, Math.PI * 2);
+
+                // Use config tilt if present, else random moderate tilt
+                const tilt = config.tilt ?? Phaser.Math.FloatBetween(-30, 30);
+
+                const effect = new MiniMoonEffect(this.scene, this.planet, {
+                    tint: config.tint,
+                    size: size,
+                    orbitRadius: radius,
+                    orbitSpeed: speed,
+                    startAngle: startAngle,
+                    tilt: tilt
+                });
+
+                if (!this.planet.unlocked) {
+                    effect.setVisible(false);
+                }
+
+                this.planet.miniMoonEffects!.push(effect);
+            });
+        }
+
+        // Optional Glimmering Snow Effect
+        if (this.planet.glimmeringSnow) {
+            this.glimmeringSnowEffect = new GlimmeringSnowEffect(this.scene, this.planet);
+            this.planet.glimmeringSnowEffect = this.glimmeringSnowEffect;
             if (!this.planet.unlocked) {
-                this.planet.miniMoonEffect.setVisible(false);
+                this.glimmeringSnowEffect.setVisible(false);
             }
         }
 
@@ -85,13 +127,11 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
         visualObject.setDepth(1);
         overlay.setDepth(1);
 
-        if (this.planet.hasDistortionOrbiter) {
-            // @ts-ignore - attaching custom prop for cleanup if needed, or just let it exist
-            this.planet.distortionEffect = new DistortionOrbiterEffect(this.scene, this.planet);
+        if (this.planet.hasGhostShades) {
+            this.ghostShadeEffect = new GhostShadeEffect(this.scene, this.planet);
             // Hide initially if locked
             if (!this.planet.unlocked) {
-                // @ts-ignore
-                this.planet.distortionEffect.setVisible(false);
+                this.ghostShadeEffect.setVisible(false);
             }
         }
 
@@ -110,6 +150,161 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
             loop: true,
             callback: () => this.animate()
         });
+    }
+
+    private createSolidRings() {
+        const baseColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
+        const scale = this.planet.visualScale || 1.0;
+
+        // Broaden the ring significantly
+        const innerRadiusX = 30 * scale;
+        const outerRadiusX = 55 * scale; // Decreased diameter (was 80)
+        const radiusYBase = 6 * scale; // Flatter (was 8)
+
+        const tiltDeg = this.planet.rings?.angle ?? -20;
+        const tilt = Phaser.Math.DegToRad(tiltDeg);
+
+        const bandCount = 12; // More bands for smoother fill
+
+        const createRingBand = (isFront: boolean) => {
+            const graphics = this.scene.add.graphics();
+
+            // Draw multiple concentric lines to form a band with "nuances"
+            for (let i = 0; i < bandCount; i++) {
+                const t = i / (bandCount - 1);
+
+                // Interpolate radius
+                const rX = Phaser.Math.Linear(innerRadiusX, outerRadiusX, t);
+                const rY = radiusYBase * (rX / innerRadiusX); // Keep aspect ratio roughly consistent or flat
+
+                // Vary alpha and thickness for texture
+                // Edges fade out, center is solid
+                const distFromCenter = Math.abs(t - 0.5) * 2; // 0 at center, 1 at edges
+                const alpha = 0.9 - (distFromCenter * 0.6);
+                const thickness = 3 * scale; // Slightly thinner as ring is smaller
+
+                // Slight color variation?
+                // We can't easily vary color per stroke in one batch efficiently without new path,
+                // but we can vary alpha. Use tint afterwards for color shifting.
+
+                graphics.lineStyle(thickness, baseColor, alpha);
+
+                const startAngle = isFront ? 0 : Math.PI;
+                const endAngle = isFront ? Math.PI : Math.PI * 2;
+                const steps = 64;
+                const step = (endAngle - startAngle) / steps;
+
+                const points: { x: number, y: number }[] = [];
+
+                for (let j = 0; j <= steps; j++) {
+                    const angle = startAngle + (j * step);
+                    const ux = rX * Math.cos(angle);
+                    const uy = rY * Math.sin(angle);
+                    const tx = ux * Math.cos(tilt) - uy * Math.sin(tilt);
+                    const ty = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+                    points.push({ x: tx, y: ty });
+                }
+
+                graphics.beginPath();
+                if (points.length > 0) {
+                    graphics.moveTo(points[0].x, points[0].y);
+                    for (let k = 1; k < points.length; k++) {
+                        graphics.lineTo(points[k].x, points[k].y);
+                    }
+                }
+                graphics.strokePath();
+            }
+
+            graphics.setPosition(this.planet.x, this.planet.y);
+
+            // Add subtle alpha shimmering tween
+            this.scene.tweens.addCounter({
+                from: 0,
+                to: 100,
+                duration: 3000,
+                yoyo: true,
+                repeat: -1,
+                onUpdate: (tween) => {
+                    // Subtle alpha pulse
+                    graphics.alpha = 0.8 + (Math.sin(tween.totalProgress) * 0.1);
+                }
+            });
+
+            return graphics;
+        };
+
+        const backRing = createRingBand(false);
+        backRing.setDepth(0);
+        this.planet.backRing = backRing;
+
+        const frontRing = createRingBand(true);
+        frontRing.setDepth(2);
+        this.planet.frontRing = frontRing;
+
+        // Sparkles mostly in the middle of the band
+        const midRadiusX = (innerRadiusX + outerRadiusX) / 2;
+        this.addSolidRingSparkles(midRadiusX, radiusYBase * (midRadiusX / innerRadiusX), tilt, scale, baseColor);
+
+        if (!this.planet.unlocked) {
+            backRing.setVisible(false);
+            frontRing.setVisible(false);
+        }
+    }
+
+    private addSolidRingSparkles(radiusX: number, radiusY: number, tilt: number, scale: number, color: number) {
+        // Sparkle Configuration
+        // Very sparse, tiny bright dots that appear and fade
+
+        // Use arrow functions that reference this.planet directly for dynamic positioning
+        const getCenterX = () => this.planet.x;
+        const getCenterY = () => this.planet.y; // Center on planet y (no offset for solid ring)
+
+        const createSparkleEmitter = (isFront: boolean) => {
+            return this.scene.add.particles(0, 0, 'flare-white', {
+                color: [color], // Use ring color
+                alpha: { start: 1, end: 0 },
+                scale: { start: 0.1 * scale, end: 0 },
+                lifespan: { min: 500, max: 1000 },
+                blendMode: 'ADD',
+                frequency: 150, // Sparse emission
+                stopAfter: 0, // Continuous
+                emitZone: {
+                    source: {
+                        getRandomPoint: (point: Phaser.Types.Math.Vector2Like) => {
+                            const centerX = getCenterX();
+                            const centerY = getCenterY();
+
+                            const minAngle = isFront ? 0 : Math.PI;
+                            const maxAngle = isFront ? Math.PI : Math.PI * 2;
+                            const angle = Phaser.Math.FloatBetween(minAngle, maxAngle);
+
+                            // Place exactly on the ring path (no thickness jitter)
+                            const rX = radiusX;
+                            const rY = radiusY;
+
+                            const ux = rX * Math.cos(angle);
+                            const uy = rY * Math.sin(angle);
+
+                            const tx = ux * Math.cos(tilt) - uy * Math.sin(tilt);
+                            const ty = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+
+                            point.x = centerX + tx;
+                            point.y = centerY + ty;
+                            return point;
+                        }
+                    },
+                    type: 'random'
+                }
+            });
+        };
+
+        const backSparkles = createSparkleEmitter(false);
+        backSparkles.setDepth(0.1); // Just above back ring
+
+        const frontSparkles = createSparkleEmitter(true);
+        frontSparkles.setDepth(2.1); // Just above front ring
+
+        this.planet.ringEmitters = [backSparkles, frontSparkles];
     }
 
     private createRingEmitters() {
@@ -323,21 +518,31 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
             });
         }
 
+        // Update solid ring visibility
+        if (this.planet.backRing) this.planet.backRing.setVisible(unlocked);
+        if (this.planet.frontRing) this.planet.frontRing.setVisible(unlocked);
+
         // Update satellite visibility
         if (this.planet.satelliteEffect) {
             this.planet.satelliteEffect.setVisible(unlocked);
         }
 
         // Update distortion visibility
-        // @ts-ignore
-        if (this.planet.distortionEffect) {
-            // @ts-ignore
-            this.planet.distortionEffect.setVisible(unlocked);
+        // Update ghost shade visibility
+        if (this.ghostShadeEffect) {
+            this.ghostShadeEffect.setVisible(unlocked);
+        }
+        // Update mini moon visibility
+        if (this.planet.miniMoonEffects) {
+            const unlocked = this.planet.unlocked ?? false;
+            this.planet.miniMoonEffects.forEach(effect => {
+                effect.setVisible(unlocked);
+            });
         }
 
-        // Update mini moon visibility
-        if (this.planet.miniMoonEffect) {
-            this.planet.miniMoonEffect.setVisible(unlocked);
+        // Update glimmering snow visibility
+        if (this.planet.glimmeringSnowEffect) {
+            this.planet.glimmeringSnowEffect.setVisible(unlocked);
         }
     }
 }

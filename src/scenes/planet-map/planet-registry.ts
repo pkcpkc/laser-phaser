@@ -19,27 +19,35 @@ export interface PlanetData {
         color: number;
         lifespan?: number; // Duration of ring particles in ms (default 800)
         angle?: number;    // Tilt angle in degrees (default -20)
+        type?: 'particles' | 'solid'; // Default 'particles'
     };
     interaction?: {
         levelId?: string;
         hasTrader?: boolean;
         hasShipyard?: boolean;
     };
-    miniMoon?: {
+    miniMoons?: {
         tilt?: number;   // Tilt angle in degrees
         tint?: number;   // Optional tint override
-    };
+        size?: number; // Optional size override
+    }[];
 
-    hasDistortionOrbiter?: boolean; // Enable distortion orbiter effect
+    hasGhostShades?: boolean; // Enable ghost shade effect
+    glimmeringSnow?: {
+        color?: number; // Optional snowflake color
+    };
 
     // Runtime references
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
     ringEmitters?: Phaser.GameObjects.Particles.ParticleEmitter[]; // Back and Front emitters
+    backRing?: Phaser.GameObjects.Graphics; // Solid ring back
+    frontRing?: Phaser.GameObjects.Graphics; // Solid ring front
     overlayGameObject?: Phaser.GameObjects.Text;
     usingOverlay?: boolean;
     emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
-    miniMoonEffect?: import('./visuals/mini-moon-effect').MiniMoonEffect;
+    miniMoonEffects?: import('./visuals/mini-moon-effect').MiniMoonEffect[];
+    glimmeringSnowEffect?: import('./visuals/glimmering-snow-effect').GlimmeringSnowEffect;
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -49,9 +57,14 @@ export interface PlanetData {
 export class PlanetRegistry {
     private planets: PlanetData[] = [];
 
-    constructor() { }
+
+    constructor() {
+        // Initial setup
+    }
 
     public initPlanets(width: number, height: number) {
+
+
         const cx = width / 2;
         const cy = height / 2;
 
@@ -71,75 +84,42 @@ export class PlanetRegistry {
         // Sanity check: if screen is too small, clamp outerLimit to innerLimit + tiny offset
         const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
 
-
-
         this.planets = [
             {
-                id: 'earth', // Keeping ID 'earth' for compatibility, but visual is moon
-                name: 'Prime Moon', // Was Earth
+                id: 'earth',
+                name: 'Earth',
                 unlocked: true,
-                tint: 0x4488FF, // Blue - prime moon
-                visualScale: 1.0, // Slightly larger for main?
-                interaction: {
-                    levelId: 'blood-hunters'
-                },
+                tint: 0x4488FF, // Blue-ish
+                visualScale: 1.0,
                 x: cx,
                 y: cy,
                 orbitAngle: 0,
                 orbitRadius: 0
             },
             {
-                id: 'moon-base',
-                name: 'Dark Moon',
-                tint: 0x4A4A6A, // Deep purple-gray - dark/mysterious
-                interaction: {
-                    levelId: 'blood-hunters'
-                },
-                visualScale: 0.6,
-                hasDistortionOrbiter: false,
-                unlocked: false,
-                x: 0, y: 0 // placeholder
-            },
-            {
                 id: 'ring-world',
-                name: 'Ring Moon',
-                rings: {
-                    color: 0xcccccc,
-                    lifespan: 1200,
-                    angle: 45
-                },
-                interaction: {
-                    levelId: 'blood-hunters'
-                },
-                tint: 0xffffff,
+                name: 'Ring World',
+                tint: 0xB8860B, // Dark Golden Rod
                 visualScale: 0.8,
-                x: 0, y: 0
-            },
-            {
-                id: 'red-moon',
-                name: 'Red Moon',
-                tint: 0xFF4444, // Bright red - blood moon
-                visualScale: 0.5,
-                interaction: {
-                    levelId: 'blood-hunters',
-                    hasTrader: true,
-                    hasShipyard: true
+                rings: {
+                    color: 0xCC9944,
+                    angle: 30,
+                    type: 'solid'
                 },
-                miniMoon: {
-                    tilt: 50,
-                    tint: 0xFFD580 // Light Orange
+                interaction: {
+                    levelId: 'tower-defense-1',
+                    hasTrader: true
                 },
                 x: 0, y: 0
             },
             {
-                id: 'ice-moon',
-                name: 'Ice Moon',
-                tint: 0x88EEFF, // Cyan/ice blue
-                visualScale: 1.0,
-                interaction: {
-                    levelId: 'blood-hunters'
+                id: 'gliese',
+                name: 'Gliese',
+                tint: 0x44FF88, // Green-ish
+                satellites: {
+                    tint: 0xffffff,
+                    count: 5
                 },
-                satellites: {}, // Enable satellites with default config
                 x: 0, y: 0
             },
             {
@@ -148,12 +128,53 @@ export class PlanetRegistry {
                 interaction: {
                     levelId: 'blood-hunters'
                 },
-                visualScale: 1.5,
-                tint: 0x8844FF, // Violet/purple - toxic moon
+                visualScale: 1.8, // Smaller
+                tint: 0xAA00FF, // Purple
                 rings: {
-                    color: 0x88FF66, // Toxic green ring
-                    lifespan: 2000,
-                    angle: -10
+                    color: 0x33FF33, // Toxic Green
+                    type: 'particles',
+                    angle: -15,
+                    lifespan: 2500
+                },
+                x: 0, y: 0
+            },
+            {
+                id: 'red-moon',
+                name: 'Red Moon',
+                tint: 0x8B0000, // Dark red
+                visualScale: 0.5,
+                interaction: {
+                    levelId: 'blood-hunters',
+                    hasTrader: true,
+                    hasShipyard: true
+                },
+                miniMoons: [
+                    { tint: 0xFFAAAA }, // Light red
+                    { tint: 0xFF8888 }, // Slightly darker
+                    { tint: 0xFFCCCC }  // Very light
+                ],
+                x: 0, y: 0
+            },
+            {
+                id: 'dark-moon',
+                name: 'Dark Moon',
+                tint: 0x333333,
+                visualScale: 0.6,
+                hasGhostShades: true,
+                unlocked: false,
+                x: 0, y: 0 // placeholder
+            },
+            {
+                id: 'white-planet',
+                name: 'White Moon',
+                tint: 0x444444, // Dark Grey
+                visualScale: 0.9,
+                unlocked: true,
+                glimmeringSnow: {
+                    color: 0xFFFFFF
+                },
+                interaction: {
+                    levelId: 'blood-hunters'
                 },
                 x: 0, y: 0
             }
