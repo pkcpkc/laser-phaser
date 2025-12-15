@@ -1,26 +1,25 @@
 import Phaser from 'phaser';
-import { BasePlanetVisual } from './base-planet-visual';
 import type { PlanetData } from '../planet-registry';
 import { SatelliteEffect } from './satellite-effect';
 import { GhostShadeEffect } from './ghost-shade-effect';
 import { MiniMoonEffect } from './mini-moon-effect';
 import { GlimmeringSnowEffect } from './glimmering-snow-effect';
 
-
-export class AdjustableMoonVisual extends BasePlanetVisual {
+export class PlanetVisual {
+    protected scene: Phaser.Scene;
+    protected planet: PlanetData;
     private moonFrames = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];
     private frameIdx = 0;
     private occluder?: Phaser.GameObjects.Graphics;
     private ghostShadeEffect?: GhostShadeEffect;
     private glimmeringSnowEffect?: GlimmeringSnowEffect;
 
-
     constructor(scene: Phaser.Scene, planet: PlanetData) {
-        super(scene, planet);
+        this.scene = scene;
+        this.planet = planet;
     }
 
     public create(onClick: (planet: PlanetData) => void): void {
-        console.log(`[AdjustableMoonVisual] create: id=${this.planet.id}, unlocked=${this.planet.unlocked}, type=${typeof this.planet.unlocked}`);
         const initialVisual = '\ud83c\udf11'; // Always moon emoji, tint provides variation
 
         // Occluder (Black circle behind moon to block ring)
@@ -158,8 +157,7 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
     private createSolidRings() {
         const baseColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
-        const isUnlocked = this.planet.unlocked ?? false;
-        const scale = (isUnlocked && this.planet.visualScale) ? this.planet.visualScale : 0.8;
+        const scale = this.planet.visualScale || 1.0;
 
         // Broaden the ring significantly
         const innerRadiusX = 30 * scale;
@@ -314,8 +312,7 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
 
     private createRingEmitters() {
         const ringColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
-        const isUnlocked = this.planet.unlocked ?? false;
-        const scale = (isUnlocked && this.planet.visualScale) ? this.planet.visualScale : 0.8;
+        const scale = this.planet.visualScale || 1.0;
 
         // 1. Reduce diameter (was 60/16) -> User requested broader: 55 -> Back to 48 but thicker
         const radiusX = 48 * scale;
@@ -459,7 +456,16 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
     }
 
     public updateVisibility(): void {
-        super.updateVisibility();
+        if (!this.planet.gameObject) return;
+
+        if (this.planet.unlocked) {
+            if (!this.planet.usingOverlay) {
+                this.planet.gameObject.setAlpha(1);
+            }
+        } else {
+            this.planet.gameObject.setAlpha(0.8);
+        }
+
         this.animate();
     }
 
@@ -553,5 +559,23 @@ export class AdjustableMoonVisual extends BasePlanetVisual {
             this.planet.glimmeringSnowEffect.setVisible(unlocked);
         }
     }
-}
 
+    // Helper for locked particle effect
+    protected addLockedParticleEffect() {
+        if (this.planet.emitter) return;
+
+        this.planet.emitter = this.scene.add.particles(0, 0, 'flare-white', {
+            color: [0xffffff],
+            lifespan: 1000,
+            angle: { min: 0, max: 360 },
+            scale: { start: 0.3, end: 0 },
+            speed: { min: 10, max: 30 },
+            blendMode: 'ADD',
+            frequency: 100
+        });
+        if (this.planet.gameObject) {
+            this.planet.emitter.startFollow(this.planet.gameObject, 0, -7);
+        }
+        this.planet.emitter.setDepth(1);
+    }
+}

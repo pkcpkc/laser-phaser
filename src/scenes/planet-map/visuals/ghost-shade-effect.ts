@@ -37,14 +37,47 @@ export class GhostShadeEffect {
         for (let i = 0; i < this.numTendrils; i++) {
             const angle = (Math.PI * 2 * i) / this.numTendrils;
 
-            const emitter = this.scene.add.particles(0, 0, 'flare-white', {
-                color: [0x00cc22, 0x00dd33, 0x00ee44], // Intense neon greens
-                colorEase: 'sine.inOut',
-                alpha: { start: 0.35, end: 0 }, // Slightly more visible
-                scale: { start: 1.2 * scale, end: 0.2 * scale }, // Much larger particles
-                lifespan: 6000, // Longer life for drifting effect
-                frequency: 800, // Less frequent emission for larger shades
+            // Pulse mode (default true) vs Fog mode
+            const pulse = this.planet.ghostShades?.pulse !== false;
+
+            // Fog mode: Static alpha, longer life
+            // Pulse mode: Fades out, existing logic
+
+            // Actually, for fog, we probably want it to be more consistent.
+            // Let's refine fog:
+            // Alpha: constant low
+            // Scale: constant or slow change
+
+            const fogConfig = {
+                alpha: 0.12, // Lower alpha since we have higher frequency
+                scale: { min: 0.8 * scale, max: 1.4 * scale }, // Randomize scale a bit more
+                lifespan: { min: 4000, max: 8000 }, // Random lifespan to desync
+                blendMode: 'ADD',
+                frequency: 400 // Reduced particles ("Much less particles")
+            };
+
+            const pulseConfig = {
+                alpha: { start: 0.35, end: 0 },
+                scale: { start: 1.2 * scale, end: 0.2 * scale },
+                lifespan: 6000,
                 blendMode: 'ADD', // Glowing blend mode
+                frequency: 800
+            };
+
+            const currentConfig = pulse ? pulseConfig : fogConfig;
+
+            // Use config color or default spectral pale green (less intense than neon)
+            const baseColor = this.planet.ghostShades?.color ?? 0xccffdd;
+            const colorArray = [baseColor];
+
+            const emitter = this.scene.add.particles(0, 0, 'flare-white', {
+                color: colorArray,
+                colorEase: 'sine.inOut',
+                alpha: currentConfig.alpha,
+                scale: currentConfig.scale,
+                lifespan: currentConfig.lifespan,
+                frequency: currentConfig.frequency,
+                blendMode: currentConfig.blendMode,
                 emitting: true,
                 speed: { min: 3, max: 10 }, // Slow drift
                 angle: { min: 0, max: 360 }, // Random directions

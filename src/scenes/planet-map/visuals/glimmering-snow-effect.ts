@@ -38,7 +38,7 @@ export class GlimmeringSnowEffect {
             alpha: { start: 0.6, end: 0 },
             scale: { start: 0.04 * scale, end: 0 },
             lifespan: { min: 2000, max: 4000 },
-            frequency: 150, // Frequent small snow
+            frequency: 300, // Frequent small snow
             speed: 0, // Static
             gravityY: 0, // No gravity
             blendMode: 'ADD',
@@ -67,7 +67,7 @@ export class GlimmeringSnowEffect {
             color: [tint], // Use configured tint
             lifespan: { min: 300, max: 800 },
             scale: { start: 0.1 * scale, end: 0 },
-            frequency: 250,
+            frequency: 100,
             stopAfter: 0,
             blendMode: 'SCREEN',
             emitZone: {

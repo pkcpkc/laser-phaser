@@ -1,13 +1,10 @@
 import Phaser from 'phaser';
 import type { PlanetData } from './planet-registry';
-import { BasePlanetVisual } from './visuals/base-planet-visual';
-
-
-import { AdjustableMoonVisual } from './visuals/adjustable-moon-visual';
+import { PlanetVisual } from './visuals/planet-visual';
 
 export class PlanetVisuals {
     private scene: Phaser.Scene;
-    private visuals: Map<string, BasePlanetVisual> = new Map();
+    private visuals: Map<string, PlanetVisual> = new Map();
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -15,12 +12,12 @@ export class PlanetVisuals {
 
     public createVisuals(planets: PlanetData[], onClick: (planet: PlanetData) => void) {
         planets.forEach(planet => {
-            let visual: BasePlanetVisual;
+            let visual: PlanetVisual;
 
-            // Since we defeatured everything to be moons, we default to AdjustableMoonVisual
+            // Since we defeatured everything to be moons, we default to PlanetVisual
             // We can still use ID to use RingWorldVisual for fallback or specific cases if needed,
             // but the user instruction implies a replacement with matching moon variants.
-            visual = new AdjustableMoonVisual(this.scene, planet);
+            visual = new PlanetVisual(this.scene, planet);
 
 
             visual.create(onClick);

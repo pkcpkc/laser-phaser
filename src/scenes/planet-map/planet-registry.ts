@@ -32,7 +32,10 @@ export interface PlanetData {
         size?: number; // Optional size override
     }[];
 
-    hasGhostShades?: boolean; // Enable ghost shade effect
+    ghostShades?: {
+        pulse?: boolean; // Defaults to true
+        color?: number; // Optional color override
+    };
     glimmeringSnow?: {
         color?: number; // Optional snowflake color
     };
@@ -48,6 +51,7 @@ export interface PlanetData {
     satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
     miniMoonEffects?: import('./visuals/mini-moon-effect').MiniMoonEffect[];
     glimmeringSnowEffect?: import('./visuals/glimmering-snow-effect').GlimmeringSnowEffect;
+    ringEffect?: import('./visuals/ring-effect').RingEffect;
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -115,10 +119,11 @@ export class PlanetRegistry {
             {
                 id: 'gliese',
                 name: 'Gliese',
+                unlocked: false,
                 tint: 0x44FF88, // Green-ish
                 satellites: {
                     tint: 0xffffff,
-                    count: 5
+                    count: 10
                 },
                 x: 0, y: 0
             },
@@ -128,7 +133,7 @@ export class PlanetRegistry {
                 interaction: {
                     levelId: 'blood-hunters'
                 },
-                visualScale: 1.8, // Smaller
+                visualScale: 1.5, // Smaller
                 tint: 0xAA00FF, // Purple
                 rings: {
                     color: 0x33FF33, // Toxic Green
@@ -149,18 +154,21 @@ export class PlanetRegistry {
                     hasShipyard: true
                 },
                 miniMoons: [
-                    { tint: 0xFFAAAA }, // Light red
-                    { tint: 0xFF8888 }, // Slightly darker
-                    { tint: 0xFFCCCC }  // Very light
+                    { tint: 0xFFAAAA, tilt: -60 }, // Light red
+                    { tint: 0xFF8888, tilt: 0 },   // Slightly darker
+                    { tint: 0xFFCCCC, tilt: 60 }   // Very light
                 ],
                 x: 0, y: 0
             },
             {
-                id: 'dark-moon',
+                id: 'dark-moon-pulse',
                 name: 'Dark Moon',
                 tint: 0x333333,
                 visualScale: 0.6,
-                hasGhostShades: true,
+                ghostShades: {
+                    pulse: true,
+                    color: 0xFFff00 // Light "Butter" Yellow
+                },
                 unlocked: false,
                 x: 0, y: 0 // placeholder
             },
@@ -169,7 +177,7 @@ export class PlanetRegistry {
                 name: 'White Moon',
                 tint: 0x444444, // Dark Grey
                 visualScale: 0.9,
-                unlocked: true,
+                unlocked: false,
                 glimmeringSnow: {
                     color: 0xFFFFFF
                 },
@@ -177,7 +185,18 @@ export class PlanetRegistry {
                     levelId: 'blood-hunters'
                 },
                 x: 0, y: 0
-            }
+            }, {
+                id: 'dark-moon-shadow',
+                name: 'Dark Moon',
+                tint: 0x333333,
+                visualScale: 0.6,
+                ghostShades: {
+                    pulse: false,
+                    color: 0xffffff
+                },
+                unlocked: false,
+                x: 0, y: 0 // placeholder
+            },
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth

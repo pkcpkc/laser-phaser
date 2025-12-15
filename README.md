@@ -83,11 +83,17 @@ graph TD
         PlanetMapScene --> |Uses| PlanetRegistry(Data)
         PlanetMapScene --> |Uses| PlanetVisuals(Visuals)
         PlanetMapScene --> |Uses| MapInteractionManager(UI)
-        PlanetVisuals --> |Manages| EarthVisual
-        PlanetVisuals --> |Manages| RingWorldVisual
         PlanetVisuals --> |Manages| AdjustableMoonVisual
+        AdjustableMoonVisual --> |Uses| SatelliteEffect
+        AdjustableMoonVisual --> |Uses| GhostShadeEffect
+        AdjustableMoonVisual --> |Uses| MiniMoonEffect
+        AdjustableMoonVisual --> |Uses| GlimmeringSnowEffect
     end
 ```
+
+### Key Components
+
+*   **PlanetRegistry**: The central configuration hub for the Planet Map. It defines all planet properties including positions, visuals (rings, moons, tints), and gameplay data (associated levels, shops). It calculates planet orbits and spatial relationships.
 
 ### Directory Structure
 

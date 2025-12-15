@@ -47,7 +47,7 @@ describe('PlanetRegistry', () => {
 
         const ringWorld = registry.getById('ring-world')!;
         expect(ringWorld.rings).toBeDefined();
-        expect(ringWorld.rings!.angle).toBe(45);
+        expect(ringWorld.rings!.angle).toBe(30);
         expect(ringWorld?.rings?.color).toBe(0xCC9944);
         expect(ringWorld?.rings?.type).toBe('solid');
         expect(ringWorld?.tint).toBe(0xB8860B);
@@ -57,12 +57,23 @@ describe('PlanetRegistry', () => {
         expect(redMoon.miniMoons).toBeDefined();
         expect(redMoon.miniMoons!.length).toBeGreaterThan(0);
         expect(redMoon.miniMoons![0].tint).toBe(0xFFAAAA);
+        expect(redMoon.miniMoons![0].tilt).toBe(-60);
+
+        const gliese = registry.getById('gliese')!;
+        expect(gliese).toBeDefined();
+        // Should be undefined or false
+        expect(gliese.unlocked).toBeFalsy();
+
+        const darkMoon = registry.getById('dark-moon-pulse')!;
+        expect(darkMoon.ghostShades).toBeDefined();
+        expect(darkMoon.ghostShades?.pulse).toBe(true);
+        expect(darkMoon.ghostShades?.color).toBe(0xFFFF00);
 
         const whiteMoon = registry.getById('white-planet')!;
         expect(whiteMoon).toBeDefined();
         expect(whiteMoon.glimmeringSnow).toBeDefined();
         expect(whiteMoon.glimmeringSnow?.color).toBe(0xFFFFFF);
-        expect(whiteMoon.unlocked).toBe(true);
+        expect(whiteMoon.unlocked).toBe(false);
         expect(whiteMoon.tint).toBe(0x444444);
     });
 
