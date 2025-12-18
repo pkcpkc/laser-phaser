@@ -20,7 +20,9 @@ export interface PlanetData {
         lifespan?: number; // Duration of ring particles in ms (default 800)
         angle?: number;    // Tilt angle in degrees (default -20)
         type?: 'particles' | 'solid'; // Default 'particles'
+        rotation?: boolean; // Enable rotation animation
     };
+
     interaction?: {
         levelId?: string;
         hasTrader?: boolean;
@@ -108,11 +110,8 @@ export class PlanetRegistry {
                 rings: {
                     color: 0xCC9944,
                     angle: 30,
-                    type: 'solid'
-                },
-                interaction: {
-                    levelId: 'tower-defense-1',
-                    hasTrader: true
+                    type: 'solid',
+                    rotation: true
                 },
                 x: 0, y: 0
             },

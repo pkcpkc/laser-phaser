@@ -138,13 +138,17 @@ export class RingEffect {
         const getCenterY = () => this.planet.y;
 
         const createSparkleEmitter = (isFront: boolean) => {
-            return this.scene.add.particles(0, 0, 'flare-white', {
+            // If rotation is enabled, use much higher density to show flow
+            const isRotating = this.planet.rings?.rotation;
+            const flowFrequency = isRotating ? 30 : 150; // 30ms vs 150ms
+
+            const config: Phaser.Types.GameObjects.Particles.ParticleEmitterConfig = {
                 color: [color],
                 alpha: { start: 1, end: 0 },
                 scale: { start: 0.1 * scale, end: 0 },
                 lifespan: { min: 500, max: 1000 },
                 blendMode: 'ADD',
-                frequency: 150,
+                frequency: flowFrequency,
                 stopAfter: 0,
                 emitZone: {
                     source: {
@@ -172,7 +176,31 @@ export class RingEffect {
                     },
                     type: 'random'
                 }
-            });
+            };
+
+            // If rotation is enabled, add velocity logic
+            if (isRotating) {
+                config.emitCallback = (particle: Phaser.GameObjects.Particles.Particle) => {
+                    const centerX = getCenterX();
+                    const centerY = getCenterY();
+                    const dx = particle.x - centerX;
+                    const dy = particle.y - centerY;
+
+                    // Calculate angle on screen
+                    const angle = Math.atan2(dy, dx);
+
+                    // Standard tangential direction is +90 degrees (PI/2)
+                    // We add another 180 degrees (PI) as requested for "180 degree from circle tilt" effect
+                    // Total offset = 1.5 * PI
+                    const tangent = angle + (Math.PI * 1.5);
+                    const speed = 40 * scale; // Faster speed for visible flow
+
+                    particle.velocityX = Math.cos(tangent) * speed;
+                    particle.velocityY = Math.sin(tangent) * speed;
+                };
+            }
+
+            return this.scene.add.particles(0, 0, 'flare-white', config);
         };
 
         const backSparkles = createSparkleEmitter(false);

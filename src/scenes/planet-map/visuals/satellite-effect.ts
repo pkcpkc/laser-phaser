@@ -240,8 +240,8 @@ export interface SatelliteConfig {
 
 const DEFAULT_CONFIG: SatelliteConfig = {
     count: 5,
-    minOrbitRadius: 35,
-    maxOrbitRadius: 60,
+    minOrbitRadius: 15,
+    maxOrbitRadius: 30,
     minOrbitSpeed: 0.01,
     maxOrbitSpeed: 0.04,
     minSize: 1,

@@ -28,7 +28,8 @@ export class PlanetVisual {
             this.occluder = this.scene.add.graphics();
             this.occluder.fillStyle(0x000000, 1);
             // Use larger radius (24) to fully cover moon including transparency
-            this.occluder.fillCircle(0, 0, 24);
+            // Adjusted to 22 to slightly tuck it in and avoid "off" look
+            this.occluder.fillCircle(0, 0, 22);
             this.occluder.setPosition(this.planet.x, this.planet.y);
             this.occluder.setDepth(0.5); // Between BackRing (0) and Moon (1)
             // Scale with planet if needed
@@ -194,7 +195,7 @@ export class PlanetVisual {
 
                 const startAngle = isFront ? 0 : Math.PI;
                 const endAngle = isFront ? Math.PI : Math.PI * 2;
-                const steps = 64;
+                const steps = 256; // High resolution for smooth rotation
                 const step = (endAngle - startAngle) / steps;
 
                 const points: { x: number, y: number }[] = [];
@@ -218,7 +219,8 @@ export class PlanetVisual {
                 graphics.strokePath();
             }
 
-            graphics.setPosition(this.planet.x, this.planet.y);
+            // Position at 0,0 relative to container
+            graphics.setPosition(0, 0);
 
             // Add subtle alpha shimmering tween
             this.scene.tweens.addCounter({
@@ -236,78 +238,126 @@ export class PlanetVisual {
             return graphics;
         };
 
-        const backRing = createRingBand(false);
-        backRing.setDepth(0);
-        this.planet.backRing = backRing;
+        // Create Containers
+        const backContainer = this.scene.add.container(this.planet.x, this.planet.y);
+        const frontContainer = this.scene.add.container(this.planet.x, this.planet.y);
 
+        backContainer.setDepth(0);
+        frontContainer.setDepth(2);
+
+        // Add Rings to Containers
+        const backRing = createRingBand(false);
         const frontRing = createRingBand(true);
-        frontRing.setDepth(2);
-        this.planet.frontRing = frontRing;
+
+        backContainer.add(backRing);
+        frontContainer.add(frontRing);
+
+        // Track for visibility references (store containers as the "ring" visual interface)
+        this.planet.backRing = backContainer as any;
+        this.planet.frontRing = frontContainer as any;
 
         // Sparkles mostly in the middle of the band
         const midRadiusX = (innerRadiusX + outerRadiusX) / 2;
-        this.addSolidRingSparkles(midRadiusX, radiusYBase * (midRadiusX / innerRadiusX), tilt, scale, baseColor);
 
-        if (!this.planet.unlocked) {
-            backRing.setVisible(false);
-            frontRing.setVisible(false);
-        }
-    }
+        // Helper to add sparkle sprites
+        const addSparkles = (container: Phaser.GameObjects.Container, isFront: boolean) => {
+            const count = 30; // Number of permanent sparkles per side
 
-    private addSolidRingSparkles(radiusX: number, radiusY: number, tilt: number, scale: number, color: number) {
-        // Sparkle Configuration
-        // Very sparse, tiny bright dots that appear and fade
+            for (let i = 0; i < count; i++) {
+                // Random position logic (reused)
+                const minAngle = isFront ? 0 : Math.PI;
+                const maxAngle = isFront ? Math.PI : Math.PI * 2;
+                const angle = Phaser.Math.FloatBetween(minAngle, maxAngle);
 
-        // Use arrow functions that reference this.planet directly for dynamic positioning
-        const getCenterX = () => this.planet.x;
-        const getCenterY = () => this.planet.y; // Center on planet y (no offset for solid ring)
+                const rJitter = Phaser.Math.FloatBetween(-5 * scale, 5 * scale);
+                const rX = midRadiusX + rJitter;
+                const rY = radiusYBase * (rX / innerRadiusX);
 
-        const createSparkleEmitter = (isFront: boolean) => {
-            return this.scene.add.particles(0, 0, 'flare-white', {
-                color: [color], // Use ring color
-                alpha: { start: 1, end: 0 },
-                scale: { start: 0.1 * scale, end: 0 },
-                lifespan: { min: 500, max: 1000 },
-                blendMode: 'ADD',
-                frequency: 150, // Sparse emission
-                stopAfter: 0, // Continuous
-                emitZone: {
-                    source: {
-                        getRandomPoint: (point: Phaser.Types.Math.Vector2Like) => {
-                            const centerX = getCenterX();
-                            const centerY = getCenterY();
+                // Create a trail of segments to follow "Rotation" (Circular path)
+                // "Not follow the ring curve but the ring rotation"
+                const isRotating = this.planet.rings?.rotation ?? false;
+                const segmentCount = isRotating ? 25 : 1; // No tails if not rotating
+                const rotationStep = 0.05; // Radians to rotate back per segment
 
-                            const minAngle = isFront ? 0 : Math.PI;
-                            const maxAngle = isFront ? Math.PI : Math.PI * 2;
-                            const angle = Phaser.Math.FloatBetween(minAngle, maxAngle);
+                const trailSprites: Phaser.GameObjects.Image[] = [];
 
-                            // Place exactly on the ring path (no thickness jitter)
-                            const rX = radiusX;
-                            const rY = radiusY;
+                // Head position on the ellipse
+                const headUX = rX * Math.cos(angle);
+                const headUY = rY * Math.sin(angle);
+                const headTX = headUX * Math.cos(tilt) - headUY * Math.sin(tilt);
+                const headTY = headUX * Math.sin(tilt) + headUY * Math.cos(tilt);
 
-                            const ux = rX * Math.cos(angle);
-                            const uy = rY * Math.sin(angle);
+                for (let j = 0; j < segmentCount; j++) {
+                    const segIsHead = j === 0;
 
-                            const tx = ux * Math.cos(tilt) - uy * Math.sin(tilt);
-                            const ty = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+                    const sprite = this.scene.add.image(0, 0, 'flare-white');
+                    sprite.setTint(baseColor);
+                    sprite.setBlendMode(Phaser.BlendModes.ADD);
 
-                            point.x = centerX + tx;
-                            point.y = centerY + ty;
-                            return point;
-                        }
-                    },
-                    type: 'random'
+                    // For segments, rotate the HEAD position backwards around (0,0)
+                    // This creates a trail that follows the 2D rotation path
+                    // angle offset = -j * rotationStep (Opposite to CW rotation)
+                    const theta = -j * rotationStep;
+
+                    const segX = headTX * Math.cos(theta) - headTY * Math.sin(theta);
+                    const segY = headTX * Math.sin(theta) + headTY * Math.cos(theta);
+
+                    sprite.setPosition(segX, segY);
+
+                    // Rotation matches the circular tangent
+                    // Tangent of circle at (x,y) is (-y, x)
+                    // Let's use standard atan2(y,x) + PI/2
+                    sprite.setRotation(Math.atan2(segY, segX) + (Math.PI / 2));
+
+                    // Scale and Alpha falloff
+                    const falloff = 1 - (j / segmentCount);
+                    sprite.setScale(
+                        (segIsHead ? 0.3 : 0.2) * scale * falloff,
+                        (segIsHead ? 0.15 : 0.1) * scale * falloff
+                    );
+
+                    sprite.setData('baseAlpha', segIsHead ? 1.0 : 0.5 * falloff);
+                    sprite.setAlpha(0);
+
+                    container.add(sprite);
+                    trailSprites.push(sprite);
                 }
-            });
+
+                // Animate the whole trail group together
+                const duration = Phaser.Math.Between(1000, 2000);
+                const delay = Phaser.Math.Between(0, 2000);
+
+                this.scene.tweens.add({
+                    targets: trailSprites,
+                    alpha: (target: any) => target.getData('baseAlpha'),
+                    duration: duration,
+                    delay: delay,
+                    yoyo: true,
+                    repeat: -1
+                });
+            }
         };
 
-        const backSparkles = createSparkleEmitter(false);
-        backSparkles.setDepth(0.1); // Just above back ring
+        addSparkles(backContainer, false);
+        addSparkles(frontContainer, true);
 
-        const frontSparkles = createSparkleEmitter(true);
-        frontSparkles.setDepth(2.1); // Just above front ring
+        if (!this.planet.unlocked) {
+            backContainer.setVisible(false);
+            frontContainer.setVisible(false);
+        }
 
-        this.planet.ringEmitters = [backSparkles, frontSparkles];
+        // Add 2D Rotation if enabled
+        if (this.planet.rings?.rotation) {
+            const duration = 15000; // Slightly faster for fluidity
+
+            this.scene.tweens.add({
+                targets: [backContainer, frontContainer],
+                rotation: Math.PI * 2, // Use rotation (radians) for smoothness
+                duration: duration,
+                repeat: -1,
+                ease: 'Linear'
+            });
+        }
     }
 
     private createRingEmitters() {

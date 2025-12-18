@@ -64,7 +64,6 @@ export class MiniMoonEffect {
 
     private applyTint() {
         const tint = this.tint ?? this.planet.tint;
-        console.log('[MiniMoon] Applying tint:', tint?.toString(16), 'for planet:', this.planet.name);
         if (tint === undefined) return;
 
         // Clear any existing tint and postFX
@@ -81,8 +80,6 @@ export class MiniMoonEffect {
         const g = ((tint >> 8) & 0xFF) / 255;
         const b = (tint & 0xFF) / 255;
 
-        console.log('[MiniMoon] RGB values:', { r, g, b });
-
         const tintMatrix = this.miniMoon.postFX.addColorMatrix();
         tintMatrix.multiply([
             r, 0, 0, 0, 0,
@@ -90,8 +87,6 @@ export class MiniMoonEffect {
             0, 0, b, 0, 0,
             0, 0, 0, 1, 0
         ]);
-
-        console.log('[MiniMoon] Tint applied successfully');
     }
 
     private update() {
