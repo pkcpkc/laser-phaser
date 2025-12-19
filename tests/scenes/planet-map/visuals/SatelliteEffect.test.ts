@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SatelliteEffect } from '../../../../src/scenes/planet-map/visuals/satellite-effect';
+import { SatelliteEffect } from '../../../../src/scenes/planet-map/effects/satellite-effect';
 // @ts-ignore
 import Phaser from 'phaser';
 

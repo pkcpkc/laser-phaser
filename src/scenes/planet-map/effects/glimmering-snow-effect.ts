@@ -36,7 +36,7 @@ export class GlimmeringSnowEffect {
         this.snowEmitter = this.scene.add.particles(0, 0, 'flare-white', {
             color: [tint],
             alpha: { start: 0.6, end: 0 },
-            scale: { start: 0.04 * scale, end: 0 },
+            scale: { start: 0.1 * scale, end: 0 },
             lifespan: { min: 2000, max: 4000 },
             frequency: 300, // Frequent small snow
             speed: 0, // Static

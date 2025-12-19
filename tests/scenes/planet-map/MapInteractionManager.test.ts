@@ -40,7 +40,14 @@ const mockScene = {
             setInteractive: vi.fn().mockReturnThis(), // Added setInteractive
             on: vi.fn().mockReturnThis(), // Added on for chaining
             setPosition: vi.fn().mockReturnThis(), // Added setPosition
-            width: 100
+            width: 100,
+            postFX: {
+                clear: vi.fn(),
+                addColorMatrix: vi.fn().mockReturnValue({
+                    saturate: vi.fn(),
+                    multiply: vi.fn()
+                })
+            }
         })
     },
     scene: {

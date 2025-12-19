@@ -1,29 +1,39 @@
 # Agent Rules
 
-## Code Quality Standards
+## Core Principles
 
-### Testing
-- **ALWAYS write tests** when creating new code
-- **ALWAYS update tests** when modifying existing code
-- **ALWAYS run tests** after writing/updating them (`npm test`)
-- **ALWAYS fix failing tests** before considering work complete
-- **ALWAYS fix linting errors** before considering work complete
-- Use `vitest` for all testing
-- Place tests in `tests/` directory mirroring source structure
-- Export functions from source files when needed for testing
+### Testing & Quality
+- **Mandatory Testing**:
+  - **ALWAYS** write tests for new code.
+  - **ALWAYS** update tests for modified code.
+  - **ALWAYS** run tests (`npm test`) after changes.
+  - **ALWAYS** fix failing tests before moving on.
+- **Strict Linting**:
+  - **ALWAYS** fix linting errors (`npx tsc --noEmit`) before completing work.
+  - Never ignore lint issues.
+- **Architecture**:
+  - Use `vitest` for all testing.
+  - Place tests in `tests/` directory, mirroring the source structure.
+  - Export functions from source files when necessary for testing.
+- **File Naming**:
+  - **ALWAYS** use `kebab-case` for all filenames (e.g., `solar-flare-effect.ts` not `SolarFlareEffect.ts`).
+  - **ALWAYS** use `kebab-case` for directories.
 
-### Linting
-- **ALWAYS fix linting errors** before completing any code changes
-- Run linter to verify code quality
-- Address all linting issues, don't ignore them
+## Development Workflow
 
-### Workflow
-1. **Delete all unused code and tests** - Remove dead code, unused imports, and obsolete test files
-2. Write/modify code
-3. Write/update corresponding tests - Cover everything with tests
-4. **Fix any linting errors** (`npx tsc --noEmit`)
-5. Run tests (`npm test`)
-6. Fix any failing tests
-7. Run build and fix build errors (`npm run build`)
-8. Verify all checks pass before completion
-9. **Update README.md** with any relevant changes
+1. **Cleanup & Prep**
+   - Delete all unused code, dead imports, and obsolete test files.
+
+2. **Implementation**
+   - Write or modify the code.
+   - Write or update corresponding tests (ensure complete coverage).
+
+3. **Validation Loop**
+   - Fix all linting errors: `npx tsc --noEmit`
+   - Run tests: `npm test`
+   - Fix any failing tests immediately.
+   - Run build: `npm run build` to check for build errors.
+
+4. **Completion**
+   - Verify all checks pass (Lint, Test, Build).
+   - Update `README.md` with any relevant changes.

@@ -1,0 +1,116 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock Phaser module completely to avoid canvas issues
+vi.mock('phaser', () => {
+    return {
+        default: {
+            Scene: class { },
+            GameObjects: {
+                Container: class { },
+                Text: class { },
+                Image: class { },
+            }
+        }
+    };
+});
+
+// Import after mocking
+import { MapInteractionManager } from './map-interaction';
+
+// Mock Phaser objects for the scene
+const mockColorMatrix = {
+    grayscale: vi.fn().mockReturnThis(),
+    brightness: vi.fn().mockReturnThis(),
+    saturate: vi.fn().mockReturnThis(),
+    multiply: vi.fn().mockReturnThis(),
+};
+
+const mockPostFX = {
+    addColorMatrix: vi.fn().mockReturnValue(mockColorMatrix),
+    clear: vi.fn(),
+};
+
+const mockText = {
+    setOrigin: vi.fn().mockReturnThis(),
+    setInteractive: vi.fn().mockReturnThis(),
+    on: vi.fn().mockReturnThis(),
+    setPosition: vi.fn().mockReturnThis(),
+    postFX: mockPostFX,
+};
+
+const mockContainer = {
+    setVisible: vi.fn(),
+    setDepth: vi.fn(),
+    removeAll: vi.fn(),
+    setPosition: vi.fn(),
+    setAlpha: vi.fn(),
+    add: vi.fn(),
+    postFX: {
+        clear: vi.fn(),
+        addColorMatrix: vi.fn().mockReturnValue(mockColorMatrix),
+    },
+};
+
+const mockScene = {
+    add: {
+        container: vi.fn().mockReturnValue(mockContainer),
+        text: vi.fn().mockReturnValue(mockText),
+    },
+    tweens: {
+        add: vi.fn(),
+    },
+    scene: {
+        start: vi.fn(),
+    },
+} as any;
+
+describe('MapInteractionManager', () => {
+    let manager: MapInteractionManager;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        manager = new MapInteractionManager(mockScene);
+    });
+
+    it('should apply grayscale and brightness to interaction icons', () => {
+        const planetData = {
+            id: 'test-planet',
+            name: 'Test Planet',
+            x: 100,
+            y: 100,
+            interaction: {
+                levelId: 'test-level',
+                hasTrader: true,
+                hasShipyard: true,
+            },
+        };
+
+        manager.showInteractionUI(planetData as any);
+
+        // Expect 3 icons to be created (Level, Trader, Shipyard)
+        expect(mockScene.add.text).toHaveBeenCalledTimes(3);
+
+        // Expect PostFX to be applied to the ICONS (3 times), not the container
+        expect(mockPostFX.clear).toHaveBeenCalledTimes(3);
+        expect(mockPostFX.addColorMatrix).toHaveBeenCalledTimes(6); // 2 calls per icon * 3 icons
+
+        // Check for saturate call
+        expect(mockColorMatrix.saturate).toHaveBeenCalledWith(-1);
+
+        // Check for multiply (tint) call
+        expect(mockColorMatrix.multiply).toHaveBeenCalled();
+    });
+
+    it('should not show UI for earth', () => {
+        const planetData = {
+            id: 'earth',
+            name: 'Earth',
+            x: 0,
+            y: 0,
+        };
+
+        manager.showInteractionUI(planetData as any);
+        expect(mockContainer.setVisible).toHaveBeenCalledWith(false);
+        expect(mockScene.add.text).not.toHaveBeenCalled();
+    });
+});

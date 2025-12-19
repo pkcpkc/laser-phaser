@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { SatelliteEffect } from './visuals/satellite-effect';
+import type { SatelliteEffect } from './effects/satellite-effect';
 
 export interface PlanetData {
     id: string;
@@ -41,6 +41,11 @@ export interface PlanetData {
     glimmeringSnow?: {
         color?: number; // Optional snowflake color
     };
+    solarFlare?: {
+        color?: number;     // Particle color
+        frequency?: number; // Eruption frequency
+        speed?: number;     // Eruption speed
+    };
 
     // Runtime references
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
@@ -51,9 +56,10 @@ export interface PlanetData {
     usingOverlay?: boolean;
     emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
-    miniMoonEffects?: import('./visuals/mini-moon-effect').MiniMoonEffect[];
-    glimmeringSnowEffect?: import('./visuals/glimmering-snow-effect').GlimmeringSnowEffect;
-    ringEffect?: import('./visuals/solid-ring-effect').SolidRingEffect | import('./visuals/gas-ring-effect').GasRingEffect;
+    miniMoonEffects?: import('./effects/mini-moon-effect').MiniMoonEffect[];
+    glimmeringSnowEffect?: import('./effects/glimmering-snow-effect').GlimmeringSnowEffect;
+    solarFlareEffect?: import('./effects/solar-flare-effect').SolarFlareEffect;
+    ringEffect?: import('./effects/solid-ring-effect').SolidRingEffect | import('./effects/gas-ring-effect').GasRingEffect;
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -160,6 +166,23 @@ export class PlanetRegistry {
                 x: 0, y: 0
             },
             {
+                id: 'sun-flares',
+                name: 'Sun Flares',
+                tint: 0xaB0000, // Dark red
+                visualScale: 0.5,
+                interaction: {
+                    levelId: 'blood-hunters',
+                    hasTrader: true,
+                    hasShipyard: true
+                },
+                solarFlare: {
+                    color: 0xff3300,
+                    frequency: 2000,
+                    speed: 20
+                },
+                x: 0, y: 0
+            },
+            {
                 id: 'dark-moon-pulse',
                 name: 'Dark Moon',
                 tint: 0x333333,
@@ -195,7 +218,7 @@ export class PlanetRegistry {
                 },
                 unlocked: false,
                 x: 0, y: 0 // placeholder
-            },
+            }
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth

@@ -69,6 +69,7 @@ export class MapInteractionManager {
 
         icons.forEach((icon, index) => {
             icon.setPosition(0, startY + (index * spacing));
+            this.applyIconStyle(icon);
             this.interactionContainer.add(icon);
         });
 
@@ -97,5 +98,27 @@ export class MapInteractionManager {
         if (planet.interaction?.levelId) {
             this.launchLevel(planet.interaction.levelId);
         }
+    }
+
+    private applyIconStyle(icon: Phaser.GameObjects.Text) {
+        if (icon.postFX) {
+            icon.postFX.clear();
+        }
+
+        const colorMatrix = icon.postFX.addColorMatrix();
+        colorMatrix.saturate(-1);
+
+        const tintColor = 0xFFFFFF; // Light Gray
+        const r = ((tintColor >> 16) & 0xFF) / 255;
+        const g = ((tintColor >> 8) & 0xFF) / 255;
+        const b = (tintColor & 0xFF) / 255;
+
+        const tintMatrix = icon.postFX.addColorMatrix();
+        tintMatrix.multiply([
+            r, 0, 0, 0, 0,
+            0, g, 0, 0, 0,
+            0, 0, b, 0, 0,
+            0, 0, 0, 1, 0
+        ]);
     }
 }

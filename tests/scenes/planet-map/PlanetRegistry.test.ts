@@ -67,7 +67,7 @@ describe('PlanetRegistry', () => {
         const darkMoon = registry.getById('dark-moon-pulse')!;
         expect(darkMoon.ghostShades).toBeDefined();
         expect(darkMoon.ghostShades?.pulse).toBe(true);
-        expect(darkMoon.ghostShades?.color).toBe(0xFFFF00);
+        expect(darkMoon.ghostShades?.color).toBe(0xFF0000);
 
         const whiteMoon = registry.getById('white-planet')!;
         expect(whiteMoon).toBeDefined();
