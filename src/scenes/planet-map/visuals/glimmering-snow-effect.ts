@@ -45,15 +45,16 @@ export class GlimmeringSnowEffect {
             emitZone: {
                 source: {
                     getRandomPoint: (point: Phaser.Types.Math.Vector2Like) => {
-                        const center = this.planet.gameObject!.getCenter();
+                        const centerX = this.planet.x;
+                        const centerY = this.planet.y;
                         const radius = 30 * scale; // Slightly outside surface for atmosphere
 
                         // Random emission
                         const r = radius * Math.sqrt(Math.random());
                         const theta = Math.random() * 2 * Math.PI;
 
-                        point.x = center.x + r * Math.cos(theta);
-                        point.y = center.y + r * Math.sin(theta);
+                        point.x = centerX + r * Math.cos(theta);
+                        point.y = centerY + r * Math.sin(theta);
                         return point;
                     }
                 },
@@ -73,14 +74,15 @@ export class GlimmeringSnowEffect {
             emitZone: {
                 source: {
                     getRandomPoint: (point: Phaser.Types.Math.Vector2Like) => {
-                        const center = this.planet.gameObject!.getCenter();
+                        const centerX = this.planet.x;
+                        const centerY = this.planet.y;
                         const radius = 24 * scale; // Strictly inside
 
                         const r = radius * Math.sqrt(Math.random());
                         const theta = Math.random() * 2 * Math.PI;
 
-                        point.x = center.x + r * Math.cos(theta);
-                        point.y = center.y + r * Math.sin(theta);
+                        point.x = centerX + r * Math.cos(theta);
+                        point.y = centerY + r * Math.sin(theta);
                         return point;
                     }
                 },

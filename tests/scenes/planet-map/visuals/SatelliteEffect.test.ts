@@ -118,9 +118,9 @@ describe('SatelliteEffect', () => {
         expect(floatBetweenSpy).toHaveBeenCalled();
 
         // Check if any call matches expected scaled values
-        // We look for calls with roughly 48 and 64
+        // DEFAULT_CONFIG is 15 and 30. With scale 2.0 -> 30 and 60.
         const calls = floatBetweenSpy.mock.calls;
-        const radiusCall = calls.find(call => call[0] === 24 * 2.0 && call[1] === 32 * 2.0);
+        const radiusCall = calls.find(call => call[0] === 15 * 2.0 && call[1] === 30 * 2.0);
 
         expect(radiusCall).toBeDefined();
     });

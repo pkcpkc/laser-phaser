@@ -53,7 +53,7 @@ export interface PlanetData {
     satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
     miniMoonEffects?: import('./visuals/mini-moon-effect').MiniMoonEffect[];
     glimmeringSnowEffect?: import('./visuals/glimmering-snow-effect').GlimmeringSnowEffect;
-    ringEffect?: import('./visuals/ring-effect').RingEffect;
+    ringEffect?: import('./visuals/solid-ring-effect').SolidRingEffect | import('./visuals/gas-ring-effect').GasRingEffect;
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -166,7 +166,7 @@ export class PlanetRegistry {
                 visualScale: 0.6,
                 ghostShades: {
                     pulse: true,
-                    color: 0xFFff00 // Light "Butter" Yellow
+                    color: 0xFF0000
                 },
                 unlocked: false,
                 x: 0, y: 0 // placeholder

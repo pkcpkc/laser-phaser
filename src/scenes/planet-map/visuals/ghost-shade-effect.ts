@@ -98,7 +98,9 @@ export class GhostShadeEffect {
     private update() {
         if (!this.planet.gameObject) return;
 
-        const center = this.planet.gameObject.getCenter();
+        // Use logical coordinates instead of visual center (which may vary by bounding box)
+        const centerX = this.planet.x;
+        const centerY = this.planet.y;
         const scale = this.planet.visualScale || 1.0;
         this.time += 0.016; // Approximate delta time
 
@@ -112,8 +114,8 @@ export class GhostShadeEffect {
             // Keep close to planet surface
             const radius = 22 * scale;
 
-            const emitX = center.x + Math.cos(rotation) * radius;
-            const emitY = center.y + Math.sin(rotation) * radius;
+            const emitX = centerX + Math.cos(rotation) * radius;
+            const emitY = centerY + Math.sin(rotation) * radius;
 
             emitter.setPosition(emitX, emitY);
         });
