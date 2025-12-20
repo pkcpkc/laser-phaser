@@ -34,8 +34,8 @@ export class HurricaneEffect implements IPlanetEffect {
     private spiralAngle: number = 0;
 
     // Orbit State
-    private orbitLongitude: number = 0;
-    private fixedLatitude: number = 0;
+    private orbitAxis: Phaser.Math.Vector3;
+    private currentPos: Phaser.Math.Vector3;
     private speedVariance: number = 0;
     private sizeScale: number = 1.0;
     private readonly PLANET_RADIUS = 22;
@@ -48,8 +48,7 @@ export class HurricaneEffect implements IPlanetEffect {
     private readonly MAX_ARMS = 3;
     private readonly MAX_RADIUS = 18;
 
-    private cosTilt: number = 0;
-    private sinTilt: number = 0;
+    private tiltAngle: number = 0;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: HurricaneConfig) {
         this.scene = scene;
@@ -62,14 +61,25 @@ export class HurricaneEffect implements IPlanetEffect {
             this.armDensities.push(0.7 + Math.random() * 0.3);
         }
 
-        this.orbitLongitude = Math.random() * Math.PI * 2;
-        const scale = this.planet.visualScale || 1.0;
-        this.fixedLatitude = (Math.random() - 0.5) * 10 * scale;
+        // Initialize Random Great Circle Orbit
+        // 1. Pick a random axis of rotation
+        const axisPhi = Math.random() * Math.PI * 2;
+        const axisTheta = Math.random() * Math.PI;
+        const ax = Math.sin(axisTheta) * Math.cos(axisPhi);
+        const ay = Math.sin(axisTheta) * Math.sin(axisPhi);
+        const az = Math.cos(axisTheta);
+        this.orbitAxis = new Phaser.Math.Vector3(ax, ay, az).normalize();
+
+        // 2. Pick a random starting position Orthogonal to the axis
+        let tempVec = new Phaser.Math.Vector3(Math.random(), Math.random(), Math.random());
+        if (tempVec.length() < 0.1) tempVec = new Phaser.Math.Vector3(1, 0, 0);
+
+        this.currentPos = new Phaser.Math.Vector3();
+        this.currentPos.crossVectors(this.orbitAxis, tempVec).normalize();
 
         // Random tilt angle for each hurricane (0 to 360 degrees)
-        const tilt = Math.random() * Math.PI * 2;
-        this.cosTilt = Math.cos(tilt);
-        this.sinTilt = Math.sin(tilt);
+        this.tiltAngle = Math.random() * Math.PI * 2;
+
         this.speedVariance = (Math.random() * 0.015) - 0.0075; // +/- variation
         this.sizeScale = 0.5 + Math.random() * 0.7; // 0.5x to 1.2x size
 
@@ -91,7 +101,12 @@ export class HurricaneEffect implements IPlanetEffect {
             color: [color],
             emitting: false,
             blendMode: 'NORMAL',
-            speed: { min: 1, max: 2 },
+            speed: 0 // Physics handled manually now if needed, or static particles updated per frame? 
+            // Actually we just emit them at calculated spots. Speed handled by spiral rotation? 
+            // The original code calculated positions EVERY FRAME for emission. 
+            // The particles themselves have simple physics `speed`.
+            // Wait, original code emitted particles with speed {min:1, max:2}. 
+            // But the COMPLEX shape was emission-time calculation.
         });
         this.armEmitter.setDepth(2);
 
@@ -123,13 +138,35 @@ export class HurricaneEffect implements IPlanetEffect {
         if (!this.planet.gameObject || !this.armEmitter || !this.eyewallEmitter) return;
 
         const scale = this.planet.visualScale || 1.0;
+        const planetRadius = this.PLANET_RADIUS * scale;
 
         const rotSpeed = (0.025 + this.speedVariance) / scale;
-        this.orbitLongitude -= rotSpeed;
 
-        const sphereX = (this.PLANET_RADIUS * scale) * Math.sin(this.orbitLongitude);
-        const sphereY = this.fixedLatitude;
-        const zDepth = Math.cos(this.orbitLongitude);
+        // Rotation
+        const q = new Phaser.Math.Quaternion();
+        q.setAxisAngle(this.orbitAxis, rotSpeed);
+        this.currentPos.transformQuat(q).normalize();
+
+        // --- SPHERICAL BASIS CALCULATION ---
+        const nx = this.currentPos.x;
+        const ny = this.currentPos.y;
+        const nz = this.currentPos.z;
+
+        // Basis Vectors
+        const globalUp = new Phaser.Math.Vector3(0, 1, 0);
+        const normal = new Phaser.Math.Vector3(nx, ny, nz);
+        const right = new Phaser.Math.Vector3();
+        const forward = new Phaser.Math.Vector3();
+
+        if (Math.abs(normal.dot(globalUp)) > 0.99) {
+            right.crossVectors(new Phaser.Math.Vector3(1, 0, 0), normal).normalize();
+        } else {
+            right.crossVectors(globalUp, normal).normalize();
+        }
+
+        forward.crossVectors(normal, right).normalize();
+
+        const zDepth = nz;
 
         const fadeStart = 0.3;
         const fadeEnd = -0.3;
@@ -143,25 +180,48 @@ export class HurricaneEffect implements IPlanetEffect {
         this.eyewallEmitter.setAlpha(globalAlpha * 0.6);
         if (this.eyeEmitter) this.eyeEmitter.setAlpha(globalAlpha * 0.5);
 
-        const compressionX = Math.max(0.1, zDepth);
-
-        const centerRotX = sphereX * this.cosTilt - sphereY * this.sinTilt;
-        const centerRotY = sphereX * this.sinTilt + sphereY * this.cosTilt;
-
-        const centerX = this.planet.x + centerRotX;
-        const centerY = this.planet.y + centerRotY;
+        const centerX = this.planet.x + nx * planetRadius;
+        const centerY = this.planet.y + ny * planetRadius;
 
         if (this.eyeEmitter) {
             this.eyeEmitter.setPosition(centerX, centerY);
             if (!this.eyeEmitter.emitting) this.eyeEmitter.start();
         }
 
+        const cTilt = Math.cos(this.tiltAngle);
+        const sTilt = Math.sin(this.tiltAngle);
+
         if (globalAlpha > 0.01) {
-            // 1. ARMS (Long trails)
-            // No need to set lifespan, configured in armEmitter
 
+            const emitParticleOnSphere = (emitter: Phaser.GameObjects.Particles.ParticleEmitter, rValues: number[], spiralOffset: number) => {
+                for (let rVal of rValues) {
+                    const r = rVal;
+                    const theta = spiralOffset;
+                    const psi = r / planetRadius;
+
+                    const localR = planetRadius * Math.sin(psi);
+                    const localZ = planetRadius * Math.cos(psi);
+
+                    let lx = localR * Math.cos(theta);
+                    let ly = localR * Math.sin(theta);
+
+                    const rlx = lx * cTilt - ly * sTilt;
+                    const rly = lx * sTilt + ly * cTilt;
+
+                    const px = rlx * right.x + rly * forward.x + localZ * normal.x;
+                    const py = rlx * right.y + rly * forward.y + localZ * normal.y;
+                    const pz = rlx * right.z + rly * forward.z + localZ * normal.z;
+
+                    if (pz > -5) {
+                        if (pz > 0) {
+                            emitter.emitParticle(1, this.planet.x + px, this.planet.y + py);
+                        }
+                    }
+                }
+            };
+
+            // 1. ARMS
             const currentArmCount = 3;
-
             for (let arm = 0; arm < currentArmCount; arm++) {
                 const armLength = this.armLengths[arm];
                 const armOffset = this.armOffsets[arm];
@@ -176,35 +236,17 @@ export class HurricaneEffect implements IPlanetEffect {
                     const radius = (3.5 * this.sizeScale) + t * this.MAX_RADIUS * scale * this.sizeScale;
 
                     const noiseR = (Math.random() - 0.5) * 1.5 * scale * this.sizeScale;
-                    const flatR = radius + noiseR;
-                    const dx = Math.cos(spiralTheta) * flatR;
-                    const dy = Math.sin(spiralTheta) * flatR;
+                    const finalR = radius + noiseR;
 
-                    const squashedDx = dx * compressionX;
-                    const squashedDy = dy;
-                    const finalDx = squashedDx * this.cosTilt - squashedDy * this.sinTilt;
-                    const finalDy = squashedDx * this.sinTilt + squashedDy * this.cosTilt;
-
-                    this.armEmitter.emitParticle(1, centerX + finalDx, centerY + finalDy);
+                    emitParticleOnSphere(this.armEmitter, [finalR], spiralTheta);
                 }
             }
 
-            // 2. EYEWALL (Short Trails, High Density)
-            // No need to set lifespan, configured in eyewallEmitter
-
-            // Massively boosted count (was 30) to compensate for 1/3 lifespan
+            // 2. EYEWALL
             for (let i = 0; i < 80; i++) {
                 const r = (3.0 * this.sizeScale) + Math.random() * 1.5 * scale * this.sizeScale;
                 const theta = Math.random() * Math.PI * 2;
-                const dx = Math.cos(theta) * r * compressionX;
-                const dy = Math.sin(theta) * r;
-
-                const finalDx = dx * this.cosTilt - dy * this.sinTilt;
-                const finalDy = dx * this.sinTilt + dy * this.cosTilt;
-
-                if (Math.random() > 0.1) {
-                    this.eyewallEmitter.emitParticle(1, centerX + finalDx, centerY + finalDy);
-                }
+                emitParticleOnSphere(this.eyewallEmitter, [r], theta);
             }
         }
 

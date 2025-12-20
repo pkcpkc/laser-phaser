@@ -13,6 +13,8 @@
   - Never ignore lint issues.
 - **Architecture**:
   - Use `vitest` for all testing.
+  - **ALWAYS** execute vitest as `vitest run path/to/file.test.ts ...`.
+    - Avoid `vitest` without `run` as it defaults to watch mode (blocks execution).
   - Place tests in `tests/` directory, mirroring the source structure.
   - Export functions from source files when necessary for testing.
 - **File Naming**:
