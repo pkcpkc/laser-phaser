@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
-import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
+import type { BaseEffectConfig } from '../planet-effect';
+import { BaseOrbitEffect } from './base-orbit-effect';
 
 interface TrailPoint {
     x: number;
@@ -51,26 +52,18 @@ const DEFAULT_CONFIG: Partial<SatelliteConfig> = {
  * Satellites circle the planet at different orbital distances, speeds, and tilted planes.
  * Each satellite has a shooting star trail effect.
  */
-export class SatelliteEffect implements IPlanetEffect {
-    private scene: Phaser.Scene;
-    private planet: PlanetData;
+export class SatelliteEffect extends BaseOrbitEffect {
     private satellites: Satellite[] = [];
-    private updateListener: () => void;
     private tint: number;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: SatelliteConfig) {
-        this.scene = scene;
-        this.planet = planet;
+        super(scene, planet);
 
         const effectiveConfig = { ...DEFAULT_CONFIG, ...config } as Required<SatelliteConfig>;
         this.tint = effectiveConfig.tint;
 
         this.ensureSatelliteTexture();
         this.createSatellites(effectiveConfig);
-
-        // Create update listener
-        this.updateListener = () => this.onUpdate();
-        this.scene.events.on('update', this.updateListener);
     }
 
     private ensureSatelliteTexture() {
@@ -144,7 +137,7 @@ export class SatelliteEffect implements IPlanetEffect {
         }
     }
 
-    private onUpdate() {
+    public onUpdate() {
         // Make sure planet still has valid position
         if (!this.planet.gameObject) return;
 
@@ -161,37 +154,23 @@ export class SatelliteEffect implements IPlanetEffect {
             if (sat.currentAngle > Math.PI * 2) sat.currentAngle -= Math.PI * 2;
             if (sat.currentAngle < 0) sat.currentAngle += Math.PI * 2;
 
-            // Calculate 3D position on tilted orbit
-            // Start with circular orbit in XZ plane
-            const localX = Math.cos(sat.currentAngle) * sat.orbitRadius;
-            const localZ = Math.sin(sat.currentAngle) * sat.orbitRadius;
-            const localY = 0;
-
-            // Apply orbital tilt (rotation around X axis)
-            const tiltedY = localY * Math.cos(sat.orbitTilt) - localZ * Math.sin(sat.orbitTilt);
-            const tiltedZ = localY * Math.sin(sat.orbitTilt) + localZ * Math.cos(sat.orbitTilt);
-
-            // Apply orbital rotation (rotation around Y axis)
-            const finalX = localX * Math.cos(sat.orbitRotation) + tiltedZ * Math.sin(sat.orbitRotation);
-            const finalZ = -localX * Math.sin(sat.orbitRotation) + tiltedZ * Math.cos(sat.orbitRotation);
-            const finalY = tiltedY;
-
-            // Project to 2D:
-            // finalY is the actual vertical height (from orbital tilt) -> Should be 1:1 on screen
-            // finalZ is depth -> Contributes to screen Y due to camera angle (perspective)
-            const perspectiveFlatten = 0.3; // View angle foreshortening
-            const screenX = centerX + finalX;
-            const screenY = centerY + finalY + finalZ * perspectiveFlatten;
+            // Calculate 3D position
+            const pos = this.calculateOrbitPosition(
+                sat.currentAngle,
+                sat.orbitRadius,
+                sat.orbitTilt,
+                sat.orbitRotation,
+                centerX,
+                centerY
+            );
 
             // Depth based on Z position (behind planet = negative Z = lower depth)
-            const isFront = finalZ > 0;
-            const depth = isFront ? 3 : -1;
-
+            const depth = pos.isFront ? 3 : -1;
             // Calculate alpha based on front/back
-            const alpha = isFront ? 1.0 : 0.5;
+            const alpha = pos.isFront ? 1.0 : 0.5;
 
             // Add current position to trail
-            sat.trailPoints.unshift({ x: screenX, y: screenY, depth, alpha });
+            sat.trailPoints.unshift({ x: pos.x, y: pos.y, depth, alpha });
 
             // Limit trail length
             if (sat.trailPoints.length > TRAIL_LENGTH) {
@@ -219,14 +198,14 @@ export class SatelliteEffect implements IPlanetEffect {
             sat.trail.setDepth(depth - 0.1);
 
             // Position satellite
-            sat.image.setPosition(screenX, screenY);
+            sat.image.setPosition(pos.x, pos.y);
 
             // Set depth based on position
             sat.image.setDepth(depth);
 
             // Scale satellites slightly based on depth for subtle 3D effect
-            const normalizedZ = (finalZ / sat.orbitRadius + 1) / 2; // 0 to 1
-            const depthScale = 0.7 + normalizedZ * 0.3;
+            // Satellite effect legacy scale logic
+            const depthScale = 0.7 + pos.normalizedZ * 0.3;
             sat.image.setScale(sat.size * scale * depthScale * textureScaleFactor);
 
             // Fade satellites slightly when at the back
@@ -241,8 +220,7 @@ export class SatelliteEffect implements IPlanetEffect {
         }
     }
 
-    public destroy() {
-        this.scene.events.off('update', this.updateListener);
+    protected onDestroy() {
         for (const sat of this.satellites) {
             sat.image.destroy();
             sat.trail.destroy();

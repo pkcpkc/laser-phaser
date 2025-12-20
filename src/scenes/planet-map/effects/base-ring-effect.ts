@@ -7,9 +7,20 @@ export abstract class BaseRingEffect implements IPlanetEffect {
     protected planet: PlanetData;
     protected occluder?: Phaser.GameObjects.Graphics;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    protected backElement?: Phaser.GameObjects.GameObject | Phaser.GameObjects.Particles.ParticleEmitter;
+    protected frontElement?: Phaser.GameObjects.GameObject | Phaser.GameObjects.Particles.ParticleEmitter;
+    protected tilt: number = 0;
+
+    constructor(scene: Phaser.Scene, planet: PlanetData, config?: { angle?: number }) {
         this.scene = scene;
         this.planet = planet;
+
+        if (config?.angle !== undefined) {
+            this.tilt = Phaser.Math.DegToRad(config.angle);
+        } else {
+            this.tilt = Phaser.Math.DegToRad(-20); // Default tilt
+        }
+
         this.createOccluder();
     }
 
@@ -31,11 +42,38 @@ export abstract class BaseRingEffect implements IPlanetEffect {
         if (this.occluder) {
             this.occluder.setVisible(visible);
         }
+
+        if (this.backElement) {
+            // Safe check for setVisible
+            if ('setVisible' in this.backElement) {
+                (this.backElement as any).setVisible(visible);
+            }
+            if ('active' in this.backElement) {
+                this.backElement.active = visible;
+            }
+        }
+
+        if (this.frontElement) {
+            if ('setVisible' in this.frontElement) {
+                (this.frontElement as any).setVisible(visible);
+            }
+            if ('active' in this.frontElement) {
+                this.frontElement.active = visible;
+            }
+        }
     }
 
     public destroy(): void {
         if (this.occluder) {
             this.occluder.destroy();
+        }
+
+        if (this.backElement) {
+            this.backElement.destroy();
+        }
+
+        if (this.frontElement) {
+            this.frontElement.destroy();
         }
     }
 
@@ -43,6 +81,16 @@ export abstract class BaseRingEffect implements IPlanetEffect {
     public update?(_time: number, _delta: number): void {
         if (this.occluder) {
             this.occluder.setPosition(this.planet.x, this.planet.y);
+        }
+
+        // Use type guard or checks
+        if (this.backElement && 'setPosition' in this.backElement) {
+            // Emitters don't typically need setPosition called every frame like this unless we are moving the whole thing manually
+            // But Containers do.
+            (this.backElement as any).setPosition(this.planet.x, this.planet.y);
+        }
+        if (this.frontElement && 'setPosition' in this.frontElement) {
+            (this.frontElement as any).setPosition(this.planet.x, this.planet.y);
         }
     }
 }

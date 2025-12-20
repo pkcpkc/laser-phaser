@@ -12,10 +12,9 @@ export interface GasRingConfig extends BaseEffectConfig {
 
 export class GasRingEffect extends BaseRingEffect {
     private config: GasRingConfig;
-    private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: GasRingConfig) {
-        super(scene, planet);
+        super(scene, planet, { angle: config.angle });
         this.config = config;
         this.create();
     }
@@ -28,12 +27,9 @@ export class GasRingEffect extends BaseRingEffect {
         const radiusX = 48 * scale;
         const radiusY = 8 * scale; // Reduced from 14 to 8 for flatter look
         const thickness = 8 * scale; // Slightly reduced thickness (was 10)
-        const tiltDeg = this.config.angle ?? -20;
-        const tilt = Phaser.Math.DegToRad(tiltDeg);
+        // const tiltDeg = this.config.angle ?? -20; // Handled in base
+        const tilt = this.tilt;
 
-        // Use arrow functions that reference this.planet directly for dynamic positioning
-        const getCenterX = () => this.planet.x;
-        const getCenterY = () => this.planet.y;
 
         const createEmitter = (isFront: boolean) => {
             return this.scene.add.particles(0, 0, 'flare-white', {
@@ -43,57 +39,64 @@ export class GasRingEffect extends BaseRingEffect {
                 lifespan: this.config.lifespan || 800, // Configurable lifespan
                 blendMode: 'ADD',
                 frequency: 5, // Much more dense (was 40)
-                emitCallback: (particle: Phaser.GameObjects.Particles.Particle) => {
-                    // Simulate rotation: Tangential velocity
-                    // Vector from center (use dynamic center)
-                    const centerX = getCenterX();
-                    const centerY = getCenterY();
-                    const dx = particle.x - centerX;
-                    const dy = particle.y - centerY;
+                speed: { min: 0, max: 10 * scale }, // Gentle drift instead of orbital flow
+                angle: { min: 0, max: 360 }, // Random direction
 
-                    // Simple rotation logic: just push them "along" the ellipse roughly
-                    // Tangent varies, but for a flat ellipse, mostly horizontal?
-                    // Let's do proper tangent:
-                    // Angle of position
-                    const angle = Math.atan2(dy, dx);
-                    // Tangent angle (Clockwise)
-                    const tangent = angle + (Math.PI / 2);
-
-                    // Speed
-                    const speed = 20 * scale;
-
-                    particle.velocityX = Math.cos(tangent) * speed;
-                    particle.velocityY = Math.sin(tangent) * speed;
-                },
                 emitZone: {
                     source: {
                         getRandomPoint: (point: Phaser.Types.Math.Vector2Like) => {
-                            // Use dynamic center position
-                            const centerX = getCenterX();
-                            const centerY = getCenterY();
+                            // Robust Geometric Approach:
+                            // 1. Pick ANY point on the full ring.
+                            // 2. Filter by Y (screen space Y relative to center).
+                            // Front (Depth 10) -> Bottom Half (y > -overlap)
+                            // Back (Depth 0) -> Top Half (y < +overlap) (with overlap)
 
-                            // Angle range: Front (0 to PI), Back (PI to 2PI)
-                            // Standard circle logic: 0 is Right, PI/2 is Down.
-                            // We want Front to be "Lower Half" -> y > 0 -> 0 to PI.
-                            const minAngle = isFront ? 0 : Math.PI;
-                            const maxAngle = isFront ? Math.PI : Math.PI * 2;
-                            const angle = Phaser.Math.FloatBetween(minAngle, maxAngle);
+                            const centerX = 0;
+                            const centerY = 0;
 
-                            // Add thickness
-                            const rJitter = Phaser.Math.FloatBetween(-thickness, thickness);
-                            const rX = radiusX + rJitter;
-                            const rY = radiusY + (rJitter * (radiusY / radiusX));
+                            // Retry loop to find valid point
+                            let valid = false;
+                            let attempts = 0;
 
-                            // Unrotated ellipse point
-                            const ux = rX * Math.cos(angle);
-                            const uy = rY * Math.sin(angle);
+                            while (!valid && attempts < 10) {
+                                attempts++;
 
-                            // Rotate by tilt
-                            const tx = ux * Math.cos(tilt) - uy * Math.sin(tilt);
-                            const ty = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+                                // Random angle 0-2PI
+                                const angle = Phaser.Math.FloatBetween(0, Math.PI * 2);
 
-                            point.x = centerX + tx;
-                            point.y = centerY + ty;
+                                // Add thickness
+                                const rJitter = Phaser.Math.FloatBetween(-thickness, thickness);
+                                const rX = radiusX + rJitter;
+                                const rY = radiusY + (rJitter * (radiusY / radiusX));
+
+                                // Unrotated ellipse point
+                                const ux = rX * Math.cos(angle);
+                                const uy = rY * Math.sin(angle);
+
+                                // Rotate by tilt
+                                const tx = ux * Math.cos(tilt) - uy * Math.sin(tilt);
+                                const ty = ux * Math.sin(tilt) + uy * Math.cos(tilt);
+
+                                // Check condition
+                                // isFront (Bottom) -> ty > -2
+                                // !isFront (Top) -> ty < 2
+                                // Overlap of 4 pixels
+                                const tolerance = 4; // Generous overlap to prevent gaps
+
+                                if (isFront) {
+                                    if (ty > -tolerance) valid = true;
+                                } else {
+                                    if (ty < tolerance) valid = true;
+                                }
+
+                                if (valid) {
+                                    point.x = centerX + tx;
+                                    point.y = centerY + ty;
+                                }
+                            }
+
+                            // If we failed to find a point (highly unlikely in 10 tries unless ranges are broken), return center? 
+                            // Or just return the last calculated point?
                             return point;
                         }
                     },
@@ -104,27 +107,14 @@ export class GasRingEffect extends BaseRingEffect {
 
         const backEmitter = createEmitter(false);
         backEmitter.setDepth(0);
+        this.backElement = backEmitter;
 
         const frontEmitter = createEmitter(true);
-        frontEmitter.setDepth(2);
-
-        this.emitters = [backEmitter, frontEmitter];
+        frontEmitter.setDepth(10); // Ensure it's on top of planet (usually depth 1)
+        this.frontElement = frontEmitter;
 
         if (!this.planet.unlocked) {
             this.setVisible(false);
         }
-    }
-
-    public setVisible(visible: boolean) {
-        super.setVisible(visible);
-        this.emitters.forEach(emitter => {
-            emitter.setVisible(visible);
-            emitter.active = visible;
-        });
-    }
-
-    public destroy() {
-        super.destroy();
-        this.emitters.forEach(e => e.destroy());
     }
 }

@@ -15,23 +15,17 @@ export class SolidRingEffect extends BaseRingEffect {
 
     private backRing?: Phaser.GameObjects.Graphics;
     private frontRing?: Phaser.GameObjects.Graphics;
-    private backContainer?: Phaser.GameObjects.Container;
-    private frontContainer?: Phaser.GameObjects.Container;
+    // Containers are now assigned to backElement/frontElement
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: SolidRingConfig) {
-        super(scene, planet);
+        super(scene, planet, { angle: config.angle });
         this.config = config;
         this.create();
     }
 
+    // Base update handles container positioning
     public update(time: number, delta: number): void {
         super.update?.(time, delta);
-        if (this.backContainer) {
-            this.backContainer.setPosition(this.planet.x, this.planet.y);
-        }
-        if (this.frontContainer) {
-            this.frontContainer.setPosition(this.planet.x, this.planet.y);
-        }
     }
 
     private create() {
@@ -43,8 +37,9 @@ export class SolidRingEffect extends BaseRingEffect {
         const outerRadiusX = 55 * scale; // Decreased diameter (was 80)
         const radiusYBase = 6 * scale; // Flatter (was 8)
 
-        const tiltDeg = this.config.angle ?? -20;
-        const tilt = Phaser.Math.DegToRad(tiltDeg);
+        // const tiltDeg = this.config.angle ?? -20;
+        // const tilt = Phaser.Math.DegToRad(tiltDeg);
+        const tilt = this.tilt; // Use base tilt
 
         const bandCount = 12; // More bands for smoother fill
 
@@ -119,18 +114,21 @@ export class SolidRingEffect extends BaseRingEffect {
         };
 
         // Create Containers
-        this.backContainer = this.scene.add.container(this.planet.x, this.planet.y);
-        this.frontContainer = this.scene.add.container(this.planet.x, this.planet.y);
+        const backContainer = this.scene.add.container(this.planet.x, this.planet.y);
+        const frontContainer = this.scene.add.container(this.planet.x, this.planet.y);
 
-        this.backContainer.setDepth(0);
-        this.frontContainer.setDepth(2);
+        backContainer.setDepth(0);
+        frontContainer.setDepth(2);
+
+        this.backElement = backContainer;
+        this.frontElement = frontContainer;
 
         // Add Rings to Containers
         this.backRing = createRingBand(false);
         this.frontRing = createRingBand(true);
 
-        this.backContainer.add(this.backRing);
-        this.frontContainer.add(this.frontRing);
+        backContainer.add(this.backRing);
+        frontContainer.add(this.frontRing);
 
         // Sparkles mostly in the middle of the band
         const midRadiusX = (innerRadiusX + outerRadiusX) / 2;
@@ -214,8 +212,8 @@ export class SolidRingEffect extends BaseRingEffect {
             }
         };
 
-        addSparkles(this.backContainer, false);
-        addSparkles(this.frontContainer, true);
+        addSparkles(backContainer, false);
+        addSparkles(frontContainer, true);
 
         // Initial visibility
         if (!this.planet.unlocked) {
@@ -227,7 +225,7 @@ export class SolidRingEffect extends BaseRingEffect {
             const duration = 15000; // Slightly faster for fluidity
 
             this.scene.tweens.add({
-                targets: [this.backContainer, this.frontContainer],
+                targets: [backContainer, frontContainer],
                 rotation: Math.PI * 2, // Use rotation (radians) for smoothness
                 duration: duration,
                 repeat: -1,
@@ -236,15 +234,5 @@ export class SolidRingEffect extends BaseRingEffect {
         }
     }
 
-    public setVisible(visible: boolean) {
-        super.setVisible(visible);
-        if (this.backContainer) this.backContainer.setVisible(visible);
-        if (this.frontContainer) this.frontContainer.setVisible(visible);
-    }
-
-    public destroy() {
-        super.destroy();
-        this.backContainer?.destroy();
-        this.frontContainer?.destroy();
-    }
+    // SetVisible and Destroy are handled by BaseRingEffect
 }

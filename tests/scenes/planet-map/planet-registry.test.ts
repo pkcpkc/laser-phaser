@@ -15,6 +15,18 @@ vi.mock('phaser', () => {
                 FloatBetween: (min: number, max: number) => min + Math.random() * (max - min),
                 Linear: (p0: number, p1: number, t: number) => p0 + (p1 - p0) * t,
                 Between: (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min,
+                Vector3: class {
+                    x = 0; y = 0; z = 0;
+                    constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
+                    normalize() { return this; }
+                    crossVectors() { return this; }
+                    transformQuat() { return this; }
+                    dot() { return 0; }
+                    length() { return 1; }
+                },
+                Quaternion: class {
+                    setAxisAngle() { return this; }
+                },
             },
             BlendModes: {
                 ADD: 1

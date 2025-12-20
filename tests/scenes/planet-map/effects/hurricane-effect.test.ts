@@ -9,6 +9,18 @@ vi.mock('phaser', () => {
         default: {
             Math: {
                 DegToRad: (deg: number) => deg * (Math.PI / 180),
+                Vector3: class {
+                    x = 0; y = 0; z = 0;
+                    constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
+                    normalize() { return this; }
+                    crossVectors() { return this; }
+                    transformQuat() { return this; }
+                    dot() { return 0; }
+                    length() { return 1; }
+                },
+                Quaternion: class {
+                    setAxisAngle() { return this; }
+                },
             },
             Time: {
                 TimerEvent: class {

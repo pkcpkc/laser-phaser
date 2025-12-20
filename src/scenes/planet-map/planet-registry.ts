@@ -8,6 +8,8 @@ import { GlimmeringSnowEffect } from './effects/glimmering-snow-effect';
 import { SolarFlareEffect } from './effects/solar-flare-effect';
 import { MiniMoonEffect } from './effects/mini-moon-effect';
 import { GhostShadeEffect } from './effects/ghost-shade-effect';
+import { SpikesEffect } from './effects/spikes-effect';
+
 
 export interface PlanetData {
     id: string;
@@ -139,7 +141,7 @@ export class PlanetRegistry {
             new GasRingEffect(scene, toxicMoon, {
                 type: 'gas-ring',
                 color: 0x33FF33, // Toxic Green
-                angle: -15,
+                angle: 0,
                 lifespan: 2500
             })
         ];
@@ -233,6 +235,27 @@ export class PlanetRegistry {
             })
         ];
 
+        const metroPrime = createPlanet({
+            id: 'metro-prime',
+            name: 'Metro Prime',
+            visualScale: 1.1,
+            tint: 0x222222, // Dark Grey/Black background for city lights
+            x: 0, y: 0
+        });
+        metroPrime.effects = [
+            new SpikesEffect(scene, metroPrime, {
+                type: 'spikes', // type string updated
+                buildingCount: 80,
+                color: 0x00ffff, // Cyan neon lights
+                minHeight: 4,
+                maxHeight: 15,
+                rotationSpeed: 0.005,
+                rotationAxis: { x: 1, y: -1, z: 0 } // Bottom-right to top-left movement
+            })
+        ];
+
+
+
         this.planets = [
             earth,
             ringWorld,
@@ -242,7 +265,8 @@ export class PlanetRegistry {
             sunFlares,
             darkMoonPulse,
             whitePlanet,
-            darkMoonShadow
+            darkMoonShadow,
+            metroPrime
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth
