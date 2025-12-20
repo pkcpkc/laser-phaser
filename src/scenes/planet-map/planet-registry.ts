@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
-import type { SatelliteEffect } from './effects/satellite-effect';
+import type { IPlanetEffect } from './planet-effect';
+import { SatelliteEffect } from './effects/satellite-effect';
+import { SolidRingEffect } from './effects/solid-ring-effect';
+import { GasRingEffect } from './effects/gas-ring-effect';
+import { HurricaneEffect } from './effects/hurricane-effect';
+import { GlimmeringSnowEffect } from './effects/glimmering-snow-effect';
+import { SolarFlareEffect } from './effects/solar-flare-effect';
+import { MiniMoonEffect } from './effects/mini-moon-effect';
+import { GhostShadeEffect } from './effects/ghost-shade-effect';
 
 export interface PlanetData {
     id: string;
@@ -11,55 +19,19 @@ export interface PlanetData {
     tint?: number; // Optional color tint
 
     // Configuration Objects
-    satellites?: {
-        tint?: number;
-        count?: number;
-    };
-    rings?: {
-        color: number;
-        lifespan?: number; // Duration of ring particles in ms (default 800)
-        angle?: number;    // Tilt angle in degrees (default -20)
-        type?: 'particles' | 'solid'; // Default 'particles'
-        rotation?: boolean; // Enable rotation animation
-    };
+    effects?: IPlanetEffect[];
 
     interaction?: {
         levelId?: string;
         hasTrader?: boolean;
         hasShipyard?: boolean;
     };
-    miniMoons?: {
-        tilt?: number;   // Tilt angle in degrees
-        tint?: number;   // Optional tint override
-        size?: number; // Optional size override
-    }[];
-
-    ghostShades?: {
-        pulse?: boolean; // Defaults to true
-        color?: number; // Optional color override
-    };
-    glimmeringSnow?: {
-        color?: number; // Optional snowflake color
-    };
-    solarFlare?: {
-        color?: number;     // Particle color
-        frequency?: number; // Eruption frequency
-        speed?: number;     // Eruption speed
-    };
 
     // Runtime references
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
-    ringEmitters?: Phaser.GameObjects.Particles.ParticleEmitter[]; // Back and Front emitters
-    backRing?: Phaser.GameObjects.Graphics; // Solid ring back
-    frontRing?: Phaser.GameObjects.Graphics; // Solid ring front
     overlayGameObject?: Phaser.GameObjects.Text;
     usingOverlay?: boolean;
-    emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
-    satelliteEffect?: SatelliteEffect; // Orbiting satellites visual
-    miniMoonEffects?: import('./effects/mini-moon-effect').MiniMoonEffect[];
-    glimmeringSnowEffect?: import('./effects/glimmering-snow-effect').GlimmeringSnowEffect;
-    solarFlareEffect?: import('./effects/solar-flare-effect').SolarFlareEffect;
-    ringEffect?: import('./effects/solid-ring-effect').SolidRingEffect | import('./effects/gas-ring-effect').GasRingEffect;
+    emitter?: Phaser.GameObjects.Particles.ParticleEmitter; // Locked particle effect
 
     // Positioning persistence
     orbitAngle?: number; // radians
@@ -74,7 +46,7 @@ export class PlanetRegistry {
         // Initial setup
     }
 
-    public initPlanets(width: number, height: number) {
+    public initPlanets(scene: Phaser.Scene, width: number, height: number) {
 
 
         const cx = width / 2;
@@ -96,129 +68,181 @@ export class PlanetRegistry {
         // Sanity check: if screen is too small, clamp outerLimit to innerLimit + tiny offset
         const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
 
+        // Helper to Create Object References temporarily for instantiation
+        // We need 2 passes or a clever way to pass 'this' before it's fully formed.
+        // Actually, we can just create the object, then assign effects to it.
+
+        const createPlanet = (data: Partial<PlanetData>): PlanetData => {
+            const planet = data as PlanetData;
+            return planet;
+        };
+
+        const earth = createPlanet({
+            id: 'earth',
+            name: 'Earth',
+            unlocked: true,
+            tint: 0x4488FF, // Blue-ish
+            visualScale: 1.0,
+            x: cx,
+            y: cy,
+            orbitAngle: 0,
+            orbitRadius: 0
+        });
+        earth.effects = [
+            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff }),
+            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff }),
+            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff })
+        ];
+
+        const ringWorld = createPlanet({
+            id: 'ring-world',
+            name: 'Ring World',
+            tint: 0xB8860B, // Dark Golden Rod
+            visualScale: 0.8,
+            x: 0, y: 0
+        });
+        ringWorld.effects = [
+            new SolidRingEffect(scene, ringWorld, {
+                type: 'solid-ring',
+                color: 0xCC9944,
+                angle: 30,
+                rotation: true
+            })
+        ];
+
+        const gliese = createPlanet({
+            id: 'gliese',
+            name: 'Gliese',
+            unlocked: false,
+            tint: 0x44FF88, // Green-ish
+            x: 0, y: 0
+        });
+        gliese.effects = [
+            new SatelliteEffect(scene, gliese, {
+                type: 'satellite',
+                tint: 0xffffff,
+                count: 10
+            })
+        ];
+
+        const toxicMoon = createPlanet({
+            id: 'toxic-moon',
+            name: 'Toxic Moon',
+            interaction: {
+                levelId: 'blood-hunters'
+            },
+            visualScale: 1.5, // Smaller
+            tint: 0xAA00FF, // Purple
+            x: 0, y: 0
+        });
+        toxicMoon.effects = [
+            new GasRingEffect(scene, toxicMoon, {
+                type: 'gas-ring',
+                color: 0x33FF33, // Toxic Green
+                angle: -15,
+                lifespan: 2500
+            })
+        ];
+
+        const redMoon = createPlanet({
+            id: 'red-moon',
+            name: 'Red Moon',
+            tint: 0x8B0000, // Dark red
+            visualScale: 0.5,
+            interaction: {
+                levelId: 'blood-hunters',
+                hasTrader: true,
+                hasShipyard: true
+            },
+            x: 0, y: 0
+        });
+        redMoon.effects = [
+            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFFAAAA, tilt: -60 }), // Light red
+            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFF8888, tilt: 0 }),   // Slightly darker
+            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFFCCCC, tilt: 60 })   // Very light
+        ];
+
+        const sunFlares = createPlanet({
+            id: 'sun-flares',
+            name: 'Sun Flares',
+            tint: 0xaB0000, // Dark red
+            visualScale: 0.5,
+            interaction: {
+                levelId: 'blood-hunters',
+                hasTrader: true,
+                hasShipyard: true
+            },
+            x: 0, y: 0
+        });
+        sunFlares.effects = [
+            new SolarFlareEffect(scene, sunFlares, {
+                type: 'solar-flare',
+                color: 0xff3300,
+                frequency: 2000,
+                speed: 20
+            })
+        ];
+
+        const darkMoonPulse = createPlanet({
+            id: 'dark-moon-pulse',
+            name: 'Dark Moon',
+            tint: 0x333333,
+            visualScale: 0.6,
+            unlocked: false,
+            x: 0, y: 0 // placeholder
+        });
+        darkMoonPulse.effects = [
+            new GhostShadeEffect(scene, darkMoonPulse, {
+                type: 'ghost-shade',
+                pulse: true,
+                color: 0xFF0000
+            })
+        ];
+
+        const whitePlanet = createPlanet({
+            id: 'white-planet',
+            name: 'White Moon',
+            tint: 0x444444, // Dark Grey
+            visualScale: 0.9,
+            unlocked: false,
+            interaction: {
+                levelId: 'blood-hunters'
+            },
+            x: 0, y: 0
+        });
+        whitePlanet.effects = [
+            new GlimmeringSnowEffect(scene, whitePlanet, {
+                type: 'glimmering-snow',
+                color: 0xFFFFFF
+            })
+        ];
+
+        const darkMoonShadow = createPlanet({
+            id: 'dark-moon-shadow',
+            name: 'Dark Moon',
+            tint: 0x333333,
+            visualScale: 0.6,
+            unlocked: false,
+            x: 0, y: 0 // placeholder
+        });
+        darkMoonShadow.effects = [
+            new GhostShadeEffect(scene, darkMoonShadow, {
+                type: 'ghost-shade',
+                pulse: false,
+                color: 0xffffff
+            })
+        ];
+
         this.planets = [
-            {
-                id: 'earth',
-                name: 'Earth',
-                unlocked: true,
-                tint: 0x4488FF, // Blue-ish
-                visualScale: 1.0,
-                x: cx,
-                y: cy,
-                orbitAngle: 0,
-                orbitRadius: 0
-            },
-            {
-                id: 'ring-world',
-                name: 'Ring World',
-                tint: 0xB8860B, // Dark Golden Rod
-                visualScale: 0.8,
-                rings: {
-                    color: 0xCC9944,
-                    angle: 30,
-                    type: 'solid',
-                    rotation: true
-                },
-                x: 0, y: 0
-            },
-            {
-                id: 'gliese',
-                name: 'Gliese',
-                unlocked: false,
-                tint: 0x44FF88, // Green-ish
-                satellites: {
-                    tint: 0xffffff,
-                    count: 10
-                },
-                x: 0, y: 0
-            },
-            {
-                id: 'toxic-moon',
-                name: 'Toxic Moon',
-                interaction: {
-                    levelId: 'blood-hunters'
-                },
-                visualScale: 1.5, // Smaller
-                tint: 0xAA00FF, // Purple
-                rings: {
-                    color: 0x33FF33, // Toxic Green
-                    type: 'particles',
-                    angle: -15,
-                    lifespan: 2500
-                },
-                x: 0, y: 0
-            },
-            {
-                id: 'red-moon',
-                name: 'Red Moon',
-                tint: 0x8B0000, // Dark red
-                visualScale: 0.5,
-                interaction: {
-                    levelId: 'blood-hunters',
-                    hasTrader: true,
-                    hasShipyard: true
-                },
-                miniMoons: [
-                    { tint: 0xFFAAAA, tilt: -60 }, // Light red
-                    { tint: 0xFF8888, tilt: 0 },   // Slightly darker
-                    { tint: 0xFFCCCC, tilt: 60 }   // Very light
-                ],
-                x: 0, y: 0
-            },
-            {
-                id: 'sun-flares',
-                name: 'Sun Flares',
-                tint: 0xaB0000, // Dark red
-                visualScale: 0.5,
-                interaction: {
-                    levelId: 'blood-hunters',
-                    hasTrader: true,
-                    hasShipyard: true
-                },
-                solarFlare: {
-                    color: 0xff3300,
-                    frequency: 2000,
-                    speed: 20
-                },
-                x: 0, y: 0
-            },
-            {
-                id: 'dark-moon-pulse',
-                name: 'Dark Moon',
-                tint: 0x333333,
-                visualScale: 0.6,
-                ghostShades: {
-                    pulse: true,
-                    color: 0xFF0000
-                },
-                unlocked: false,
-                x: 0, y: 0 // placeholder
-            },
-            {
-                id: 'white-planet',
-                name: 'White Moon',
-                tint: 0x444444, // Dark Grey
-                visualScale: 0.9,
-                unlocked: false,
-                glimmeringSnow: {
-                    color: 0xFFFFFF
-                },
-                interaction: {
-                    levelId: 'blood-hunters'
-                },
-                x: 0, y: 0
-            }, {
-                id: 'dark-moon-shadow',
-                name: 'Dark Moon',
-                tint: 0x333333,
-                visualScale: 0.6,
-                ghostShades: {
-                    pulse: false,
-                    color: 0xffffff
-                },
-                unlocked: false,
-                x: 0, y: 0 // placeholder
-            }
+            earth,
+            ringWorld,
+            gliese,
+            toxicMoon,
+            redMoon,
+            sunFlares,
+            darkMoonPulse,
+            whitePlanet,
+            darkMoonShadow
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth

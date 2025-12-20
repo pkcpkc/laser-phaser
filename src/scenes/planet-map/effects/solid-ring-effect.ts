@@ -1,26 +1,41 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig } from '../planet-effect';
+import { BaseRingEffect } from './base-ring-effect';
 
-export class SolidRingEffect {
-    private scene: Phaser.Scene;
-    private planet: PlanetData;
+export interface SolidRingConfig extends BaseEffectConfig {
+    type: 'solid-ring';
+    color: number;
+    angle?: number;    // Tilt angle in degrees (default -20)
+    rotation?: boolean; // Enable rotation animation
+}
+
+export class SolidRingEffect extends BaseRingEffect {
+    private config: SolidRingConfig;
 
     private backRing?: Phaser.GameObjects.Graphics;
     private frontRing?: Phaser.GameObjects.Graphics;
     private backContainer?: Phaser.GameObjects.Container;
     private frontContainer?: Phaser.GameObjects.Container;
 
-    // Track emitters or other disposables if added to containers
-    // Containers manage children destruction usually, but if we have external tweens or references...
-
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
-        this.scene = scene;
-        this.planet = planet;
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: SolidRingConfig) {
+        super(scene, planet);
+        this.config = config;
         this.create();
     }
 
+    public update(time: number, delta: number): void {
+        super.update?.(time, delta);
+        if (this.backContainer) {
+            this.backContainer.setPosition(this.planet.x, this.planet.y);
+        }
+        if (this.frontContainer) {
+            this.frontContainer.setPosition(this.planet.x, this.planet.y);
+        }
+    }
+
     private create() {
-        const baseColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
+        const baseColor = this.config.color;
         const scale = this.planet.visualScale || 1.0;
 
         // Broaden the ring significantly
@@ -28,7 +43,7 @@ export class SolidRingEffect {
         const outerRadiusX = 55 * scale; // Decreased diameter (was 80)
         const radiusYBase = 6 * scale; // Flatter (was 8)
 
-        const tiltDeg = this.planet.rings?.angle ?? -20;
+        const tiltDeg = this.config.angle ?? -20;
         const tilt = Phaser.Math.DegToRad(tiltDeg);
 
         const bandCount = 12; // More bands for smoother fill
@@ -136,7 +151,7 @@ export class SolidRingEffect {
 
                 // Create a trail of segments to follow "Rotation" (Circular path)
                 // "Not follow the ring curve but the ring rotation"
-                const isRotating = this.planet.rings?.rotation ?? false;
+                const isRotating = this.config.rotation ?? false;
                 const segmentCount = isRotating ? 25 : 1; // No tails if not rotating
                 const rotationStep = 0.05; // Radians to rotate back per segment
 
@@ -208,7 +223,7 @@ export class SolidRingEffect {
         }
 
         // Add 2D Rotation if enabled
-        if (this.planet.rings?.rotation) {
+        if (this.config.rotation) {
             const duration = 15000; // Slightly faster for fluidity
 
             this.scene.tweens.add({
@@ -222,11 +237,13 @@ export class SolidRingEffect {
     }
 
     public setVisible(visible: boolean) {
+        super.setVisible(visible);
         if (this.backContainer) this.backContainer.setVisible(visible);
         if (this.frontContainer) this.frontContainer.setVisible(visible);
     }
 
     public destroy() {
+        super.destroy();
         this.backContainer?.destroy();
         this.frontContainer?.destroy();
     }

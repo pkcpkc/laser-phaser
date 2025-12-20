@@ -1,0 +1,133 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { HurricaneEffect } from '../../../../src/scenes/planet-map/effects/hurricane-effect';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+// @ts-ignore
+import Phaser from 'phaser';
+
+vi.mock('phaser', () => {
+    return {
+        default: {
+            Math: {
+                DegToRad: (deg: number) => deg * (Math.PI / 180),
+            },
+            Time: {
+                TimerEvent: class {
+                    remove = vi.fn();
+                }
+            },
+            GameObjects: {
+                Particles: {
+                    ParticleEmitter: class {
+                        setPosition = vi.fn();
+                        start = vi.fn();
+                        stop = vi.fn();
+                        setDepth = vi.fn();
+                        destroy = vi.fn();
+                        setVisible = vi.fn();
+                        emitParticle = vi.fn();
+                        setAlpha = vi.fn();
+                        setLifespan = vi.fn();
+                        setParticleAlpha = vi.fn();
+                    },
+                    Particle: class { }
+                }
+            }
+        }
+    }
+});
+
+describe('HurricaneEffect', () => {
+    let effect: HurricaneEffect;
+    let mockScene: any;
+    let planetData: PlanetData;
+    let createdEmitters: any[];
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createdEmitters = [];
+
+        mockScene = {
+            events: {
+                on: vi.fn(),
+                off: vi.fn()
+            },
+            add: {
+                particles: vi.fn().mockImplementation(() => {
+                    const emitter = new (Phaser.GameObjects.Particles.ParticleEmitter as any)();
+                    createdEmitters.push(emitter);
+                    return emitter;
+                })
+            },
+            time: {
+                addEvent: vi.fn().mockImplementation((config) => {
+                    return {
+                        remove: vi.fn(),
+                        callback: config.callback,
+                        delay: config.delay,
+                        loop: config.loop
+                    };
+                }),
+                now: 1000
+            }
+        };
+
+        planetData = {
+            id: 'earth',
+            x: 100,
+            y: 100,
+            name: 'Earth',
+            visualScale: 1.0,
+            effects: [], // Start empty, will be populated by registry in real app, but here we test effect isolation
+            gameObject: { x: 100, y: 100 } as any
+        };
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should create 1 arm emitter, 1 eyewall emitter and 1 eye emitter (3 total)', () => {
+        effect = new HurricaneEffect(mockScene, planetData, { type: 'hurricane', color: 0xffffff });
+
+        expect(mockScene.add.particles).toHaveBeenCalledTimes(3);
+        expect(createdEmitters.length).toBe(3);
+    });
+
+    it('should emit particles along spiral on update', () => {
+        effect = new HurricaneEffect(mockScene, planetData, { type: 'hurricane', color: 0xffffff });
+
+        const updateCallback = mockScene.events.on.mock.calls.find((call: any[]) => call[0] === 'update')[1];
+        expect(updateCallback).toBeDefined();
+
+        // Simulate update
+        updateCallback();
+
+        // Cloud emitter should setAlpha
+        expect(createdEmitters[0].setAlpha).toHaveBeenCalled();
+    });
+
+    it('should toggle visibility for all emitters', () => {
+        effect = new HurricaneEffect(mockScene, planetData, { type: 'hurricane', color: 0xffffff });
+
+        effect.setVisible(false);
+        createdEmitters.forEach(emitter => {
+            expect(emitter.setVisible).toHaveBeenCalledWith(false);
+        });
+
+        effect.setVisible(true);
+        createdEmitters.forEach(emitter => {
+            expect(emitter.setVisible).toHaveBeenCalledWith(true);
+        });
+    });
+
+    it('should clean up on destroy', () => {
+        effect = new HurricaneEffect(mockScene, planetData, { type: 'hurricane', color: 0xffffff });
+
+        effect.destroy();
+
+        expect(mockScene.events.off).toHaveBeenCalledWith('update', expect.any(Function));
+        createdEmitters.forEach(emitter => {
+            expect(emitter.destroy).toHaveBeenCalled();
+        });
+    });
+});

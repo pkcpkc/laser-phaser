@@ -1,13 +1,21 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
+
+export interface GhostShadeConfig extends BaseEffectConfig {
+    type: 'ghost-shade';
+    pulse?: boolean;
+    color?: number;
+}
 
 /**
  * Creates ghost shade effect around a planet.
  * Semi-transparent green shades that drift slowly over the planet surface like atmospheric ghosts.
  */
-export class GhostShadeEffect {
+export class GhostShadeEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
+    private config: GhostShadeConfig;
     private updateListener: () => void;
 
     // Tendril emitters
@@ -17,20 +25,21 @@ export class GhostShadeEffect {
     // Animation state
     private time: number = 0;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: GhostShadeConfig) {
         this.scene = scene;
         this.planet = planet;
+        this.config = config;
 
         this.createTendrils();
 
-        this.updateListener = () => this.update();
+        this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
     }
 
     private createTendrils() {
-        if (!this.planet.gameObject) return;
+        // if (!this.planet.gameObject) return;
 
-        const planetDepth = this.planet.gameObject.depth || 1;
+        const planetDepth = 1; // Default depth 1 since gameObject might not exist yet
         const scale = this.planet.visualScale || 1.0;
 
         // Create emitters for ghostly green shades that hover over the planet
@@ -38,7 +47,7 @@ export class GhostShadeEffect {
             const angle = (Math.PI * 2 * i) / this.numTendrils;
 
             // Pulse mode (default true) vs Fog mode
-            const pulse = this.planet.ghostShades?.pulse !== false;
+            const pulse = this.config.pulse !== false;
 
             // Fog mode: Static alpha, longer life
             // Pulse mode: Fades out, existing logic
@@ -67,7 +76,7 @@ export class GhostShadeEffect {
             const currentConfig = pulse ? pulseConfig : fogConfig;
 
             // Use config color or default spectral pale green (less intense than neon)
-            const baseColor = this.planet.ghostShades?.color ?? 0xccffdd;
+            const baseColor = this.config.color ?? 0xccffdd;
             const colorArray = [baseColor];
 
             const emitter = this.scene.add.particles(0, 0, 'flare-white', {
@@ -95,7 +104,7 @@ export class GhostShadeEffect {
         }
     }
 
-    private update() {
+    private onUpdate() {
         if (!this.planet.gameObject) return;
 
         // Use logical coordinates instead of visual center (which may vary by bounding box)

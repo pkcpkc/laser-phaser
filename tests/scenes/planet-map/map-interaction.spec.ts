@@ -15,7 +15,7 @@ vi.mock('phaser', () => {
 });
 
 // Import after mocking
-import { MapInteractionManager } from './map-interaction';
+import { MapInteractionManager } from '../../../src/scenes/planet-map/map-interaction';
 
 // Mock Phaser objects for the scene
 const mockColorMatrix = {

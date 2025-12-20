@@ -1,5 +1,13 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
+
+export interface SolarFlareConfig extends BaseEffectConfig {
+    type: 'solar-flare';
+    color?: number;     // Particle color
+    frequency?: number; // Eruption frequency
+    speed?: number;     // Eruption speed
+}
 
 class SolarFlare {
     public isActive: boolean = true;
@@ -97,7 +105,6 @@ class SolarFlare {
         const t = elapsed * 0.005;
         const waveBase = Math.sin(t) * 30; // Slower base sway
         const waveJitter = (Math.random() - 0.5) * 40; // Chaotic flicker
-
         const currentAngle = this.angleDeg + waveBase + waveJitter;
 
         // Update Prominence Stream angle to snake around
@@ -129,22 +136,22 @@ class SolarFlare {
     }
 }
 
-export class SolarFlareEffect {
+export class SolarFlareEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
+    private config: SolarFlareConfig;
     private flares: SolarFlare[] = [];
     private isVisible: boolean = true;
     private updateEvent?: Phaser.Time.TimerEvent;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: SolarFlareConfig) {
         this.scene = scene;
         this.planet = planet;
+        this.config = config;
         this.create();
     }
 
     private create() {
-        if (!this.planet.solarFlare) return;
-
         // Check for new flares periodically
         this.updateEvent = this.scene.time.addEvent({
             delay: 100, // Check more frequently for smooth overlap
@@ -156,7 +163,7 @@ export class SolarFlareEffect {
     private checkEruption() {
         if (!this.isVisible || !this.planet.gameObject) return;
 
-        const freq = this.planet.solarFlare?.frequency ?? 2000;
+        const freq = this.config.frequency ?? 2000;
 
         // Cap at 6 flares, but cleanup first
         this.flares = this.flares.filter(f => f.isActive);

@@ -1,42 +1,51 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
+
+export interface GlimmeringSnowConfig extends BaseEffectConfig {
+    type: 'glimmering-snow';
+    color?: number;
+}
 
 /**
  * Creates a glimmering snow effect for the White Moon.
  * Consists of drifting snow particles and surface glimmers.
  */
-export class GlimmeringSnowEffect {
+export class GlimmeringSnowEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
+    private config: GlimmeringSnowConfig;
     private updateListener: () => void;
 
     private snowEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
     private glimmerEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: GlimmeringSnowConfig) {
         this.scene = scene;
         this.planet = planet;
+        this.config = config;
 
         this.createEmitters();
 
-        this.updateListener = () => this.update();
+        // Create update listener (even if empty, for consistency and future use)
+        this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
     }
 
     private createEmitters() {
-        if (!this.planet.gameObject) return;
+        // if (!this.planet.gameObject) return;
 
         const scale = this.planet.visualScale || 1.0;
         const planetDepth = 1; // Default planet depth
 
         // Tint Config
-        const tint = this.planet.glimmeringSnow?.color ?? 0xffffff;
+        const tint = this.config.color ?? 0xffffff;
 
         // 1. Snow Emitter - Drifting particles (Atmospheric)
         this.snowEmitter = this.scene.add.particles(0, 0, 'flare-white', {
             color: [tint],
             alpha: { start: 0.6, end: 0 },
-            scale: { start: 0.1 * scale, end: 0 },
+            scale: { min: 0.1 * scale, max: 0.3 * scale },
             lifespan: { min: 2000, max: 4000 },
             frequency: 300, // Frequent small snow
             speed: 0, // Static
@@ -92,7 +101,7 @@ export class GlimmeringSnowEffect {
         this.glimmerEmitter.setDepth(planetDepth + 0.2);
     }
 
-    private update() {
+    private onUpdate() {
         if (!this.planet.gameObject) return;
     }
 

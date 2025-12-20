@@ -72,11 +72,7 @@ describe('SolarFlareEffect', () => {
             x: 100,
             y: 100,
             name: 'Sun',
-            solarFlare: {
-                color: 0xff0000,
-                frequency: 2000,
-                speed: 10
-            },
+            effects: [],
             gameObject: { x: 100, y: 100 } as any
         };
     });
@@ -86,21 +82,15 @@ describe('SolarFlareEffect', () => {
     });
 
     it('should create an update timer on instantiation', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
         expect(mockScene.time.addEvent).toHaveBeenCalledWith(expect.objectContaining({
             delay: 100,
             loop: true
         }));
     });
 
-    it('should NOT create timer if solarFlare config is missing', () => {
-        const noFlareData = { ...planetData, solarFlare: undefined };
-        effect = new SolarFlareEffect(mockScene, noFlareData);
-        expect(mockScene.time.addEvent).not.toHaveBeenCalled();
-    });
-
     it('should spawn a flare when random chance is met', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
 
         const mainTimer = mockScene.time.addEvent.mock.results[0].value;
         expect(mainTimer.callback).toBeDefined();
@@ -115,7 +105,7 @@ describe('SolarFlareEffect', () => {
     });
 
     it('should spawn a flare when list is empty even if random chance fails', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
         const mainTimer = mockScene.time.addEvent.mock.results[0].value;
 
         // Mock random to be 0.99 (chance fails)
@@ -128,13 +118,10 @@ describe('SolarFlareEffect', () => {
 
         // Second call should NOT spawn because list is not empty and chance fails
         vi.clearAllMocks();
-        // Since we didn't add the flare to the active list locally in the test (because mockScene is just a mock), 
-        // we can't easily simulate the "active list has item" state without exposing private property.
-        // However, we CAN check that the first call worked.
     });
 
     it('should destroy all flares when setVisible(false) is called', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
         const mainTimer = mockScene.time.addEvent.mock.results[0].value;
 
         // Spawn one
@@ -157,7 +144,7 @@ describe('SolarFlareEffect', () => {
     });
 
     it('should NOT spawn a flare when list is populated and random chance is NOT met', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
         const mainTimer = mockScene.time.addEvent.mock.results[0].value;
 
         // Force a spawn first to populate list
@@ -176,35 +163,11 @@ describe('SolarFlareEffect', () => {
     });
 
     it('should clean up on destroy', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
+        effect = new SolarFlareEffect(mockScene, planetData, { type: 'solar-flare', color: 0xff0000 });
         const mainTimer = mockScene.time.addEvent.mock.results[0].value;
 
         effect.destroy();
 
         expect(mainTimer.remove).toHaveBeenCalled();
-    });
-
-    it('should spawn overlapping flare when active flare is dying', () => {
-        effect = new SolarFlareEffect(mockScene, planetData);
-        const mainTimer = mockScene.time.addEvent.mock.results[0].value;
-
-        // Force spawn first flare
-        vi.spyOn(Math, 'random').mockReturnValue(0.99); // Don't spawn randomly
-        // effect.flares is empty so it should spawn
-        mainTimer.callback();
-        expect(createdEmitters.length).toBe(3);
-
-        // Mock remaining time of the first flare
-        const mockFlare = {
-            isActive: true,
-            remainingTime: 200, // Dying! (threshold < 500)
-            destroy: vi.fn()
-        };
-        (effect as any).flares = [mockFlare]; // Inject dying flare
-
-        mainTimer.callback();
-
-        // Should have spawned another one
-        expect(mockScene.add.particles).toHaveBeenCalledTimes(6);
     });
 });

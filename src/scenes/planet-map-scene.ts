@@ -43,7 +43,7 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         console.log('PlanetMapScene: initializing planets');
         // Initialize Data
-        this.planetRegistry.initPlanets(width, height);
+        this.planetRegistry.initPlanets(this, width, height);
 
 
 

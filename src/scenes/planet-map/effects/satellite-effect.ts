@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 interface TrailPoint {
     x: number;
@@ -22,30 +23,53 @@ interface Satellite {
 
 const TRAIL_LENGTH = 15; // Number of trail segments
 
+export interface SatelliteConfig extends BaseEffectConfig {
+    type: 'satellite';
+    count?: number;          // Number of satellites
+    minOrbitRadius?: number; // Minimum orbit radius (scaled by planet scale)
+    maxOrbitRadius?: number; // Maximum orbit radius
+    minOrbitSpeed?: number;  // Minimum angular speed (radians per frame)
+    maxOrbitSpeed?: number;  // Maximum angular speed
+    minSize?: number;        // Minimum satellite size
+    maxSize?: number;        // Maximum satellite size
+    tint?: number;           // Satellite color (default white)
+}
+
+const DEFAULT_CONFIG: Partial<SatelliteConfig> = {
+    count: 5,
+    minOrbitRadius: 15,
+    maxOrbitRadius: 30,
+    minOrbitSpeed: 0.01,
+    maxOrbitSpeed: 0.04,
+    minSize: 1,
+    maxSize: 2,
+    tint: 0xffffff         // Default to white
+};
+
 /**
  * Creates orbiting satellite effect around a planet.
  * Satellites circle the planet at different orbital distances, speeds, and tilted planes.
  * Each satellite has a shooting star trail effect.
  */
-export class SatelliteEffect {
+export class SatelliteEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
     private satellites: Satellite[] = [];
     private updateListener: () => void;
     private tint: number;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData, config?: Partial<SatelliteConfig>) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: SatelliteConfig) {
         this.scene = scene;
         this.planet = planet;
 
-        const effectiveConfig = { ...DEFAULT_CONFIG, ...config };
+        const effectiveConfig = { ...DEFAULT_CONFIG, ...config } as Required<SatelliteConfig>;
         this.tint = effectiveConfig.tint;
 
         this.ensureSatelliteTexture();
         this.createSatellites(effectiveConfig);
 
         // Create update listener
-        this.updateListener = () => this.update();
+        this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
     }
 
@@ -59,7 +83,7 @@ export class SatelliteEffect {
         }
     }
 
-    private createSatellites(config: SatelliteConfig) {
+    private createSatellites(config: Required<SatelliteConfig>) {
         const scale = this.planet.visualScale || 1.0;
         // Base size of the original "star" texture was 2px.
         // New texture is 32px. We need to scale down to match visual size.
@@ -120,7 +144,7 @@ export class SatelliteEffect {
         }
     }
 
-    private update() {
+    private onUpdate() {
         // Make sure planet still has valid position
         if (!this.planet.gameObject) return;
 
@@ -226,25 +250,3 @@ export class SatelliteEffect {
         this.satellites = [];
     }
 }
-
-export interface SatelliteConfig {
-    count: number;          // Number of satellites
-    minOrbitRadius: number; // Minimum orbit radius (scaled by planet scale)
-    maxOrbitRadius: number; // Maximum orbit radius
-    minOrbitSpeed: number;  // Minimum angular speed (radians per frame)
-    maxOrbitSpeed: number;  // Maximum angular speed
-    minSize: number;        // Minimum satellite size
-    maxSize: number;        // Maximum satellite size
-    tint: number;           // Satellite color (default white)
-}
-
-const DEFAULT_CONFIG: SatelliteConfig = {
-    count: 5,
-    minOrbitRadius: 15,
-    maxOrbitRadius: 30,
-    minOrbitSpeed: 0.01,
-    maxOrbitSpeed: 0.04,
-    minSize: 1,
-    maxSize: 2,
-    tint: 0xffffff         // Default to white
-};

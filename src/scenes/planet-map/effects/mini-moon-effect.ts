@@ -1,14 +1,27 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
+
+export interface MiniMoonConfig extends BaseEffectConfig {
+    type: 'mini-moon';
+    tint?: number;
+    tilt?: number;
+    size?: number;
+    orbitRadius?: number;
+    orbitSpeed?: number;
+    startAngle?: number;
+}
 
 /**
  * Creates a "Mini Moon" effect: a single smaller emoji orbiting the planet.
  * Similar to SatelliteEffect but for a single Text object that mirrors the parent's appearance.
  */
-export class MiniMoonEffect {
+export class MiniMoonEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
     private miniMoon: Phaser.GameObjects.Text;
+    private trail: Phaser.GameObjects.Graphics;
+    private trailPoints: { x: number, y: number, alpha: number }[] = [];
     private updateListener: () => void;
 
     // Orbital parameters
@@ -21,14 +34,9 @@ export class MiniMoonEffect {
     private sizeScale: number = 0.4; // 40% of parent size
     private tint?: number;
 
-    constructor(scene: Phaser.Scene, planet: PlanetData, config: {
-        tint?: number,
-        tilt?: number,
-        size?: number,
-        orbitRadius?: number,
-        orbitSpeed?: number,
-        startAngle?: number
-    } = {}) {
+    private readonly TRAIL_LENGTH = 50;
+
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: MiniMoonConfig) {
         this.scene = scene;
         this.planet = planet;
         this.tint = config.tint;
@@ -46,6 +54,10 @@ export class MiniMoonEffect {
         const tiltDeg = config.tilt ?? 0;
         this.orbitTilt = Phaser.Math.DegToRad(tiltDeg);
 
+        // Create the trail graphics
+        this.trail = this.scene.add.graphics();
+        this.trail.setBlendMode(Phaser.BlendModes.ADD);
+
         // Create the text object
         this.miniMoon = this.scene.add.text(0, 0, '🌕', {
             fontSize: '48px', // Base size, will be scaled down
@@ -55,10 +67,14 @@ export class MiniMoonEffect {
         // Defer tint application to ensure postFX is ready
         this.scene.time.delayedCall(100, () => {
             this.applyTint();
+            // Add a subtle bloom for "glow"
+            if (this.miniMoon.postFX) {
+                this.miniMoon.postFX.addBloom(0xffffff, 1, 1, 1.2, 1.0);
+            }
         });
 
         // Create update listener
-        this.updateListener = () => this.update();
+        this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
     }
 
@@ -68,9 +84,11 @@ export class MiniMoonEffect {
 
         // Clear any existing tint and postFX
         this.miniMoon.clearTint();
-        this.miniMoon.postFX.clear();
+        // NB: We don't verify if postFX exists because applying tint/FX resets often
+        // but since we are inside the delayed call where we also add Bloom, 
+        // we should be careful. 
+        // For this specific effect, we'll assume the ColorMatrix is the primary way to tint emojis.
 
-        // Use postFX color matrix approach (same as AdjustableMoonVisual)
         // First desaturate to grayscale
         const colorMatrix = this.miniMoon.postFX.addColorMatrix();
         colorMatrix.saturate(-1);
@@ -89,7 +107,8 @@ export class MiniMoonEffect {
         ]);
     }
 
-    private update() {
+    private onUpdate() {
+        // Make sure planet still has valid position
         if (!this.planet.gameObject) return;
 
         const parentScale = this.planet.visualScale || 1.0;
@@ -118,6 +137,7 @@ export class MiniMoonEffect {
         const screenX = centerX + localX;
         const screenY = centerY + tiltedY + (tiltedZ * perspectiveFlatten);
 
+        // Update Position
         this.miniMoon.setPosition(screenX, screenY);
 
         // Scale based on Z depth
@@ -127,25 +147,57 @@ export class MiniMoonEffect {
         const finalScale = this.sizeScale * parentScale * depthScale;
         this.miniMoon.setScale(finalScale);
 
-        // Rotation (fixed angle like parent)
-        this.miniMoon.setAngle(45);
+        // Rotation (Self-rotation)
+        this.miniMoon.angle += 2.0; // Faster rotation to be visible
 
         // Depth sorting
-        // Parent is usually at depth 1. 
-        // We want to be behind (0.9) or in front (1.1)
         const isFront = tiltedZ > 0;
         this.miniMoon.setDepth(isFront ? 1.1 : 0.9);
+        this.trail.setDepth(isFront ? 1.05 : 0.85); // Trail slightly behind moon
 
-        // Alpha - slightly fade when behind
-        this.miniMoon.setAlpha(isFront ? 1.0 : 0.7);
+        // Alpha / Brightness - Dim when behind
+        const baseAlpha = isFront ? 1.0 : 0.6;
+        this.miniMoon.setAlpha(baseAlpha);
+
+        // ---- TRAIL LOGIC ----
+        this.trailPoints.unshift({ x: screenX, y: screenY, alpha: baseAlpha });
+        // Increase trail length significantly
+        if (this.trailPoints.length > this.TRAIL_LENGTH) {
+            this.trailPoints.pop();
+        }
+
+        this.trail.clear();
+        // Use a brighter color override for testing if needed, but tint should work.
+        // Let's enforce full opacity at start
+        const trailColor = this.tint ?? 0xffffff;
+
+        if (this.trailPoints.length > 1) {
+            for (let i = 1; i < this.trailPoints.length; i++) {
+                const p1 = this.trailPoints[i - 1];
+                const p2 = this.trailPoints[i];
+
+                // Fade out tail
+                // Increase base width multiplier from 10 to 20
+                const segmentAlpha = (1 - (i / this.trailPoints.length)) * p1.alpha * 0.8;
+                const segmentWidth = (1 - (i / this.trailPoints.length)) * (30 * finalScale);
+
+                this.trail.lineStyle(segmentWidth, trailColor, segmentAlpha);
+                this.trail.beginPath();
+                this.trail.moveTo(p1.x, p1.y);
+                this.trail.lineTo(p2.x, p2.y);
+                this.trail.strokePath();
+            }
+        }
     }
 
     public setVisible(visible: boolean) {
         this.miniMoon.setVisible(visible);
+        this.trail.setVisible(visible);
     }
 
     public destroy() {
         this.scene.events.off('update', this.updateListener);
         this.miniMoon.destroy();
+        this.trail.destroy();
     }
 }

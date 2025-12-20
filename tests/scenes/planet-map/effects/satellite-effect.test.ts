@@ -96,7 +96,7 @@ describe('SatelliteEffect', () => {
     });
 
     it('should initialize with reduced default config', () => {
-        const effect = new SatelliteEffect(scene, planetData);
+        const effect = new SatelliteEffect(scene, planetData, { type: 'satellite' });
         // We can't easily inspect private properties, but we can verify it doesn't crash
         expect(effect).toBeDefined();
     });
@@ -108,7 +108,7 @@ describe('SatelliteEffect', () => {
         // Mock FloatBetween to capture the calls
         const floatBetweenSpy = vi.spyOn(Phaser.Math, 'FloatBetween');
 
-        new SatelliteEffect(scene, planetData);
+        new SatelliteEffect(scene, planetData, { type: 'satellite' });
 
         // DEFAULT_CONFIG.minOrbitRadius is now 28.
         // With scale 2.0, it should request a random between 48 and 64 (32 * 2).

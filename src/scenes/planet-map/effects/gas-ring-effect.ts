@@ -1,26 +1,34 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-registry';
+import type { BaseEffectConfig } from '../planet-effect';
+import { BaseRingEffect } from './base-ring-effect';
 
-export class GasRingEffect {
-    private scene: Phaser.Scene;
-    private planet: PlanetData;
+export interface GasRingConfig extends BaseEffectConfig {
+    type: 'gas-ring';
+    color: number;
+    angle?: number;
+    lifespan?: number;
+}
+
+export class GasRingEffect extends BaseRingEffect {
+    private config: GasRingConfig;
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
-        this.scene = scene;
-        this.planet = planet;
+    constructor(scene: Phaser.Scene, planet: PlanetData, config: GasRingConfig) {
+        super(scene, planet);
+        this.config = config;
         this.create();
     }
 
     private create() {
-        const ringColor = this.planet.rings?.color ?? (this.planet.tint || 0xffffff);
+        const ringColor = this.config.color;
         const scale = this.planet.visualScale || 1.0;
 
         // 1. Reduce diameter (was 60/16) -> User requested broader: 55 -> Back to 48 but thicker
         const radiusX = 48 * scale;
         const radiusY = 8 * scale; // Reduced from 14 to 8 for flatter look
         const thickness = 8 * scale; // Slightly reduced thickness (was 10)
-        const tiltDeg = this.planet.rings?.angle ?? -20;
+        const tiltDeg = this.config.angle ?? -20;
         const tilt = Phaser.Math.DegToRad(tiltDeg);
 
         // Use arrow functions that reference this.planet directly for dynamic positioning
@@ -32,7 +40,7 @@ export class GasRingEffect {
                 color: [ringColor],
                 alpha: { start: 0.5, end: 0 }, // Reduced alpha for higher density
                 scale: { start: 0.15 * scale, end: 0 }, // Slightly smaller particles
-                lifespan: this.planet.rings?.lifespan || 800, // Configurable lifespan
+                lifespan: this.config.lifespan || 800, // Configurable lifespan
                 blendMode: 'ADD',
                 frequency: 5, // Much more dense (was 40)
                 emitCallback: (particle: Phaser.GameObjects.Particles.Particle) => {
@@ -108,6 +116,7 @@ export class GasRingEffect {
     }
 
     public setVisible(visible: boolean) {
+        super.setVisible(visible);
         this.emitters.forEach(emitter => {
             emitter.setVisible(visible);
             emitter.active = visible;
@@ -115,6 +124,7 @@ export class GasRingEffect {
     }
 
     public destroy() {
+        super.destroy();
         this.emitters.forEach(e => e.destroy());
     }
 }
