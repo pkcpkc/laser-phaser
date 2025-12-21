@@ -9,6 +9,8 @@ import { SolarFlareEffect } from './effects/solar-flare-effect';
 import { MiniMoonEffect } from './effects/mini-moon-effect';
 import { GhostShadeEffect } from './effects/ghost-shade-effect';
 import { SpikesEffect } from './effects/spikes-effect';
+import { RectanglesEffect } from './effects/rectangles-effect';
+import { BubbleEffect } from './effects/bubble-effect';
 
 
 export interface PlanetData {
@@ -38,6 +40,7 @@ export interface PlanetData {
     // Positioning persistence
     orbitAngle?: number; // radians
     orbitRadius?: number; // relative distance factor (0 to 1, where 1 is max radius)
+    lightPhase?: number; // 0-7, index of moonFrames for lighting calculation
 }
 
 export class PlanetRegistry {
@@ -116,10 +119,19 @@ export class PlanetRegistry {
             id: 'gliese',
             name: 'Gliese',
             unlocked: false,
-            tint: 0x44FF88, // Green-ish
+            tint: 0xeeeeee, // Green-ish
             x: 0, y: 0
         });
         gliese.effects = [
+            new RectanglesEffect(scene, gliese, {
+                type: 'rectangles',
+                rectCount: 55,
+                color: 0xaa6600,
+                minSize: 4,
+                maxSize: 6,
+                lightsColor: 0xffff00,
+                clusterCount: 4
+            }),
             new SatelliteEffect(scene, gliese, {
                 type: 'satellite',
                 tint: 0xffffff,
@@ -254,6 +266,39 @@ export class PlanetRegistry {
             })
         ];
 
+        const techPrime = createPlanet({
+            id: 'tech-prime',
+            name: 'Tech Prime',
+            visualScale: 1.0,
+            tint: 0x000033, // Deep blue/black
+            x: 0, y: 0
+        });
+        techPrime.effects = [
+            new RectanglesEffect(scene, techPrime, {
+                type: 'rectangles',
+                rectCount: 60,
+                color: 0x00ff88, // Cyber green
+                minSize: 3,
+                maxSize: 8,
+            })
+        ];
+
+
+        const oceanus = createPlanet({
+            id: 'oceanus',
+            name: 'Oceanus',
+            visualScale: 1.0,
+            tint: 0x004488, // Deep Ocean Blue
+            x: 0, y: 0
+        });
+        oceanus.effects = [
+            new BubbleEffect(scene, oceanus, {
+                type: 'bubble',
+                liquidDensity: 1100, // Very dense
+                flowSpeed: 2.5 // Fast turbulent flow
+            })
+        ];
+
 
 
         this.planets = [
@@ -266,7 +311,9 @@ export class PlanetRegistry {
             darkMoonPulse,
             whitePlanet,
             darkMoonShadow,
-            metroPrime
+            metroPrime,
+            techPrime,
+            oceanus
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth

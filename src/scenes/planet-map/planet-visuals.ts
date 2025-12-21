@@ -38,6 +38,18 @@ export class PlanetVisual {
 
         this.planet.gameObject = visualObject;
 
+        // Assign incremental depths to effects to respect array order
+        if (this.planet.effects) {
+            this.planet.effects.forEach((effect, index) => {
+                // Base depth for effects starts at 2 (Planet is at 1)
+                // We increment by 2 to leave room for internal layering (e.g. front/back)
+                const baseDepth = 2 + (index * 2);
+                if (effect.setDepth) {
+                    effect.setDepth(baseDepth);
+                }
+            });
+        }
+
         // Effects are already instantiated. We just need to ensure their visibility is correct initially.
         if (!this.planet.unlocked) {
             // Hide all effects if locked
@@ -142,6 +154,7 @@ export class PlanetVisual {
 
     public animate(): void {
         this.frameIdx = (this.frameIdx + 1) % this.moonFrames.length;
+        this.planet.lightPhase = this.frameIdx;
 
         let nextFrame = '🌑';
         if (this.planet.unlocked) {

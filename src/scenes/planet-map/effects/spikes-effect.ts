@@ -21,8 +21,13 @@ interface Building extends BaseStructureItem {
 
 export class SpikesEffect extends BaseSurfaceStructureEffect<SpikesConfig, Building> {
 
+
+
     constructor(scene: Phaser.Scene, planet: PlanetData, config: SpikesConfig) {
         super(scene, planet, config);
+        // Explicitly disable shading for Spikes unless overruled?
+        // User requested: "explicitly disable within spikes-effect code"
+        this.config.enableShading = false;
     }
 
     protected generateItems() {
@@ -95,7 +100,18 @@ export class SpikesEffect extends BaseSurfaceStructureEffect<SpikesConfig, Build
         const tipX = cx + nx * tipRadius;
         const tipY = cy + ny * tipRadius;
 
-        this.graphics.lineStyle(b.width * scale * sizeFactor, b.color, alpha);
+        // Lighting calculation
+        const lightFactor = this.calculateLighting(nx, ny, nz);
+
+        const r = (b.color >> 16) & 0xFF;
+        const g = (b.color >> 8) & 0xFF;
+        const blue = b.color & 0xFF;
+        const fr = Math.floor(r * lightFactor);
+        const fg = Math.floor(g * lightFactor);
+        const fb = Math.floor(blue * lightFactor);
+        const finalColor = (fr << 16) | (fg << 8) | fb;
+
+        this.graphics.lineStyle(b.width * scale * sizeFactor, finalColor, alpha);
         this.graphics.lineBetween(baseX, baseY, tipX, tipY);
     }
 }

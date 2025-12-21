@@ -165,7 +165,7 @@ export class SatelliteEffect extends BaseOrbitEffect {
             );
 
             // Depth based on Z position (behind planet = negative Z = lower depth)
-            const depth = pos.isFront ? 3 : -1;
+            const depth = pos.isFront ? this.baseDepth : -1;
             // Calculate alpha based on front/back
             const alpha = pos.isFront ? 1.0 : 0.5;
 
@@ -211,6 +211,12 @@ export class SatelliteEffect extends BaseOrbitEffect {
             // Fade satellites slightly when at the back
             sat.image.setAlpha(alpha);
         }
+    }
+
+    private baseDepth = 3;
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
     }
 
     public setVisible(visible: boolean) {
