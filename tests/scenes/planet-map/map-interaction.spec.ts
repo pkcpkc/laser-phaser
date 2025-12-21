@@ -101,16 +101,16 @@ describe('MapInteractionManager', () => {
         expect(mockColorMatrix.multiply).toHaveBeenCalled();
     });
 
-    it('should not show UI for earth', () => {
+    it('should show UI for astra', () => {
         const planetData = {
-            id: 'earth',
-            name: 'Earth',
+            id: 'astra',
+            name: 'Astra',
             x: 0,
             y: 0,
         };
 
         manager.showInteractionUI(planetData as any);
-        expect(mockContainer.setVisible).toHaveBeenCalledWith(false);
-        expect(mockScene.add.text).not.toHaveBeenCalled();
+        expect(mockContainer.setVisible).toHaveBeenCalledWith(true);
+        expect(mockScene.add.text).toHaveBeenCalled();
     });
 });

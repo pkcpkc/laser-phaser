@@ -82,9 +82,9 @@ export class PlanetRegistry {
             return planet;
         };
 
-        const earth = createPlanet({
-            id: 'earth',
-            name: 'Earth',
+        const astra = createPlanet({
+            id: 'astra',
+            name: 'Astra',
             unlocked: true,
             tint: 0x4488FF, // Blue-ish
             visualScale: 1.0,
@@ -93,21 +93,21 @@ export class PlanetRegistry {
             orbitAngle: 0,
             orbitRadius: 0
         });
-        earth.effects = [
-            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff }),
-            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff }),
-            new HurricaneEffect(scene, earth, { type: 'hurricane', color: 0xffffff })
+        astra.effects = [
+            new HurricaneEffect(scene, astra, { type: 'hurricane', color: 0xffffff }),
+            new HurricaneEffect(scene, astra, { type: 'hurricane', color: 0xffffff }),
+            new HurricaneEffect(scene, astra, { type: 'hurricane', color: 0xffffff })
         ];
 
-        const ringWorld = createPlanet({
-            id: 'ring-world',
-            name: 'Ring World',
+        const aurelia = createPlanet({
+            id: 'aurelia',
+            name: 'Aurelia',
             tint: 0xB8860B, // Dark Golden Rod
             visualScale: 0.8,
             x: 0, y: 0
         });
-        ringWorld.effects = [
-            new SolidRingEffect(scene, ringWorld, {
+        aurelia.effects = [
+            new SolidRingEffect(scene, aurelia, {
                 type: 'solid-ring',
                 color: 0xCC9944,
                 angle: 30,
@@ -115,15 +115,15 @@ export class PlanetRegistry {
             })
         ];
 
-        const gliese = createPlanet({
-            id: 'gliese',
-            name: 'Gliese',
+        const veridia = createPlanet({
+            id: 'veridia',
+            name: 'Veridia',
             unlocked: false,
             tint: 0xeeeeee, // Green-ish
             x: 0, y: 0
         });
-        gliese.effects = [
-            new RectanglesEffect(scene, gliese, {
+        veridia.effects = [
+            new RectanglesEffect(scene, veridia, {
                 type: 'rectangles',
                 rectCount: 55,
                 color: 0xaa6600,
@@ -132,16 +132,16 @@ export class PlanetRegistry {
                 lightsColor: 0xffff00,
                 clusterCount: 4
             }),
-            new SatelliteEffect(scene, gliese, {
+            new SatelliteEffect(scene, veridia, {
                 type: 'satellite',
                 tint: 0xffffff,
                 count: 10
             })
         ];
 
-        const toxicMoon = createPlanet({
-            id: 'toxic-moon',
-            name: 'Toxic Moon',
+        const nox = createPlanet({
+            id: 'nox',
+            name: 'Nox',
             interaction: {
                 levelId: 'blood-hunters'
             },
@@ -149,8 +149,8 @@ export class PlanetRegistry {
             tint: 0xAA00FF, // Purple
             x: 0, y: 0
         });
-        toxicMoon.effects = [
-            new GasRingEffect(scene, toxicMoon, {
+        nox.effects = [
+            new GasRingEffect(scene, nox, {
                 type: 'gas-ring',
                 color: 0x33FF33, // Toxic Green
                 angle: 0,
@@ -158,9 +158,9 @@ export class PlanetRegistry {
             })
         ];
 
-        const redMoon = createPlanet({
-            id: 'red-moon',
-            name: 'Red Moon',
+        const crimson = createPlanet({
+            id: 'crimson',
+            name: 'Crimson',
             tint: 0x8B0000, // Dark red
             visualScale: 0.5,
             interaction: {
@@ -170,15 +170,15 @@ export class PlanetRegistry {
             },
             x: 0, y: 0
         });
-        redMoon.effects = [
-            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFFAAAA, tilt: -60 }), // Light red
-            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFF8888, tilt: 0 }),   // Slightly darker
-            new MiniMoonEffect(scene, redMoon, { type: 'mini-moon', tint: 0xFFCCCC, tilt: 60 })   // Very light
+        crimson.effects = [
+            new MiniMoonEffect(scene, crimson, { type: 'mini-moon', tint: 0xFFAAAA, tilt: -60 }), // Light red
+            new MiniMoonEffect(scene, crimson, { type: 'mini-moon', tint: 0xFF8888, tilt: 0 }),   // Slightly darker
+            new MiniMoonEffect(scene, crimson, { type: 'mini-moon', tint: 0xFFCCCC, tilt: 60 })   // Very light
         ];
 
-        const sunFlares = createPlanet({
-            id: 'sun-flares',
-            name: 'Sun Flares',
+        const ignis = createPlanet({
+            id: 'ignis',
+            name: 'Ignis',
             tint: 0xaB0000, // Dark red
             visualScale: 0.5,
             interaction: {
@@ -188,8 +188,8 @@ export class PlanetRegistry {
             },
             x: 0, y: 0
         });
-        sunFlares.effects = [
-            new SolarFlareEffect(scene, sunFlares, {
+        ignis.effects = [
+            new SolarFlareEffect(scene, ignis, {
                 type: 'solar-flare',
                 color: 0xff3300,
                 frequency: 2000,
@@ -197,25 +197,25 @@ export class PlanetRegistry {
             })
         ];
 
-        const darkMoonPulse = createPlanet({
-            id: 'dark-moon-pulse',
-            name: 'Dark Moon',
+        const pulsar = createPlanet({
+            id: 'pulsar',
+            name: 'Pulsar',
             tint: 0x333333,
             visualScale: 0.6,
             unlocked: false,
             x: 0, y: 0 // placeholder
         });
-        darkMoonPulse.effects = [
-            new GhostShadeEffect(scene, darkMoonPulse, {
+        pulsar.effects = [
+            new GhostShadeEffect(scene, pulsar, {
                 type: 'ghost-shade',
                 pulse: true,
                 color: 0xFF0000
             })
         ];
 
-        const whitePlanet = createPlanet({
-            id: 'white-planet',
-            name: 'White Moon',
+        const frost = createPlanet({
+            id: 'frost',
+            name: 'Frost',
             tint: 0x444444, // Dark Grey
             visualScale: 0.9,
             unlocked: false,
@@ -224,38 +224,38 @@ export class PlanetRegistry {
             },
             x: 0, y: 0
         });
-        whitePlanet.effects = [
-            new GlimmeringSnowEffect(scene, whitePlanet, {
+        frost.effects = [
+            new GlimmeringSnowEffect(scene, frost, {
                 type: 'glimmering-snow',
                 color: 0xFFFFFF
             })
         ];
 
-        const darkMoonShadow = createPlanet({
-            id: 'dark-moon-shadow',
-            name: 'Dark Moon',
+        const umbra = createPlanet({
+            id: 'umbra',
+            name: 'Umbra',
             tint: 0x333333,
             visualScale: 0.6,
             unlocked: false,
             x: 0, y: 0 // placeholder
         });
-        darkMoonShadow.effects = [
-            new GhostShadeEffect(scene, darkMoonShadow, {
+        umbra.effects = [
+            new GhostShadeEffect(scene, umbra, {
                 type: 'ghost-shade',
                 pulse: false,
                 color: 0xffffff
             })
         ];
 
-        const metroPrime = createPlanet({
-            id: 'metro-prime',
-            name: 'Metro Prime',
+        const metropolis = createPlanet({
+            id: 'metropolis',
+            name: 'Metropolis',
             visualScale: 1.1,
             tint: 0x222222, // Dark Grey/Black background for city lights
             x: 0, y: 0
         });
-        metroPrime.effects = [
-            new SpikesEffect(scene, metroPrime, {
+        metropolis.effects = [
+            new SpikesEffect(scene, metropolis, {
                 type: 'spikes', // type string updated
                 buildingCount: 80,
                 color: 0x00ffff, // Cyan neon lights
@@ -266,15 +266,15 @@ export class PlanetRegistry {
             })
         ];
 
-        const techPrime = createPlanet({
-            id: 'tech-prime',
-            name: 'Tech Prime',
+        const cyber = createPlanet({
+            id: 'cyber',
+            name: 'Cyber',
             visualScale: 1.0,
             tint: 0x000033, // Deep blue/black
             x: 0, y: 0
         });
-        techPrime.effects = [
-            new RectanglesEffect(scene, techPrime, {
+        cyber.effects = [
+            new RectanglesEffect(scene, cyber, {
                 type: 'rectangles',
                 rectCount: 60,
                 color: 0x00ff88, // Cyber green
@@ -284,15 +284,15 @@ export class PlanetRegistry {
         ];
 
 
-        const oceanus = createPlanet({
-            id: 'oceanus',
-            name: 'Oceanus',
+        const thalassa = createPlanet({
+            id: 'thalassa',
+            name: 'Thalassa',
             visualScale: 1.0,
             tint: 0x004488, // Deep Ocean Blue
             x: 0, y: 0
         });
-        oceanus.effects = [
-            new BubbleEffect(scene, oceanus, {
+        thalassa.effects = [
+            new BubbleEffect(scene, thalassa, {
                 type: 'bubble',
                 liquidDensity: 1100, // Very dense
                 flowSpeed: 2.5 // Fast turbulent flow
@@ -302,18 +302,18 @@ export class PlanetRegistry {
 
 
         this.planets = [
-            earth,
-            ringWorld,
-            gliese,
-            toxicMoon,
-            redMoon,
-            sunFlares,
-            darkMoonPulse,
-            whitePlanet,
-            darkMoonShadow,
-            metroPrime,
-            techPrime,
-            oceanus
+            astra,
+            aurelia,
+            veridia,
+            nox,
+            crimson,
+            ignis,
+            pulsar,
+            frost,
+            umbra,
+            metropolis,
+            cyber,
+            thalassa
         ];
 
         const satellitesCount = this.planets.length - 1; // Exclude Earth
@@ -325,8 +325,8 @@ export class PlanetRegistry {
         for (let i = 0; i < this.planets.length; i++) {
             const p = this.planets[i];
 
-            // Skip Earth (index 0 usually, but checking ID is safer if logic changes)
-            if (p.id === 'earth') continue;
+            // Skip Astra (index 0 usually, but checking ID is safer if logic changes)
+            if (p.id === 'astra') continue;
 
             const angle = startAngle + (satelliteIndex * angleStep);
             satelliteIndex++;
@@ -363,7 +363,7 @@ export class PlanetRegistry {
         const bandWidth = effectiveOuterLimit - innerLimit;
 
         this.planets.forEach(p => {
-            if (p.id === 'earth') {
+            if (p.id === 'astra') {
                 this.setPlanetPosition(p, cx, cy);
             } else {
                 const angle = p.orbitAngle ?? 0;

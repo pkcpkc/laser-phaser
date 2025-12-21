@@ -94,19 +94,18 @@ export class HurricaneEffect implements IPlanetEffect {
         const scale = this.planet.visualScale || 1.0;
         const color = this.config.color ?? 0xffffff;
 
+        if (!this.scene.textures.exists('flare-white')) {
+            console.error('HurricaneEffect: Texture "flare-white" missing! Skipping emitter creation.');
+            return;
+        }
+
         this.armEmitter = this.scene.add.particles(0, 0, 'flare-white', {
             lifespan: { min: 400, max: 700 }, // Arm lifespan
             scale: { start: 0.03 * scale * this.sizeScale, end: 0.05 * scale * this.sizeScale },
             alpha: { start: 1, end: 0 },
             color: [color],
             emitting: false,
-            blendMode: 'NORMAL',
-            speed: 0 // Physics handled manually now if needed, or static particles updated per frame? 
-            // Actually we just emit them at calculated spots. Speed handled by spiral rotation? 
-            // The original code calculated positions EVERY FRAME for emission. 
-            // The particles themselves have simple physics `speed`.
-            // Wait, original code emitted particles with speed {min:1, max:2}. 
-            // But the COMPLEX shape was emission-time calculation.
+            // stopAfter: 0 
         });
         this.armEmitter.setDepth(2);
 
@@ -135,7 +134,7 @@ export class HurricaneEffect implements IPlanetEffect {
     }
 
     private onUpdate() {
-        if (!this.planet.gameObject || !this.armEmitter || !this.eyewallEmitter) return;
+        if (!this.planet.gameObject || !this.armEmitter || !this.eyewallEmitter) return; // Emitters might be null if texture was missing
 
         const scale = this.planet.visualScale || 1.0;
         const planetRadius = this.PLANET_RADIUS * scale;
@@ -214,7 +213,12 @@ export class HurricaneEffect implements IPlanetEffect {
 
                     if (pz > -5) {
                         if (pz > 0) {
-                            emitter.emitParticle(1, this.planet.x + px, this.planet.y + py);
+                            try {
+                                emitter.emitParticle(1, this.planet.x + px, this.planet.y + py);
+                            } catch (e) {
+                                // Prevent spamming errors
+                                // if (Math.random() < 0.001) console.error('Hurricane emit error:', e);
+                            }
                         }
                     }
                 }

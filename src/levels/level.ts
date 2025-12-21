@@ -24,11 +24,13 @@ export class Level {
     private currentWaveInstance: any = null; // The actual wave instance
     private isLevelComplete: boolean = false;
     private collisionConfig: ShipCollisionConfig;
+    private onComplete?: () => void;
 
-    constructor(scene: Phaser.Scene, config: LevelConfig, collisionConfig: ShipCollisionConfig) {
+    constructor(scene: Phaser.Scene, config: LevelConfig, collisionConfig: ShipCollisionConfig, onComplete?: () => void) {
         this.scene = scene;
         this.config = config;
         this.collisionConfig = collisionConfig;
+        this.onComplete = onComplete;
     }
 
     start() {
@@ -77,6 +79,9 @@ export class Level {
         if (this.currentWaveIndex >= this.config.waves.length) {
             this.isLevelComplete = true;
             console.log('Level Complete');
+            if (this.onComplete) {
+                this.onComplete();
+            }
             return;
         }
 

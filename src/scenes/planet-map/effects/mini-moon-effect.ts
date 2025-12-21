@@ -57,6 +57,7 @@ export class MiniMoonEffect extends BaseOrbitEffect {
 
         // Create the text object
         this.miniMoon = this.scene.add.text(0, 0, '🌕', {
+            fontFamily: 'Oswald, Impact, sans-serif',
             fontSize: '48px', // Base size, will be scaled down
             padding: { x: 10, y: 10 }
         }).setOrigin(0.5);

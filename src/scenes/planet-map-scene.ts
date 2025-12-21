@@ -10,7 +10,7 @@ export default class PlanetMapScene extends Phaser.Scene {
     private interactions!: MapInteractionManager;
 
     private playerShip!: Phaser.GameObjects.Image;
-    private currentPlanetId: string = 'earth';
+    private currentPlanetId: string = 'astra';
 
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -40,12 +40,11 @@ export default class PlanetMapScene extends Phaser.Scene {
         console.log('PlanetMapScene: creating starfield');
         // Starfield Effect
         this.starfield = new WarpStarfield(this, width, height);
+        console.log('Starfield initialized');
 
         console.log('PlanetMapScene: initializing planets');
         // Initialize Data
         this.planetRegistry.initPlanets(this, width, height);
-
-
 
         console.log('PlanetMapScene: creating visuals');
         // Draw Planets
@@ -76,6 +75,21 @@ export default class PlanetMapScene extends Phaser.Scene {
         }
 
         console.log('PlanetMapScene: create() complete');
+        console.log('Scene Diagnostics:');
+        console.log('Status (5=RUNNING):', this.sys.settings.status);
+        console.log('Visible:', this.sys.settings.visible);
+        console.log('Active:', this.sys.settings.active);
+
+        // Check status after a delay to see if it transitions to RUNNING (5)
+        this.time.addEvent({
+            delay: 1000,
+            loop: false,
+            callback: () => {
+                console.log('PlanetMapScene: 1s later check');
+                console.log('Status:', this.sys.settings.status);
+                console.log('Update active:', this.sys.settings.active);
+            }
+        });
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {

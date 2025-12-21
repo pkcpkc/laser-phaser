@@ -94,15 +94,15 @@ export default class BaseScene extends Phaser.Scene {
         // Coin Counters
         // Coin Counters
         const xPos = width - 20;
-        this.silverText = this.add.text(xPos, 20, '0 🪙', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.goldText = this.add.text(xPos, 50, '0 🌕', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.gemText = this.add.text(xPos, 80, '0 💎', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.mountText = this.add.text(xPos, 110, '0 📦', { fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.silverText = this.add.text(xPos, 20, '0 🪙', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.goldText = this.add.text(xPos, 50, '0 🌕', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.gemText = this.add.text(xPos, 80, '0 💎', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.mountText = this.add.text(xPos, 110, '0 📦', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
 
 
 
         // Fire Button
-        this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontSize: '40px', padding: { top: 10, bottom: 10 } })
+        this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '40px', padding: { top: 10, bottom: 10 } })
             .setOrigin(0.5)
             .setInteractive();
 
@@ -115,13 +115,20 @@ export default class BaseScene extends Phaser.Scene {
         });
 
         // Restart Listener
-        this.input.keyboard!.on('keydown-SPACE', () => {
+        this.input.keyboard?.on('keydown-SPACE', () => {
             if (!this.gameManager.isGameActive()) {
                 this.onGameOverInput();
             }
         });
 
         this.fireButton.on('pointerdown', () => {
+            if (!this.gameManager.isGameActive()) {
+                this.onGameOverInput();
+            }
+        });
+
+        // Add global click listener for Game Over input
+        this.input.on('pointerdown', () => {
             if (!this.gameManager.isGameActive()) {
                 this.onGameOverInput();
             }
@@ -178,6 +185,10 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     protected handleResize(gameSize: Phaser.Structs.Size) {
+        if (!this.sys || !this.sys.isActive() || !this.matter || !this.matter.world) {
+            return;
+        }
+
         const { width, height } = gameSize;
 
         // Update world bounds
@@ -198,7 +209,9 @@ export default class BaseScene extends Phaser.Scene {
             this.mountText.setPosition(xPos, 110);
         }
 
-        this.gameManager.handleResize(width, height);
+        if (this.gameManager) {
+            this.gameManager.handleResize(width, height);
+        }
     }
 
     update(time: number, _delta: number) {

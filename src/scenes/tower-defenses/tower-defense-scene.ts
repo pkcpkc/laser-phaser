@@ -9,11 +9,13 @@ export default class TowerDefenseScene extends Phaser.Scene {
         const { width, height } = this.scale;
 
         this.add.text(width / 2, height / 2, '🛡️ TOWER DEFENSE SCENE 🛡️', {
+            fontFamily: 'Oswald, Impact, sans-serif',
             fontSize: '32px',
             color: '#ffffff'
         }).setOrigin(0.5);
 
         const backButton = this.add.text(width / 2, height / 2 + 50, 'Back to Map', {
+            fontFamily: 'Oswald, Impact, sans-serif',
             fontSize: '24px',
             color: '#00ff00',
             backgroundColor: '#333333',
