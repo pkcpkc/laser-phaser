@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // @ts-ignore
 import Phaser from 'phaser';
 import { SolidRingEffect, type SolidRingConfig } from '../../../../src/scenes/planet-map/effects/solid-ring-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 
 vi.mock('phaser', () => {
     return {
@@ -140,7 +140,7 @@ describe('SolidRingEffect', () => {
             name: 'Test Planet',
             type: 'gas',
             color: 'blue',
-            unlocked: true,
+            hidden: false,
             visualScale: 1.0,
         } as unknown as PlanetData;
 

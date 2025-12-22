@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { HurricaneEffect } from '../../../../src/scenes/planet-map/effects/hurricane-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -13,6 +13,7 @@ vi.mock('phaser', () => {
                     x = 0; y = 0; z = 0;
                     constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
                     normalize() { return this; }
+                    set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; return this; }
                     crossVectors() { return this; }
                     transformQuat() { return this; }
                     dot() { return 0; }
@@ -80,6 +81,18 @@ describe('HurricaneEffect', () => {
                     };
                 }),
                 now: 1000
+            },
+            textures: {
+                exists: vi.fn().mockReturnValue(true),
+                createCanvas: vi.fn().mockReturnValue({
+                    context: {
+                        beginPath: vi.fn(),
+                        arc: vi.fn(),
+                        fillStyle: '',
+                        fill: vi.fn()
+                    },
+                    refresh: vi.fn()
+                })
             }
         };
 
@@ -88,6 +101,7 @@ describe('HurricaneEffect', () => {
             x: 100,
             y: 100,
             name: 'Earth',
+            hidden: false, // Effects need planet to be visible
             visualScale: 1.0,
             effects: [], // Start empty, will be populated by registry in real app, but here we test effect isolation
             gameObject: { x: 100, y: 100 } as any
@@ -108,11 +122,8 @@ describe('HurricaneEffect', () => {
     it('should emit particles along spiral on update', () => {
         effect = new HurricaneEffect(mockScene, planetData, { type: 'hurricane', color: 0xffffff });
 
-        const updateCallback = mockScene.events.on.mock.calls.find((call: any[]) => call[0] === 'update')[1];
-        expect(updateCallback).toBeDefined();
-
         // Simulate update
-        updateCallback();
+        effect.update(1000, 16);
 
         // Cloud emitter should setAlpha
         expect(createdEmitters[0].setAlpha).toHaveBeenCalled();
@@ -137,7 +148,6 @@ describe('HurricaneEffect', () => {
 
         effect.destroy();
 
-        expect(mockScene.events.off).toHaveBeenCalledWith('update', expect.any(Function));
         createdEmitters.forEach(emitter => {
             expect(emitter.destroy).toHaveBeenCalled();
         });

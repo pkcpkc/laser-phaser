@@ -3,15 +3,22 @@ import { Level } from '../../levels/level';
 
 export abstract class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
+    protected returnPlanetId?: string;
+    protected warpUniverseId?: string;
 
     constructor(key: string) {
         super(key);
     }
 
+    init(data: { returnPlanetId?: string, warpUniverseId?: string }) {
+        this.returnPlanetId = data?.returnPlanetId;
+        this.warpUniverseId = data?.warpUniverseId;
+    }
+
     create() {
         super.create();
         this.startLevel();
-        this.createBackButton();
+
     }
 
     protected abstract getLevelClass(): any;
@@ -39,27 +46,26 @@ export abstract class ShootEmUpScene extends BaseScene {
         this.level.start();
     }
 
-    private createBackButton() {
-        // TEMP: Back to Map Button
-        const { width } = this.scale;
-        this.add.text(width - 100, 50, '🔙 Map', {
-            fontFamily: 'Oswald, Impact, sans-serif',
-            fontSize: '24px',
-            backgroundColor: '#000000'
-        })
-            .setOrigin(0.5)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.finishLevel();
-            });
-    }
 
-    protected finishLevel() {
+
+
+    protected finishLevel(victory: boolean = false) {
         if (this.level) {
             this.level.destroy();
             this.level = null;
         }
-        this.scene.start('PlanetMapScene');
+
+        const sceneData: { planetId?: string, victory?: boolean, universeId?: string } = {
+            planetId: this.returnPlanetId,
+            victory: victory
+        };
+
+        // If victory, check for universe warp
+        if (victory && this.warpUniverseId) {
+            sceneData.universeId = this.warpUniverseId;
+        }
+
+        this.scene.start('PlanetMapScene', sceneData);
     }
 
     protected handleVictory() {
@@ -69,49 +75,7 @@ export abstract class ShootEmUpScene extends BaseScene {
             this.level = null;
         }
 
-        const { width, height } = this.scale;
-
-        // VICTORY Text
-        const victoryText = this.add.text(width * 0.5, height * 0.4, 'VICTORY', {
-            fontFamily: 'Oswald, Impact, sans-serif',
-            fontSize: '120px',
-            color: '#ffff00',
-            stroke: '#000000',
-            strokeThickness: 8,
-            shadow: { color: '#000000', fill: true, offsetX: 4, offsetY: 4, blur: 8 }
-        }).setOrigin(0.5);
-
-        // Vibrating effect
-        this.tweens.add({
-            targets: victoryText,
-            x: '+=5',
-            y: '+=5',
-            duration: 50,
-            yoyo: true,
-            repeat: -1
-        });
-
-        // Press FIRE Text
-        const fireText = this.add.text(width * 0.5, height * 0.6, 'Press FIRE', {
-            fontFamily: 'Oswald, Impact, sans-serif',
-            fontSize: '48px',
-            color: '#ffffff'
-        }).setOrigin(0.5).setAlpha(0);
-
-        // Fade in FIRE text
-        this.tweens.add({
-            targets: fireText,
-            alpha: 1,
-            duration: 1000,
-            yoyo: true,
-            repeat: -1
-        });
-
-        // Input to finish
-        this.time.delayedCall(1000, () => {
-            this.input.once('pointerdown', () => this.finishLevel());
-            this.input.keyboard!.once('keydown-SPACE', () => this.finishLevel());
-        });
+        this.gameManager.handleVictory();
     }
 
     protected handleGameOver() {
@@ -123,7 +87,9 @@ export abstract class ShootEmUpScene extends BaseScene {
     }
 
     protected onGameOverInput() {
-        this.finishLevel();
+        // Find if we are in victory or game over state
+        const isVictory = this.gameManager.isVictoryState();
+        this.finishLevel(isVictory);
     }
 
     update(time: number, delta: number) {

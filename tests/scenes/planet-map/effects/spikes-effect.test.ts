@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SpikesEffect } from '../../../../src/scenes/planet-map/effects/spikes-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -13,6 +13,7 @@ vi.mock('phaser', () => {
                     x = 0; y = 0; z = 0;
                     constructor(x = 0, y = 0, z = 0) { this.x = x; this.y = y; this.z = z; }
                     normalize() { return this; }
+                    set(x: number, y: number, z: number) { this.x = x; this.y = y; this.z = z; return this; }
                     crossVectors() { return this; }
                     transformQuat() { return this; }
                     clone() { return new (this.constructor as any)(this.x, this.y, this.z); }
@@ -71,6 +72,7 @@ describe('SpikesEffect', () => {
             x: 100,
             y: 100,
             name: 'Test Planet',
+            hidden: false, // Effects need planet to be visible
             visualScale: 1.0,
             effects: [],
             gameObject: { x: 100, y: 100 } as any

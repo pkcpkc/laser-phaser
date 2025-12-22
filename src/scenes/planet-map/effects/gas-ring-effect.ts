@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig } from '../planet-effect';
 import { BaseRingEffect } from './base-ring-effect';
 
@@ -113,7 +113,7 @@ export class GasRingEffect extends BaseRingEffect {
         frontEmitter.setDepth(10); // Ensure it's on top of planet (usually depth 1)
         this.frontElement = frontEmitter;
 
-        if (!this.planet.unlocked) {
+        if (this.planet.hidden ?? true) {
             this.setVisible(false);
         }
     }

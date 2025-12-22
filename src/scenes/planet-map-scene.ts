@@ -1,11 +1,15 @@
 import Phaser from 'phaser';
 import { WarpStarfield } from '../backgrounds/warp-starfield';
-import { PlanetRegistry, type PlanetData } from './planet-map/planet-registry';
 import { PlanetVisuals } from './planet-map/planet-visuals';
 import { MapInteractionManager } from './planet-map/map-interaction';
+import { BaseUniverse } from './planet-map/base-universe';
+import { UniverseFactory } from './planet-map/universe-factory';
+import { type PlanetData } from './planet-map/planet-data';
+import { GameStatus } from '../logic/game-status';
+import { LootUI } from '../ui/loot-ui';
 
 export default class PlanetMapScene extends Phaser.Scene {
-    private planetRegistry: PlanetRegistry;
+    private universe!: BaseUniverse;
     private visuals: PlanetVisuals;
     private interactions!: MapInteractionManager;
 
@@ -16,12 +20,34 @@ export default class PlanetMapScene extends Phaser.Scene {
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
     private lastShipPos: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
 
+    // Loot UI
+    private lootUI!: LootUI;
+
 
     constructor() {
         super('PlanetMapScene');
-        this.planetRegistry = new PlanetRegistry();
         this.visuals = new PlanetVisuals(this);
     }
+
+    init(data: { universeId?: string, planetId?: string, victory?: boolean }) {
+        console.log('PlanetMapScene: init', data);
+
+        // Store target planet to move to in create()
+        if (data?.planetId) {
+            this.currentPlanetId = data.planetId;
+        }
+
+        // Store explicit universe to load in create
+        if (data?.universeId) {
+            this.registry.set('targetUniverseId', data.universeId);
+            // Also update currentPlanetId if switching universe implies a default?
+            // No, defer to create check.
+        }
+
+        // Handle victory warp logic implicitly by ensuring create() loads the right universe
+    }
+
+
 
     create() {
         console.log('PlanetMapScene: create() started');
@@ -30,25 +56,35 @@ export default class PlanetMapScene extends Phaser.Scene {
         console.log('PlanetMapScene: initializing managers');
         // Initialize Managers
         this.interactions = new MapInteractionManager(this);
-        this.visuals = new PlanetVisuals(this); // Re-assign to ensure scene is valid
+        // this.visuals = new PlanetVisuals(this); // Re-assign to ensure scene is valid - REMOVED, already in constructor
+
+        console.log('PlanetMapScene: initializing universe');
+        // Initialize Data
+        const distinctUniverseId = this.registry.get('targetUniverseId') as string || 'blood-hunters-universe';
+        this.universe = UniverseFactory.create(distinctUniverseId);
+        this.universe.init(this, width, height);
 
         console.log('PlanetMapScene: creating background');
         // Background
         this.add.rectangle(0, 0, width, height, 0x000011).setOrigin(0).setDepth(-100);
-        this.add.image(width / 2, height / 2, 'nebula').setAlpha(0.3).setScale(1.5).setDepth(-100);
+        this.add.image(width / 2, height / 2, this.universe.backgroundTexture).setAlpha(0.3).setScale(1.5).setDepth(-100);
 
         console.log('PlanetMapScene: creating starfield');
         // Starfield Effect
         this.starfield = new WarpStarfield(this, width, height);
         console.log('Starfield initialized');
 
-        console.log('PlanetMapScene: initializing planets');
-        // Initialize Data
-        this.planetRegistry.initPlanets(this, width, height);
+        // Check for warp condition from previous scene (Victory)
+        // We do this here after universe is loaded so we can access planet data if needed, 
+        // though simpler is just checking the passed data if we had it.
+        // But for parity with original intent:
+        // if (data.victory ... ) - we don't have 'data' here easily unless we stored it.
+        // Assuming the 'init' logic for warp was intended to verify the warp. 
+        // If the previous scene sent 'warpUniverseId' directly it would be easier.
 
         console.log('PlanetMapScene: creating visuals');
         // Draw Planets
-        this.visuals.createVisuals(this.planetRegistry.getAll(), (planet) => this.handlePlanetClick(planet));
+        this.visuals.createVisuals(this.universe.getAll(), (planet) => this.handlePlanetClick(planet));
 
         console.log('PlanetMapScene: creating player ship');
         // Create Player Ship
@@ -61,8 +97,22 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         console.log('PlanetMapScene: updating visibility and moving to planet');
         // Initial State Update
-        this.visuals.updateVisibility(this.planetRegistry.getAll());
+        this.visuals.updateVisibility(this.universe.getAll());
+
+        // Validate currentPlanetId for this universe
+        if (!this.universe.getById(this.currentPlanetId)) {
+            const firstPlanet = this.universe.getAll()[0];
+            if (firstPlanet) {
+                console.warn(`Planet ${this.currentPlanetId} not found in new universe. Defaulting to ${firstPlanet.id}`);
+                this.currentPlanetId = firstPlanet.id;
+            }
+        }
+
         this.moveToPlanet(this.currentPlanetId, true);
+
+        // Create Loot UI
+        this.lootUI = new LootUI(this);
+        this.lootUI.create(100);
 
         console.log('PlanetMapScene: setting up resize handler');
         // Handle Resize
@@ -75,28 +125,14 @@ export default class PlanetMapScene extends Phaser.Scene {
         }
 
         console.log('PlanetMapScene: create() complete');
-        console.log('Scene Diagnostics:');
-        console.log('Status (5=RUNNING):', this.sys.settings.status);
-        console.log('Visible:', this.sys.settings.visible);
-        console.log('Active:', this.sys.settings.active);
 
-        // Check status after a delay to see if it transitions to RUNNING (5)
-        this.time.addEvent({
-            delay: 1000,
-            loop: false,
-            callback: () => {
-                console.log('PlanetMapScene: 1s later check');
-                console.log('Status:', this.sys.settings.status);
-                console.log('Update active:', this.sys.settings.active);
-            }
-        });
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {
         const { width, height } = gameSize;
 
         // Update positions in registry
-        this.planetRegistry.updatePositions(width, height);
+        this.universe.updatePositions(width, height);
 
 
 
@@ -107,9 +143,12 @@ export default class PlanetMapScene extends Phaser.Scene {
         if (this.starfield) {
             this.starfield.resize(width, height);
         }
+
+        // Update Loot UI positions
+        if (this.lootUI) {
+            this.lootUI.updatePositions();
+        }
     }
-
-
 
     private createPlayerShip() {
         this.playerShip = this.add.image(0, 0, 'ships', 'big-cruiser')
@@ -175,15 +214,16 @@ export default class PlanetMapScene extends Phaser.Scene {
     private arriveAtPlanet(planet: PlanetData) {
         this.currentPlanetId = planet.id;
 
-        if (!planet.unlocked) {
-            this.unlockPlanet(planet);
+        if (planet.hidden || planet.hidden === undefined) {
+            this.revealPlanet(planet);
         }
 
         this.interactions.showInteractionUI(planet);
     }
 
-    private unlockPlanet(planet: PlanetData) {
-        planet.unlocked = true;
+    private revealPlanet(planet: PlanetData) {
+        planet.hidden = false;
+        GameStatus.getInstance().revealPlanet(planet.id);
 
         // Stop the particle effect
         if (planet.emitter) {
@@ -196,7 +236,7 @@ export default class PlanetMapScene extends Phaser.Scene {
     }
 
     private moveToPlanet(planetId: string, instant: boolean = false) {
-        const planet = this.planetRegistry.getById(planetId);
+        const planet = this.universe.getById(planetId);
         if (!planet) return;
 
         this.currentPlanetId = planetId;
@@ -223,13 +263,13 @@ export default class PlanetMapScene extends Phaser.Scene {
         } else if (Phaser.Input.Keyboard.JustDown(this.cursorKeys.right)) {
             this.navigate(1, 0);
         } else if (Phaser.Input.Keyboard.JustDown(this.cursorKeys.space)) {
-            const current = this.planetRegistry.getById(this.currentPlanetId);
+            const current = this.universe.getById(this.currentPlanetId);
             if (current) this.interactions.launchLevelIfAvailable(current);
         }
     }
 
     private navigate(dx: number, dy: number) {
-        const bestCandidate = this.planetRegistry.findNearestNeighbor(this.currentPlanetId, dx, dy);
+        const bestCandidate = this.universe.findNearestNeighbor(this.currentPlanetId, dx, dy);
         if (bestCandidate) {
             this.travelToPlanet(bestCandidate);
         }

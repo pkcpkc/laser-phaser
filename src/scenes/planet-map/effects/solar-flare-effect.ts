@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 export interface SolarFlareConfig extends BaseEffectConfig {
@@ -149,6 +149,11 @@ export class SolarFlareEffect implements IPlanetEffect {
         this.planet = planet;
         this.config = config;
         this.create();
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private create() {
@@ -161,6 +166,11 @@ export class SolarFlareEffect implements IPlanetEffect {
     }
 
     private checkEruption() {
+        // Skip if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (!this.isVisible || !this.planet.gameObject) return;
 
         const freq = this.config.frequency ?? 2000;

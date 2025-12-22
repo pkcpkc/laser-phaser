@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import { BaseSurfaceStructureEffect, type BaseStructureItem, type BaseSurfaceStructureConfig } from './base-surface-structure-effect';
 
 export interface RectanglesConfig extends BaseSurfaceStructureConfig {

@@ -91,6 +91,7 @@ describe('SatelliteEffect', () => {
             x: 100,
             y: 100,
             name: 'Test',
+            hidden: false, // Effects need planet to be visible
             visualScale: 1.0
         };
     });

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { IPlanetEffect } from '../planet-effect';
 
 export interface TrailPoint {
@@ -17,7 +17,6 @@ export interface TrailPoint {
 export abstract class BaseOrbitEffect implements IPlanetEffect {
     protected scene: Phaser.Scene;
     protected planet: PlanetData;
-    protected updateListener: () => void;
 
     // Common orbital constants
     protected readonly PERSPECTIVE_FLATTEN = 0.3;
@@ -25,10 +24,14 @@ export abstract class BaseOrbitEffect implements IPlanetEffect {
     constructor(scene: Phaser.Scene, planet: PlanetData) {
         this.scene = scene;
         this.planet = planet;
+    }
 
-        // Create update listener
-        this.updateListener = () => this.onUpdate();
-        this.scene.events.on('update', this.updateListener);
+    public update(_time: number, _delta: number) {
+        // Skip update if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+        this.onUpdate();
     }
 
     abstract onUpdate(): void;
@@ -99,7 +102,6 @@ export abstract class BaseOrbitEffect implements IPlanetEffect {
     }
 
     public destroy() {
-        this.scene.events.off('update', this.updateListener);
         this.onDestroy();
     }
 

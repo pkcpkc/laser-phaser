@@ -36,6 +36,7 @@ import { PlayerController } from '../../src/logic/player-controller';
 import { Starfield } from '../../src/backgrounds/starfield';
 import { BigCruiser } from '../../src/ships/big-cruiser';
 import { EngineTrail } from '../../src/ships/effects/engine-trail';
+import { LootUI } from '../../src/ui/loot-ui';
 
 // Mocks
 vi.mock('../../src/logic/game-manager', () => ({
@@ -55,6 +56,19 @@ vi.mock('../../src/ships/big-cruiser', () => ({
 }));
 vi.mock('../../src/ships/effects/engine-trail', () => ({
     EngineTrail: vi.fn()
+}));
+vi.mock('../../src/logic/game-status', () => ({
+    GameStatus: {
+        getInstance: vi.fn().mockReturnValue({
+            getLoot: vi.fn().mockReturnValue({ gold: 0, silver: 0, gems: 0, mounts: 0 }),
+            updateLoot: vi.fn(),
+            isPlanetRevealed: vi.fn().mockReturnValue(false),
+            revealPlanet: vi.fn(),
+        })
+    }
+}));
+vi.mock('../../src/ui/loot-ui', () => ({
+    LootUI: vi.fn()
 }));
 vi.mock('phaser3-rex-plugins/plugins/virtualjoystick.js', () => {
     return {
@@ -103,6 +117,7 @@ describe('BaseScene', () => {
 
         scene.input = {
             addPointer: vi.fn(),
+            on: vi.fn(),
             keyboard: {
                 once: vi.fn(),
                 on: vi.fn(),
@@ -118,6 +133,10 @@ describe('BaseScene', () => {
             world: {
                 setBounds: vi.fn(),
             }
+        } as any;
+
+        scene.sys = {
+            isActive: vi.fn().mockReturnValue(true)
         } as any;
 
         scene.time = {
@@ -144,6 +163,16 @@ describe('BaseScene', () => {
             return {
                 setFireButton: vi.fn(),
                 update: vi.fn(),
+            };
+        });
+
+        // Mock LootUI
+        (LootUI as any).mockImplementation(function () {
+            return {
+                create: vi.fn(),
+                updateCounts: vi.fn(),
+                updatePositions: vi.fn(),
+                destroy: vi.fn(),
             };
         });
 
@@ -178,6 +207,8 @@ describe('BaseScene', () => {
 
     it('should handle resize', () => {
         scene.create();
+        (scene.matter.world.setBounds as any).mockClear();
+
         // Invoke resize manually via the callback registered
         // Or directly call protected method if casted
         (scene as any).handleResize({ width: 1000, height: 800 });
@@ -199,7 +230,9 @@ describe('BaseScene', () => {
         // Invoke directly to test logic
         (scene as any).handleLootCollected(mockLoot);
 
-        expect(mockGameObject.setText).toHaveBeenCalledWith('10 🪙');
+        // Verify lootUI.updateCounts was called
+        const lootUIInstance = (LootUI as any).mock.instances[0];
+        expect(lootUIInstance.updateCounts).toHaveBeenCalledWith('silver', 10);
 
         // Verify delayed call
         expect(scene.time.delayedCall).toHaveBeenCalledWith(0, expect.any(Function));

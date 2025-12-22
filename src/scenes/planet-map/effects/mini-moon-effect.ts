@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig } from '../planet-effect';
 import { BaseOrbitEffect } from './base-orbit-effect';
 
@@ -7,7 +7,7 @@ export interface MiniMoonConfig extends BaseEffectConfig {
     type: 'mini-moon';
     tint?: number;
     tilt?: number;
-    size?: number;
+    scale?: number;
     orbitRadius?: number;
     orbitSpeed?: number;
     startAngle?: number;
@@ -39,7 +39,7 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         this.tint = config.tint;
 
         // Apply config overrides
-        if (config.size !== undefined) this.sizeScale = config.size;
+        if (config.scale !== undefined) this.sizeScale = config.scale;
 
         // Orbital setup
         const parentScale = this.planet.visualScale || 1.0;
@@ -62,14 +62,25 @@ export class MiniMoonEffect extends BaseOrbitEffect {
             padding: { x: 10, y: 10 }
         }).setOrigin(0.5);
 
+        // Initial Position Calculation
+        const px = this.calculateOrbitPosition(this.currentAngle, this.orbitRadius, this.orbitTilt, 0, this.planet.x, this.planet.y);
+        this.miniMoon.setPosition(px.x, px.y);
+
         // Defer tint application to ensure postFX is ready
         this.scene.time.delayedCall(100, () => {
+            if (!this.miniMoon || !this.miniMoon.scene) return; // Safety check if destroyed
             this.applyTint();
-            // Add a subtle bloom for "glow"
-            if (this.miniMoon.postFX) {
+
+            // Add a subtle bloom for "glow" - DISABLED due to visual artifacts
+            /* if (this.miniMoon.postFX) {
                 this.miniMoon.postFX.addBloom(0xffffff, 1, 1, 1.2, 1.0);
-            }
+            } */
         });
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private applyTint() {
@@ -133,8 +144,10 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         this.miniMoon.angle += 2.0;
 
         // Depth sorting
-        this.miniMoon.setDepth(pos.isFront ? 1.1 : 0.9);
-        this.trail.setDepth(pos.isFront ? 1.05 : 0.85);
+        // Front: 1.2 (Above Planet at 1.0)
+        // Back: 0.5 (Behind Planet at 1.0 and Overlay at 0.9)
+        this.miniMoon.setDepth(pos.isFront ? 1.2 : 0.5);
+        this.trail.setDepth(pos.isFront ? 1.15 : 0.45);
 
         // Alpha / Brightness - Dim when behind
         const baseAlpha = pos.isFront ? 1.0 : 0.6;

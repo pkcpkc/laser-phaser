@@ -44,6 +44,51 @@ To define the rotation (angle) of a marker (e.g., a side-firing cannon), place a
 *   If a red pixel is found, the angle is calculated from the vector `(Marker -> Red Pixel)`.
 *   **Example**: Placing a red pixel directly to the **right** of a Green (Laser) pixel will set that laser's angle to 0° (firing right). Placing it **below** sets it to 90° (firing down).
 
+## Features
+
+### Universes
+
+The game features multiple interconnected universes, each with unique planets, backgrounds, and challenges:
+
+*   **Demo Universe**: The starting universe featuring diverse planet types and training missions.
+*   **Blood Hunters Universe**: An advanced universe unlocked through universe warping, featuring unique aesthetics and challenging gameplay.
+
+Universes can be switched via URL query parameter (`?universeId=blood-hunters`) for debugging or accessed through in-game progression and warp mechanics.
+
+### Game Modes
+
+*   **Shoot 'Em Up**: Classic side-scrolling shooter gameplay inspired by 80s arcade classics. Features wave-based combat, multiple weapon types, and dynamic enemy formations.
+*   **Planet Map**: Navigate between planets in a living universe with orbital mechanics, unlockable locations, and visual effects.
+*   **Trading**: (In Development) Purchase upgrades and equipment from planetary merchants.
+*   **Shipyard**: (In Development) Customize your ship with different configurations and components.
+*   **Tower Defense**: (In Development) Defend strategic locations across the galaxy.
+
+### Loot & Progression
+
+The game features a persistent loot system tracking:
+
+*   **Silver**: Basic currency for purchases and upgrades.
+*   **Gold**: Premium currency for rare items.
+*   **Gems**: Special resources for unique enhancements.
+*   **Mounts**: Collectible ship configurations or companions.
+
+All progress is saved locally using `GameStatus` and persists across sessions.
+
+### Planet Visual Effects
+
+Planets come alive with a rich variety of visual effects:
+
+*   **Satellite Effect**: Orbiting satellites around planets.
+*   **Ghost Shade Effect**: Ethereal atmospheric shadows.
+*   **Mini Moon Effect**: Small orbital companions.
+*   **Glimmering Snow Effect**: Particle-based ice and snow effects.
+*   **Hurricane Effect**: Dynamic storm systems with particle emitters.
+*   **Spikes Effect**: Defensive or decorative surface protrusions.
+*   **Gas Ring Effect**: Saturn-like gaseous ring systems.
+*   **Solid Ring Effect**: Rocky or ice-based planetary rings.
+
+Planets can be hidden and revealed through gameplay progression, creating a sense of discovery.
+
 ## Technical Overview
 
 **Laser Phaser** is a modern web-based shoot 'em up built with robust technologies to ensure high performance and a smooth development experience.
@@ -67,6 +112,7 @@ graph TD
     PlanetMapScene --> |Navigates to| ShootEmUpScene
     PlanetMapScene --> |Navigates to| TraderScene
     PlanetMapScene --> |Navigates to| ShipyardScene
+    PlanetMapScene --> |Warps to| PlanetMapScene
     
     subgraph ShootEmUp Architecture
         ShootEmUpScene --> |Contains| Level
@@ -77,23 +123,38 @@ graph TD
         Ship --> |Configured by| ShipConfig
         Ship --> |Has| Mount
         Mount --> |Equips| Weapon
+        ShootEmUpScene --> |On Victory| UniverseWarp(Warp to<br/>new Universe)
     end
 
     subgraph PlanetMap Architecture
-        PlanetMapScene --> |Uses| PlanetRegistry(Data)
-        PlanetMapScene --> |Uses| PlanetVisuals(Visuals)
-        PlanetMapScene --> |Uses| MapInteractionManager(UI)
+        PlanetMapScene --> |Loads| UniverseFactory
+        UniverseFactory --> |Creates| BaseUniverse
+        BaseUniverse --> |Defines| DemoUniverse
+        BaseUniverse --> |Defines| BloodHuntersUniverse
+        DemoUniverse --> |Contains| PlanetData
+        BloodHuntersUniverse --> |Contains| PlanetData
+        PlanetMapScene --> |Uses| PlanetVisuals
+        PlanetMapScene --> |Uses| MapInteractionManager
+        PlanetMapScene --> |Uses| GameStatus(Persistence)
+        PlanetMapScene --> |Uses| LootUI
         PlanetVisuals --> |Manages| AdjustableMoonVisual
         AdjustableMoonVisual --> |Uses| SatelliteEffect
         AdjustableMoonVisual --> |Uses| GhostShadeEffect
         AdjustableMoonVisual --> |Uses| MiniMoonEffect
         AdjustableMoonVisual --> |Uses| GlimmeringSnowEffect
+        AdjustableMoonVisual --> |Uses| HurricaneEffect
+        AdjustableMoonVisual --> |Uses| SpikesEffect
+        AdjustableMoonVisual --> |Uses| GasRingEffect
+        AdjustableMoonVisual --> |Uses| SolidRingEffect
     end
 ```
 
 ### Key Components
 
-*   **PlanetRegistry**: The central configuration hub for the Planet Map. It defines all planet properties including positions, visuals (rings, moons, tints), and gameplay data (associated levels, shops). It calculates planet orbits and spatial relationships.
+*   **Universe System**: A modular architecture where each universe (Demo Universe, Blood Hunters Universe) is a self-contained configuration defining its own planets, backgrounds, and progression. Universes can be switched via URL query parameters (`?universeId=blood-hunters`) or through in-game warp mechanics.
+*   **GameStatus**: Persistent game state manager that tracks global loot (silver, gold, gems, mounts), unlocked planets, and player progress across sessions using localStorage.
+*   **LootUI**: Reusable UI component for displaying and managing the player's collected loot across different scenes.
+*   **Planet Effects**: A rich visual system with multiple effect types including satellites, ghost shades, mini moons, glimmering snow, hurricanes, spikes, and ring effects (gas/solid).
 
 ### Directory Structure
 

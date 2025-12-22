@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 export interface GhostShadeConfig extends BaseEffectConfig {
@@ -34,6 +34,11 @@ export class GhostShadeEffect implements IPlanetEffect {
 
         this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private createTendrils() {
@@ -105,6 +110,11 @@ export class GhostShadeEffect implements IPlanetEffect {
     }
 
     private onUpdate() {
+        // Skip update if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (!this.planet.gameObject) return;
 
         // Use logical coordinates instead of visual center (which may vary by bounding box)
@@ -134,7 +144,7 @@ export class GhostShadeEffect implements IPlanetEffect {
         this.tendrils.forEach(emitter => {
             emitter.setVisible(visible);
             emitter.emitting = visible;
-            if (!visible) {
+            if (!visible && emitter.killAll) {
                 emitter.killAll(); // Clear all particles when hidden
             }
         });

@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { PlanetRegistry } from '../../../src/scenes/planet-map/planet-registry';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { DemoUniverse } from '../../../src/scenes/planet-map/universes/demo-universe';
 // @ts-ignore
 import Phaser from 'phaser';
-import { vi } from 'vitest';
 
 vi.mock('phaser', () => {
     return {
@@ -54,7 +53,26 @@ vi.mock('phaser', () => {
             },
             Scene: class {
                 add = {
-                    text: vi.fn().mockReturnValue({ setOrigin: vi.fn(), setInteractive: vi.fn().mockReturnThis(), on: vi.fn() }),
+                    text: vi.fn().mockReturnValue({
+                        setOrigin: vi.fn().mockReturnThis(),
+                        setInteractive: vi.fn().mockReturnThis(),
+                        on: vi.fn(),
+                        setPosition: vi.fn(),
+                        setScale: vi.fn(),
+                        setDepth: vi.fn(),
+                        setAlpha: vi.fn(),
+                        clearTint: vi.fn(),
+                        setAngle: vi.fn(),
+                        setVisible: vi.fn(),
+                        destroy: vi.fn(),
+                        postFX: {
+                            addColorMatrix: vi.fn().mockReturnValue({
+                                saturate: vi.fn(),
+                                multiply: vi.fn()
+                            }),
+                            addBloom: vi.fn()
+                        }
+                    }),
                     particles: vi.fn().mockReturnValue({
                         startFollow: vi.fn(),
                         setDepth: vi.fn(),
@@ -141,113 +159,123 @@ vi.mock('phaser', () => {
     }
 });
 
-describe('PlanetRegistry', () => {
-    let registry: PlanetRegistry;
+describe('UniverseRegistry (testing DemoUniverse)', () => {
+    let registry: DemoUniverse;
     let mockScene: Phaser.Scene;
 
     beforeEach(() => {
-        registry = new PlanetRegistry();
+        registry = new DemoUniverse();
         mockScene = new Phaser.Scene('test');
     });
 
-    it('should initialize planets correctly', () => {
-        registry.initPlanets(mockScene, 800, 600);
+    it('should initialize planets correctly (Demo Universe)', () => {
+        registry.init(mockScene, 800, 600);
         const planets = registry.getAll();
 
         expect(planets.length).toBeGreaterThan(0);
 
-        const earth = registry.getById('earth');
-        expect(earth).toBeDefined();
+        const astra = registry.getById('astra');
+        expect(astra).toBeDefined();
         // @ts-ignore
-        expect(earth.unlocked).toBe(true);
+        expect(astra.hidden).toBe(false);
     });
 
     it('should configure specific planets with correct properties', () => {
-        registry.initPlanets(mockScene, 800, 600);
+        registry.init(mockScene, 800, 600);
 
-        const ringWorld = registry.getById('ring-world')!;
-        expect(ringWorld.effects).toBeDefined();
-        expect(ringWorld.effects!.length).toBeGreaterThan(0);
+        const aurelia = registry.getById('aurelia')!;
+        expect(aurelia.effects).toBeDefined();
+        expect(aurelia.effects!.length).toBeGreaterThan(0); // Solid Ring
+        expect(aurelia?.tint).toBe(0xB8860B);
 
-        expect(ringWorld?.tint).toBe(0xB8860B);
+        const crimson = registry.getById('crimson')!;
+        expect(crimson.effects).toBeDefined();
+        expect(crimson.effects!.length).toBe(3); // 3 MiniMoons
 
-        const redMoon = registry.getById('red-moon')!;
-        expect(redMoon.effects).toBeDefined();
-        expect(redMoon.effects!.length).toBe(3); // 3 MiniMoons
-
-        const gliese = registry.getById('gliese')!;
-        expect(gliese).toBeDefined();
-        expect(gliese.effects).toBeDefined();
-        expect(gliese.effects!.length).toBe(1); // Satellite
-        expect(gliese.unlocked).toBeFalsy();
-
-        const darkMoon = registry.getById('dark-moon-pulse')!;
-        expect(darkMoon.effects).toBeDefined();
-        expect(darkMoon.effects!.length).toBe(1); // GhostShade
+        const veridia = registry.getById('veridia')!;
+        expect(veridia).toBeDefined();
+        expect(veridia.effects).toBeDefined();
+        expect(veridia.effects!.length).toBe(2); // Rectangles + Satellite
+        expect(veridia.hidden).toBeTruthy();
     });
 
     it('should update positions based on screen size', () => {
-        registry.initPlanets(mockScene, 800, 600);
-        const redMoon = registry.getById('red-moon')!;
+        registry.init(mockScene, 800, 600);
+        const crimson = registry.getById('crimson')!;
 
         // Initial radius check
-        const d1 = Phaser.Math.Distance.Between(redMoon.x, redMoon.y, 400, 300);
+        const d1 = Phaser.Math.Distance.Between(crimson.x, crimson.y, 400, 300);
         expect(d1).toBeGreaterThan(90);
 
         // Resize to something smaller
         registry.updatePositions(400, 400);
 
-        // Earth is center
-        const earth = registry.getById('earth')!;
-        expect(earth.x).toBe(200);
-        expect(earth.y).toBe(200);
+        // Astra is center
+        const astra = registry.getById('astra')!;
+        expect(astra.x).toBe(200);
+        expect(astra.y).toBe(200);
 
-        // Red Moon should still be valid within new smaller bounds
-        const d2 = Phaser.Math.Distance.Between(redMoon.x, redMoon.y, 200, 200);
+        // Crimson should still be valid within new smaller bounds
+        const d2 = Phaser.Math.Distance.Between(crimson.x, crimson.y, 200, 200);
         expect(d2).toBeGreaterThan(90);
         expect(d2).toBeLessThan(150);
     });
 
     it('should find nearest neighbor', () => {
-        registry.initPlanets(mockScene, 800, 600);
+        registry.init(mockScene, 800, 600);
 
         // Manually position planets to form a distinct cross shape for testing
-        const earth = registry.getById('earth')!;
-        earth.x = 400; earth.y = 300;
+        const astra = registry.getById('astra')!;
+        astra.x = 400; astra.y = 300;
 
-        const redMoon = registry.getById('red-moon')!;
-        redMoon.x = 500; redMoon.y = 300; // Right
+        const crimson = registry.getById('crimson')!;
+        crimson.x = 500; crimson.y = 300; // Right
 
-        const ringWorld = registry.getById('ring-world')!;
-        ringWorld.x = 400; ringWorld.y = 200; // Up
+        const aurelia = registry.getById('aurelia')!;
+        aurelia.x = 400; aurelia.y = 200; // Up
 
         // Find neighbor to the right
-        const rightNeighbor = registry.findNearestNeighbor('earth', 1, 0);
+        const rightNeighbor = registry.findNearestNeighbor('astra', 1, 0);
         expect(rightNeighbor).toBeDefined();
-        expect(rightNeighbor?.id).toBe('red-moon');
+        expect(rightNeighbor?.id).toBe('crimson');
 
-        // Ring World is Up from Earth
-        const upNeighbor = registry.findNearestNeighbor('earth', 0, -1);
-        expect(upNeighbor?.id).toBe('ring-world');
+        // Aurelia is Up from Astra
+        const upNeighbor = registry.findNearestNeighbor('astra', 0, -1);
+        expect(upNeighbor?.id).toBe('aurelia');
     });
 
     it('should return null if no neighbor in direction', () => {
-        registry.initPlanets(mockScene, 800, 600);
+        registry.init(mockScene, 800, 600);
 
-        // Manually position Earth
-        const earth = registry.getById('earth')!;
-        earth.x = 400; earth.y = 300;
+        // Manually position Astra
+        const astra = registry.getById('astra')!;
+        astra.x = 400; astra.y = 300;
 
         // Move all others far away or to the side, ensuring none are "down"
         registry.getAll().forEach(p => {
-            if (p.id !== 'earth') {
+            if (p.id !== 'astra') {
                 p.x = 400;
                 p.y = 200; // All up
             }
         });
 
-        // Nothing below earth
-        const downNeighbor = registry.findNearestNeighbor('earth', 0, 1);
+        // Nothing below astra
+        const downNeighbor = registry.findNearestNeighbor('astra', 0, 1);
         expect(downNeighbor).toBeNull();
+    });
+
+    it('should initialize Blood Hunters Universe', async () => {
+        const bloodHunters = new (await import('../../../src/scenes/planet-map/universes/blood-hunters-universe')).BloodHuntersUniverse();
+        bloodHunters.init(mockScene, 800, 600);
+        const planets = bloodHunters.getAll();
+
+        expect(planets.length).toBeGreaterThan(0);
+
+        const vortex = bloodHunters.getById('vortex');
+        expect(vortex).toBeDefined();
+
+        // Astra should NOT be here
+        const astra = bloodHunters.getById('astra');
+        expect(astra).toBeUndefined();
     });
 });

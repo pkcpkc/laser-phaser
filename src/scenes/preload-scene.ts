@@ -160,7 +160,17 @@ export default class PreloadScene extends Phaser.Scene {
 
     private startGame() {
         this.scale.off('resize', this.resize, this); // Clean up listener
-        this.scene.start('PlanetMapScene');
+
+        // Check for universeId in URL parameters (for debugging)
+        const params = new URLSearchParams(window.location.search);
+        const universeId = params.get('universeId');
+
+        if (universeId) {
+            console.log(`Starting with universe: ${universeId}`);
+            this.scene.start('PlanetMapScene', { universeId });
+        } else {
+            this.scene.start('PlanetMapScene');
+        }
     }
 
 

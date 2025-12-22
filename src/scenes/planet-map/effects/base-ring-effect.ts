@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { IPlanetEffect } from '../planet-effect';
 
 export abstract class BaseRingEffect implements IPlanetEffect {
@@ -79,6 +79,11 @@ export abstract class BaseRingEffect implements IPlanetEffect {
 
     // Optional update method
     public update?(_time: number, _delta: number): void {
+        // Skip update if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (this.occluder) {
             this.occluder.setPosition(this.planet.x, this.planet.y);
         }

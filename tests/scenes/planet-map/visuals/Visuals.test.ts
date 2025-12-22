@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlanetVisuals } from '../../../../src/scenes/planet-map/planet-visuals';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -91,23 +91,23 @@ describe('PlanetVisuals', () => {
 
     it('should create RingWorldVisual for ring-world id', () => {
         const planets: PlanetData[] = [{
-            id: 'ring-world', x: 0, y: 0, name: 'Ring', unlocked: true
+            id: 'ring-world', x: 0, y: 0, name: 'Ring', hidden: false
         }];
         visualsManager.createVisuals(planets, () => { });
         expect(mockScene.add.text).toHaveBeenCalled();
     });
 
-    it('should update visual content on unlock', () => {
+    it('should update visual content on reveal', () => {
         const planet: PlanetData = {
-            id: 'ring-world', x: 0, y: 0, name: 'Ring', unlocked: false,
+            id: 'ring-world', x: 0, y: 0, name: 'Ring', hidden: true,
             gameObject: mockGameObject as unknown as Phaser.GameObjects.Text
         };
         const planets = [planet];
 
         visualsManager.createVisuals(planets, () => { });
 
-        // Simulating unlock
-        planet.unlocked = true;
+        // Simulating reveal
+        planet.hidden = false;
         visualsManager.updateVisibility(planets);
 
         expect((planet.gameObject as any).setText).toHaveBeenCalled();
@@ -115,7 +115,7 @@ describe('PlanetVisuals', () => {
 
     it('should update visibility', () => {
         const planet: PlanetData = {
-            id: 'earth', x: 0, y: 0, name: 'Earth', unlocked: true,
+            id: 'earth', x: 0, y: 0, name: 'Earth', hidden: false,
             gameObject: mockGameObject as unknown as Phaser.GameObjects.Text
         };
         const planets = [planet];

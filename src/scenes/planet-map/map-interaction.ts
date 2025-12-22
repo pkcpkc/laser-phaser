@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from './planet-registry';
+import type { PlanetData } from './planet-data';
 
 export class MapInteractionManager {
     private scene: Phaser.Scene;
@@ -70,7 +70,7 @@ export class MapInteractionManager {
             })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.launchLevel(levelId));
+                .on('pointerdown', () => this.launchLevel(levelId, planet));
             icons.push(playBtn);
         }
 
@@ -129,21 +129,55 @@ export class MapInteractionManager {
         }
 
         // Base settings
-        const startAngle = -Math.PI / 2; // -90 degrees, top center
+        // Base settings
+        // Base settings
+        const startAngle = -Math.PI / 2;
         const fontSizeStr = '18px';
         const fontFamilyStr = 'Oswald, Impact, "Arial Narrow Bold", sans-serif';
         const lineHeight = 18;
-        const spacing = 2; // px between characters
+        const spacing = 4; // Increased spacing slightly for better readability
 
         // Base radius is for the closest line to the planet
-        const baseRadius = planetRadius + 15;
+        // Increased from 15 to 23 based on feedback that text was too close (touching) on small planets
+        const baseRadius = planetRadius + 23;
 
-        this.planetNameContainer.setPosition(planet.x, planet.y);
+        // Calculate the true visual center (geometric center of the quad)
+        // because setOrigin(0.52, 0.40) and rotation shifts the visual center relative to x,y
+        let labelX = planet.x;
+        let labelY = planet.y;
+
+        if (planet.gameObject) {
+            const go = planet.gameObject as Phaser.GameObjects.Image | Phaser.GameObjects.Text;
+
+            // Local vector from Anchor (DisplayOrigin) to Visual Center
+            // Analysis suggests the low OriginY (0.40) causes significant Left-Shift upon rotation (45deg).
+            // To compensate and move center Right (closer to Anchor), we need a larger X factor.
+            // 0.55 was too Left (C=94px, N=53px). 0.52 (Anchor) causes Total X shift of ~ -0.07w.
+            // Trying 0.60 to bring Total X shift closer to -0.01w.
+            const dx = (go.width * 0.60) - go.displayOriginX;
+            const dy = (go.height / 2) - go.displayOriginY;
+
+            // Rotate this vector by the object's rotation
+            const rot = go.rotation;
+            const c = Math.cos(rot);
+            const s = Math.sin(rot);
+
+            const rx = dx * c - dy * s;
+            const ry = dx * s + dy * c;
+
+            // World Center = Anchor + Rotated Vector
+            labelX = go.x + rx;
+            labelY = go.y + ry;
+        }
+
+        this.planetNameContainer.setPosition(labelX, labelY);
 
         // Helper text object for measuring
+        // Added shadow to match the real text, ensuring width measurement is accurate
         const measureText = this.scene.add.text(0, 0, '', {
             fontFamily: fontFamilyStr,
-            fontSize: fontSizeStr
+            fontSize: fontSizeStr,
+            shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
         }).setVisible(false);
 
         for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
@@ -172,7 +206,7 @@ export class MapInteractionManager {
             const totalAngleSpan = totalArcLength / radius;
 
             // 3. Start from the left-most edge angle
-            // Center is startAngle (-90). 
+            // Center is startAngle. 
             // Left edge is startAngle - (totalAngleSpan / 2)
             let currentAngle = startAngle - (totalAngleSpan / 2);
 
@@ -217,9 +251,12 @@ export class MapInteractionManager {
         this.planetNameContainer.setVisible(false);
     }
 
-    private launchLevel(levelId: string) {
+    private launchLevel(levelId: string, planet: PlanetData) {
         if (levelId === 'blood-hunters') {
-            this.scene.scene.start('BloodHunters');
+            this.scene.scene.start('BloodHunters', {
+                returnPlanetId: planet.id,
+                warpUniverseId: planet.warpUniverseId
+            });
         } else {
             console.warn('Level not implemented:', levelId);
         }
@@ -227,7 +264,7 @@ export class MapInteractionManager {
 
     public launchLevelIfAvailable(planet: PlanetData) {
         if (planet.interaction?.levelId) {
-            this.launchLevel(planet.interaction.levelId);
+            this.launchLevel(planet.interaction.levelId, planet);
         }
     }
 

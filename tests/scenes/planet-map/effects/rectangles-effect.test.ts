@@ -1,7 +1,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RectanglesEffect } from '../../../../src/scenes/planet-map/effects/rectangles-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 vi.mock('phaser', () => {
     return {
         default: {
@@ -99,6 +99,7 @@ describe('RectanglesEffect', () => {
             x: 100,
             y: 100,
             name: 'Test',
+            hidden: false, // Effects need planet to be visible
             visualScale: 1.0,
             gameObject: {
                 setPosition: vi.fn(),

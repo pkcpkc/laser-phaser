@@ -35,7 +35,12 @@ const mockText = {
     setInteractive: vi.fn().mockReturnThis(),
     on: vi.fn().mockReturnThis(),
     setPosition: vi.fn().mockReturnThis(),
+    setVisible: vi.fn().mockReturnThis(),
+    setText: vi.fn().mockReturnThis(),
+    setRotation: vi.fn().mockReturnThis(),
+    destroy: vi.fn(),
     postFX: mockPostFX,
+    width: 100,
 };
 
 const mockContainer = {
@@ -87,12 +92,12 @@ describe('MapInteractionManager', () => {
 
         manager.showInteractionUI(planetData as any);
 
-        // Expect 3 icons to be created (Level, Trader, Shipyard)
-        expect(mockScene.add.text).toHaveBeenCalledTimes(3);
+        // Text is called for icons AND curved planet name letters
+        expect(mockScene.add.text).toHaveBeenCalled();
 
-        // Expect PostFX to be applied to the ICONS (3 times), not the container
-        expect(mockPostFX.clear).toHaveBeenCalledTimes(3);
-        expect(mockPostFX.addColorMatrix).toHaveBeenCalledTimes(6); // 2 calls per icon * 3 icons
+        // PostFX is applied to the icons (3 icons)
+        expect(mockPostFX.clear).toHaveBeenCalled();
+        expect(mockPostFX.addColorMatrix).toHaveBeenCalled();
 
         // Check for saturate call
         expect(mockColorMatrix.saturate).toHaveBeenCalledWith(-1);

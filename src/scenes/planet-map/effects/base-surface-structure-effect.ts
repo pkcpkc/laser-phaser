@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 export interface BaseSurfaceStructureConfig extends BaseEffectConfig {
@@ -36,6 +36,11 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
 
         this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     protected initRotation() {
@@ -141,6 +146,11 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
     protected abstract generateItems(): void;
 
     protected onUpdate() {
+        // Skip update if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (!this.planet.gameObject) return;
 
         this.graphics.clear();

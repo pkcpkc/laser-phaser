@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig } from '../planet-effect';
 import { BaseOrbitEffect } from './base-orbit-effect';
 
@@ -64,6 +64,11 @@ export class SatelliteEffect extends BaseOrbitEffect {
 
         this.ensureSatelliteTexture();
         this.createSatellites(effectiveConfig);
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private ensureSatelliteTexture() {

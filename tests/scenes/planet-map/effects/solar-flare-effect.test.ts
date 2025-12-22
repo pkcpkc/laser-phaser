@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { SolarFlareEffect } from '../../../../src/scenes/planet-map/effects/solar-flare-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -72,6 +72,7 @@ describe('SolarFlareEffect', () => {
             x: 100,
             y: 100,
             name: 'Sun',
+            hidden: false, // Effects need planet to be visible
             effects: [],
             gameObject: { x: 100, y: 100 } as any
         };

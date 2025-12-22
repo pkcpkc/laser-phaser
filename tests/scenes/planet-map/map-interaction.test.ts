@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MapInteractionManager } from '../../../src/scenes/planet-map/map-interaction';
-import type { PlanetData } from '../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../src/scenes/planet-map/planet-data';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -41,6 +41,12 @@ const mockScene = {
             on: vi.fn().mockReturnThis(), // Added on for chaining
             setPosition: vi.fn().mockReturnThis(), // Added setPosition
             setVisible: vi.fn().mockReturnThis(),
+            setText: vi.fn().mockReturnThis(),
+            setRotation: vi.fn().mockReturnThis(),
+            setAngle: vi.fn().mockReturnThis(),
+            setAlpha: vi.fn().mockReturnThis(),
+            setDepth: vi.fn().mockReturnThis(),
+            destroy: vi.fn(),
             width: 100,
             postFX: {
                 clear: vi.fn(),
@@ -78,7 +84,7 @@ describe('MapInteractionManager', () => {
             x: 100,
             y: 100,
             name: 'Test Planet',
-            unlocked: true,
+            hidden: false,
             visualScale: 1.0,
             interaction: {
                 levelId: 'some-level'
@@ -96,7 +102,7 @@ describe('MapInteractionManager', () => {
             id: 'level-planet',
             x: 0, y: 0,
             name: 'Level',
-            unlocked: true,
+            hidden: false,
             visualScale: 1.0,
             interaction: {
                 levelId: 'blood-hunters'
@@ -104,7 +110,10 @@ describe('MapInteractionManager', () => {
         };
 
         manager.launchLevelIfAvailable(planet);
-        expect(mockScene.scene.start).toHaveBeenCalledWith('BloodHunters');
+        expect(mockScene.scene.start).toHaveBeenCalledWith('BloodHunters', {
+            returnPlanetId: 'level-planet',
+            warpUniverseId: undefined
+        });
     });
 
     it('should not launch level if no levelId', () => {
@@ -112,7 +121,7 @@ describe('MapInteractionManager', () => {
             id: 'safe-planet',
             x: 0, y: 0,
             name: 'Safe',
-            unlocked: true,
+            hidden: false,
             visualScale: 1.0,
             interaction: {}
         };

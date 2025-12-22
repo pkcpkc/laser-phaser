@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from './planet-registry';
+import type { PlanetData } from './planet-data';
 // Concrete effect imports removed - PlanetVisual is now generic
 
 export class PlanetVisual {
@@ -51,7 +51,7 @@ export class PlanetVisual {
         }
 
         // Effects are already instantiated. We just need to ensure their visibility is correct initially.
-        if (!this.planet.unlocked) {
+        if (this.planet.hidden ?? true) {
             // Hide all effects if locked
             if (this.planet.effects) {
                 this.planet.effects.forEach(e => e.setVisible(false));
@@ -65,15 +65,15 @@ export class PlanetVisual {
         visualObject.setDepth(1);
         overlay.setDepth(1);
 
-        if (!this.planet.unlocked) {
+        if (this.planet.hidden ?? true) {
             this.addLockedParticleEffect();
         }
 
         // Start animation loop
         // Adjust speed based on size: Larger = Slower (Higher Delay)
         // Base delay 500ms for scale 1.0
-        const isUnlocked = this.planet.unlocked ?? false;
-        const scale = (isUnlocked && this.planet.visualScale) ? this.planet.visualScale : 0.8;
+        const isRevealed = !(this.planet.hidden ?? true);
+        const scale = (isRevealed && this.planet.visualScale) ? this.planet.visualScale : 0.8;
         const delay = 500 * scale;
 
         this.scene.time.addEvent({
@@ -99,8 +99,8 @@ export class PlanetVisual {
         colorMatrix.saturate(-1);
 
         // Apply color through matrix multiplication if tint defined, BUT ONLY if unlocked
-        const isUnlocked = this.planet.unlocked ?? false;
-        if (this.planet.tint && isUnlocked) {
+        const isRevealed = !(this.planet.hidden ?? true);
+        if (this.planet.tint && isRevealed) {
             const r = ((this.planet.tint >> 16) & 0xFF) / 255;
             const g = ((this.planet.tint >> 8) & 0xFF) / 255;
             const b = (this.planet.tint & 0xFF) / 255;
@@ -124,9 +124,9 @@ export class PlanetVisual {
         // Hardcoded angle for moons
         obj1.setAngle(45);
         obj2.setAngle(45);
-        if (this.planet.visualScale || this.planet.unlocked === false) {
-            const isUnlocked = this.planet.unlocked ?? false;
-            const targetScale = (isUnlocked && this.planet.visualScale) ? this.planet.visualScale : 0.8;
+        if (this.planet.visualScale || (this.planet.hidden ?? true)) {
+            const isRevealed = !(this.planet.hidden ?? true);
+            const targetScale = (isRevealed && this.planet.visualScale) ? this.planet.visualScale : 0.8;
             obj1.setScale(targetScale);
             obj2.setScale(targetScale);
         }
@@ -141,7 +141,9 @@ export class PlanetVisual {
     public updateVisibility(): void {
         if (!this.planet.gameObject) return;
 
-        if (this.planet.unlocked) {
+        const isRevealed = !(this.planet.hidden ?? true);
+
+        if (isRevealed) {
             if (!this.planet.usingOverlay) {
                 this.planet.gameObject.setAlpha(1);
             }
@@ -157,7 +159,7 @@ export class PlanetVisual {
         this.planet.lightPhase = this.frameIdx;
 
         let nextFrame = '🌑';
-        if (this.planet.unlocked) {
+        if (!(this.planet.hidden ?? true)) {
             nextFrame = this.moonFrames[this.frameIdx];
         }
 
@@ -187,7 +189,7 @@ export class PlanetVisual {
         this.applyTintWithDesaturation(targetObj);
 
         if (this.planet.visualScale) {
-            const targetScale = this.planet.unlocked ? this.planet.visualScale : 0.8;
+            const targetScale = !(this.planet.hidden ?? true) ? this.planet.visualScale : 0.8;
             targetObj.setScale(targetScale);
         }
         targetObj.setAngle(45);
@@ -206,10 +208,10 @@ export class PlanetVisual {
         this.planet.usingOverlay = !this.planet.usingOverlay;
 
         // Update visibility of effects based on unlocked state
-        const unlocked = this.planet.unlocked ?? false;
+        const isRevealed = !(this.planet.hidden ?? true);
 
         this.planet.effects?.forEach(effect => {
-            effect.setVisible(unlocked);
+            effect.setVisible(isRevealed);
         });
     }
 

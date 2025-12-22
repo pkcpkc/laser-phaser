@@ -6,6 +6,8 @@ import { EngineTrail } from '../ships/effects/engine-trail';
 import { CollisionManager } from '../logic/collision-manager';
 import { PlayerController } from '../logic/player-controller';
 import { GameManager } from '../logic/game-manager';
+import { GameStatus } from '../logic/game-status';
+import { LootUI } from '../ui/loot-ui';
 
 export default class BaseScene extends Phaser.Scene {
     protected ship!: Ship;
@@ -16,6 +18,7 @@ export default class BaseScene extends Phaser.Scene {
     protected collisionManager!: CollisionManager;
     protected playerController!: PlayerController;
     protected gameManager!: GameManager;
+    protected lootUI!: LootUI;
 
     protected backgroundTexture: string = 'nebula';
     protected backgroundFrame: string | undefined = undefined;
@@ -82,22 +85,20 @@ export default class BaseScene extends Phaser.Scene {
     protected silverCount: number = 0;
     protected gemCount: number = 0;
     protected mountCount: number = 0;
-    protected goldText!: Phaser.GameObjects.Text;
-    protected silverText!: Phaser.GameObjects.Text;
-    protected gemText!: Phaser.GameObjects.Text;
-    protected mountText!: Phaser.GameObjects.Text;
 
     protected createUI() {
         const { width, height } = this.scale;
+        const gameStatus = GameStatus.getInstance();
+        const loot = gameStatus.getLoot();
 
-        // Coin Counters
-        // Coin Counters
-        // Coin Counters
-        const xPos = width - 20;
-        this.silverText = this.add.text(xPos, 20, '0 🪙', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.goldText = this.add.text(xPos, 50, '0 🌕', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.gemText = this.add.text(xPos, 80, '0 💎', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
-        this.mountText = this.add.text(xPos, 110, '0 📦', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '24px', align: 'right', padding: { top: 10, bottom: 10 } }).setOrigin(1, 0);
+        this.goldCount = loot.gold;
+        this.silverCount = loot.silver;
+        this.gemCount = loot.gems;
+        this.mountCount = loot.mounts;
+
+        // Create Loot UI
+        this.lootUI = new LootUI(this);
+        this.lootUI.create();
 
 
 
@@ -146,20 +147,25 @@ export default class BaseScene extends Phaser.Scene {
         if (loot.config) {
             const value = loot.config.value || 1;
             const type = loot.config.type || 'silver';
+            const gameStatus = GameStatus.getInstance();
 
             if (type === 'gold') {
                 this.goldCount += value;
-                this.goldText.setText(`${this.goldCount} 🌕`);
+                this.lootUI.updateCounts('gold', this.goldCount);
+                gameStatus.updateLoot('gold', value);
             } else if (type === 'gem') {
                 this.gemCount += value;
-                this.gemText.setText(`${this.gemCount} 💎`);
+                this.lootUI.updateCounts('gem', this.gemCount);
+                gameStatus.updateLoot('gem', value);
             } else if (type === 'mount') {
                 this.mountCount += value;
-                this.mountText.setText(`${this.mountCount} 📦`);
+                this.lootUI.updateCounts('mount', this.mountCount);
+                gameStatus.updateLoot('mount', value);
                 console.log('Mount collected!');
             } else {
                 this.silverCount += value;
-                this.silverText.setText(`${this.silverCount} 🪙`);
+                this.lootUI.updateCounts('silver', this.silverCount);
+                gameStatus.updateLoot('silver', value);
             }
         }
 
@@ -194,19 +200,9 @@ export default class BaseScene extends Phaser.Scene {
         // Update world bounds
         this.matter.world.setBounds(0, 0, width, height);
 
-        // Update UI positions
-        const xPos = width - 20;
-        if (this.silverText) {
-            this.silverText.setPosition(xPos, 20);
-        }
-        if (this.goldText) {
-            this.goldText.setPosition(xPos, 50);
-        }
-        if (this.gemText) {
-            this.gemText.setPosition(xPos, 80);
-        }
-        if (this.mountText) {
-            this.mountText.setPosition(xPos, 110);
+        // Update Loot UI positions
+        if (this.lootUI) {
+            this.lootUI.updatePositions();
         }
 
         if (this.gameManager) {

@@ -79,7 +79,7 @@ vi.mock('phaser', () => {
 });
 
 import { GasRingEffect, type GasRingConfig } from '../../../../src/scenes/planet-map/effects/gas-ring-effect';
-import type { PlanetData } from '../../../../src/scenes/planet-map/planet-registry';
+import type { PlanetData } from '../../../../src/scenes/planet-map/planet-data';
 
 describe('GasRingEffect', () => {
     let scene: Phaser.Scene;
@@ -136,7 +136,7 @@ describe('GasRingEffect', () => {
             name: 'Test Planet',
             type: 'gas',
             color: 'blue',
-            unlocked: true,
+            hidden: false,
             visualScale: 1.0,
         } as unknown as PlanetData;
 

@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 export interface GlimmeringSnowConfig extends BaseEffectConfig {
@@ -30,6 +30,11 @@ export class GlimmeringSnowEffect implements IPlanetEffect {
         // Create update listener (even if empty, for consistency and future use)
         this.updateListener = () => this.onUpdate();
         this.scene.events.on('update', this.updateListener);
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private createEmitters() {
@@ -102,19 +107,24 @@ export class GlimmeringSnowEffect implements IPlanetEffect {
     }
 
     private onUpdate() {
+        // Skip update if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (!this.planet.gameObject) return;
     }
 
     public setVisible(visible: boolean) {
         if (this.snowEmitter) {
             this.snowEmitter.setVisible(visible);
-            if (visible) this.snowEmitter.start();
-            else this.snowEmitter.stop();
+            if (visible && this.snowEmitter.start) this.snowEmitter.start();
+            else if (!visible && this.snowEmitter.stop) this.snowEmitter.stop();
         }
         if (this.glimmerEmitter) {
             this.glimmerEmitter.setVisible(visible);
-            if (visible) this.glimmerEmitter.start();
-            else this.glimmerEmitter.stop();
+            if (visible && this.glimmerEmitter.start) this.glimmerEmitter.start();
+            else if (!visible && this.glimmerEmitter.stop) this.glimmerEmitter.stop();
         }
     }
 

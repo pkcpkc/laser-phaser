@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig } from '../planet-effect';
 import { BaseRingEffect } from './base-ring-effect';
 
@@ -216,7 +216,7 @@ export class SolidRingEffect extends BaseRingEffect {
         addSparkles(frontContainer, true);
 
         // Initial visibility
-        if (!this.planet.unlocked) {
+        if (this.planet.hidden ?? true) {
             this.setVisible(false);
         }
 

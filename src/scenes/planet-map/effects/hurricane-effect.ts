@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { PlanetData } from '../planet-registry';
+import type { PlanetData } from '../planet-data';
 import type { BaseEffectConfig, IPlanetEffect } from '../planet-effect';
 
 export interface HurricaneConfig extends BaseEffectConfig {
@@ -23,7 +23,6 @@ export class HurricaneEffect implements IPlanetEffect {
     private scene: Phaser.Scene;
     private planet: PlanetData;
     private config: HurricaneConfig;
-    private updateListener: () => void;
 
     // Emitters
     private armEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -38,7 +37,7 @@ export class HurricaneEffect implements IPlanetEffect {
     private currentPos: Phaser.Math.Vector3;
     private speedVariance: number = 0;
     private sizeScale: number = 1.0;
-    private readonly PLANET_RADIUS = 22;
+    private readonly PLANET_RADIUS = 23;
 
     // Arm properties
     private armLengths: number[] = [];
@@ -84,9 +83,10 @@ export class HurricaneEffect implements IPlanetEffect {
         this.sizeScale = 0.5 + Math.random() * 0.7; // 0.5x to 1.2x size
 
         this.createEmitters();
+    }
 
-        this.updateListener = () => this.onUpdate();
-        this.scene.events.on('update', this.updateListener);
+    public update(_time: number, _delta: number) {
+        this.onUpdate();
     }
 
     private createEmitters() {
@@ -128,12 +128,22 @@ export class HurricaneEffect implements IPlanetEffect {
             speed: 0,
             frequency: 100,
             blendMode: 'NORMAL',
-            emitting: true
+            emitting: !(this.planet.hidden ?? true) // Don't start emitting if hidden
         });
         this.eyeEmitter.setDepth(2.1);
+
+        // Initial visibility based on planet hidden state
+        if (this.planet.hidden ?? true) {
+            this.setVisible(false);
+        }
     }
 
     private onUpdate() {
+        // Skip update entirely if planet is hidden
+        if (this.planet.hidden ?? true) {
+            return;
+        }
+
         if (!this.planet.gameObject || !this.armEmitter || !this.eyewallEmitter) return; // Emitters might be null if texture was missing
 
         const scale = this.planet.visualScale || 1.0;
@@ -167,12 +177,27 @@ export class HurricaneEffect implements IPlanetEffect {
 
         const zDepth = nz;
 
+        // Stricter visibility culling
         const fadeStart = 0.3;
-        const fadeEnd = -0.3;
+        const fadeEnd = -0.1; // Fully transparent slightly behind horizon
         let globalAlpha = 1.0;
+
         if (zDepth < fadeStart) {
             const t = (zDepth - fadeEnd) / (fadeStart - fadeEnd);
             globalAlpha = Math.max(0, Math.min(1, t));
+        }
+
+        // Apply global alpha
+        if (globalAlpha <= 0.01) {
+            // Optimization: Hide if fully transparent
+            this.armEmitter.setVisible(false);
+            this.eyewallEmitter.setVisible(false);
+            if (this.eyeEmitter) this.eyeEmitter.setVisible(false);
+            return;
+        } else {
+            this.armEmitter.setVisible(true);
+            this.eyewallEmitter.setVisible(true);
+            if (this.eyeEmitter) this.eyeEmitter.setVisible(true);
         }
 
         this.armEmitter.setAlpha(globalAlpha * 0.6);
@@ -190,68 +215,64 @@ export class HurricaneEffect implements IPlanetEffect {
         const cTilt = Math.cos(this.tiltAngle);
         const sTilt = Math.sin(this.tiltAngle);
 
-        if (globalAlpha > 0.01) {
+        const emitParticleOnSphere = (emitter: Phaser.GameObjects.Particles.ParticleEmitter, rValues: number[], spiralOffset: number) => {
+            for (let rVal of rValues) {
+                const r = rVal;
+                const theta = spiralOffset;
+                const psi = r / planetRadius;
 
-            const emitParticleOnSphere = (emitter: Phaser.GameObjects.Particles.ParticleEmitter, rValues: number[], spiralOffset: number) => {
-                for (let rVal of rValues) {
-                    const r = rVal;
-                    const theta = spiralOffset;
-                    const psi = r / planetRadius;
+                const localR = planetRadius * Math.sin(psi);
+                const localZ = planetRadius * Math.cos(psi);
 
-                    const localR = planetRadius * Math.sin(psi);
-                    const localZ = planetRadius * Math.cos(psi);
+                let lx = localR * Math.cos(theta);
+                let ly = localR * Math.sin(theta);
 
-                    let lx = localR * Math.cos(theta);
-                    let ly = localR * Math.sin(theta);
+                const rlx = lx * cTilt - ly * sTilt;
+                const rly = lx * sTilt + ly * cTilt;
 
-                    const rlx = lx * cTilt - ly * sTilt;
-                    const rly = lx * sTilt + ly * cTilt;
+                const px = rlx * right.x + rly * forward.x + localZ * normal.x;
+                const py = rlx * right.y + rly * forward.y + localZ * normal.y;
+                const pz = rlx * right.z + rly * forward.z + localZ * normal.z;
 
-                    const px = rlx * right.x + rly * forward.x + localZ * normal.x;
-                    const py = rlx * right.y + rly * forward.y + localZ * normal.y;
-                    const pz = rlx * right.z + rly * forward.z + localZ * normal.z;
-
-                    if (pz > -5) {
-                        if (pz > 0) {
-                            try {
-                                emitter.emitParticle(1, this.planet.x + px, this.planet.y + py);
-                            } catch (e) {
-                                // Prevent spamming errors
-                                // if (Math.random() < 0.001) console.error('Hurricane emit error:', e);
-                            }
-                        }
+                // Strict positive Z only
+                if (pz > 0) {
+                    try {
+                        // Emitter is at 0,0, so we pass World Coordinates
+                        emitter.emitParticle(1, this.planet.x + px, this.planet.y + py);
+                    } catch (e) {
+                        // console.error('Hurricane emit error:', e);
                     }
                 }
-            };
-
-            // 1. ARMS
-            const currentArmCount = 3;
-            for (let arm = 0; arm < currentArmCount; arm++) {
-                const armLength = this.armLengths[arm];
-                const armOffset = this.armOffsets[arm];
-                const armDensity = this.armDensities[arm];
-
-                const armBaseAngle = (arm / currentArmCount) * Math.PI * 2 + armOffset;
-                const pointsPerArm = Math.floor(6 * armDensity) + 4;
-
-                for (let p = 0; p < pointsPerArm; p++) {
-                    const t = Math.random() * armLength;
-                    const spiralTheta = -this.spiralAngle + armBaseAngle + t * 3.5;
-                    const radius = (3.5 * this.sizeScale) + t * this.MAX_RADIUS * scale * this.sizeScale;
-
-                    const noiseR = (Math.random() - 0.5) * 1.5 * scale * this.sizeScale;
-                    const finalR = radius + noiseR;
-
-                    emitParticleOnSphere(this.armEmitter, [finalR], spiralTheta);
-                }
             }
+        };
 
-            // 2. EYEWALL
-            for (let i = 0; i < 80; i++) {
-                const r = (3.0 * this.sizeScale) + Math.random() * 1.5 * scale * this.sizeScale;
-                const theta = Math.random() * Math.PI * 2;
-                emitParticleOnSphere(this.eyewallEmitter, [r], theta);
+        // 1. ARMS
+        const currentArmCount = 3;
+        for (let arm = 0; arm < currentArmCount; arm++) {
+            const armLength = this.armLengths[arm];
+            const armOffset = this.armOffsets[arm];
+            const armDensity = this.armDensities[arm];
+
+            const armBaseAngle = (arm / currentArmCount) * Math.PI * 2 + armOffset;
+            const pointsPerArm = Math.floor(6 * armDensity) + 4;
+
+            for (let p = 0; p < pointsPerArm; p++) {
+                const t = Math.random() * armLength;
+                const spiralTheta = -this.spiralAngle + armBaseAngle + t * 3.5;
+                const radius = (3.5 * this.sizeScale) + t * this.MAX_RADIUS * scale * this.sizeScale;
+
+                const noiseR = (Math.random() - 0.5) * 1.5 * scale * this.sizeScale;
+                const finalR = radius + noiseR;
+
+                emitParticleOnSphere(this.armEmitter, [finalR], spiralTheta);
             }
+        }
+
+        // 2. EYEWALL
+        for (let i = 0; i < 80; i++) {
+            const r = (3.0 * this.sizeScale) + Math.random() * 1.5 * scale * this.sizeScale;
+            const theta = Math.random() * Math.PI * 2;
+            emitParticleOnSphere(this.eyewallEmitter, [r], theta);
         }
 
         this.spiralAngle += 0.04;
@@ -262,13 +283,18 @@ export class HurricaneEffect implements IPlanetEffect {
         this.eyewallEmitter?.setVisible(visible);
         if (this.eyeEmitter) {
             this.eyeEmitter.setVisible(visible);
-            if (visible) this.eyeEmitter.start();
-            else this.eyeEmitter.stop();
+            if (visible && this.eyeEmitter.start) this.eyeEmitter.start();
+            else if (!visible && this.eyeEmitter.stop) this.eyeEmitter.stop();
         }
     }
 
+    public setDepth(depth: number) {
+        this.armEmitter?.setDepth(depth);
+        this.eyewallEmitter?.setDepth(depth);
+        this.eyeEmitter?.setDepth(depth + 0.1);
+    }
+
     public destroy() {
-        this.scene.events.off('update', this.updateListener);
         this.armEmitter?.destroy();
         this.eyewallEmitter?.destroy();
         this.eyeEmitter?.destroy();
