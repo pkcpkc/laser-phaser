@@ -117,20 +117,20 @@ export default class BaseScene extends Phaser.Scene {
 
         // Restart Listener
         this.input.keyboard?.on('keydown-SPACE', () => {
-            if (!this.gameManager.isGameActive()) {
+            if (!this.gameManager.isGameActive() || this.gameManager.isVictoryState()) {
                 this.onGameOverInput();
             }
         });
 
         this.fireButton.on('pointerdown', () => {
-            if (!this.gameManager.isGameActive()) {
+            if (!this.gameManager.isGameActive() || this.gameManager.isVictoryState()) {
                 this.onGameOverInput();
             }
         });
 
         // Add global click listener for Game Over input
         this.input.on('pointerdown', () => {
-            if (!this.gameManager.isGameActive()) {
+            if (!this.gameManager.isGameActive() || this.gameManager.isVictoryState()) {
                 this.onGameOverInput();
             }
         });
@@ -161,7 +161,6 @@ export default class BaseScene extends Phaser.Scene {
                 this.mountCount += value;
                 this.lootUI.updateCounts('mount', this.mountCount);
                 gameStatus.updateLoot('mount', value);
-                console.log('Mount collected!');
             } else {
                 this.silverCount += value;
                 this.lootUI.updateCounts('silver', this.silverCount);

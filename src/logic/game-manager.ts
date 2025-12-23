@@ -30,9 +30,9 @@ export class GameManager {
         this.showStatus('GAME OVER', '#00dd00');
     }
 
-    public handleVictory(color?: string) {
+    public handleVictory(color: string) {
         this.isVictory = true;
-        this.showStatus('VICTORY', color ?? '#ffff00', true);
+        this.showStatus('VICTORY', color, true);
     }
 
     private showStatus(text: string, color: string, pulsate: boolean = false) {
@@ -53,7 +53,8 @@ export class GameManager {
     }
 
     public isGameActive(): boolean {
-        return !this.isGameOver && !this.isVictory;
+        // Game allows movement/updates during victory until user input
+        return !this.isGameOver;
     }
 
     public reset() {

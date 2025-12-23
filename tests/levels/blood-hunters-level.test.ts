@@ -15,26 +15,28 @@ vi.mock('phaser', () => {
 });
 
 import { BloodHuntersLevel } from '../../src/levels/blood-hunters-level';
-import { SinusWave } from '../../src/waves/sinus';
+import { SinusFormation, DiamondFormation } from '../../src/formations/index.ts';
 import { BloodHunter2L } from '../../src/ships/configurations/blood-hunter-2l';
-import { GreenRocketCarrier2R } from '../../src/ships/configurations/green-rocket-carrier-2r';
+import { BloodFighter2L } from '../../src/ships/configurations/blood-fighter-2l';
 
 describe('BloodHuntersLevel', () => {
     it('should have correct name', () => {
         expect(BloodHuntersLevel.name).toBe('Blood Hunters');
     });
 
-    it('should have valid waves', () => {
-        expect(BloodHuntersLevel.waves).toHaveLength(6);
+    it('should have valid formations', () => {
+        expect(BloodHuntersLevel.formations).toHaveLength(5);
 
-        const wave1 = BloodHuntersLevel.waves[0];
-        expect(wave1.waveType).toBe(SinusWave);
-        expect(wave1.shipConfig).toBe(BloodHunter2L);
-        expect(wave1.count).toBe(1);
+        const formation1 = BloodHuntersLevel.formations[0];
+        expect(formation1[0].formationType).toBe(SinusFormation);
+        expect(formation1[0].shipConfig).toBe(BloodHunter2L);
+        expect(formation1[0].count).toBe(1);
 
-        const wave2 = BloodHuntersLevel.waves[1];
-        expect(wave2.waveType).toBe(SinusWave);
-        expect(wave2.shipConfig).toBe(GreenRocketCarrier2R);
-        expect(wave2.count).toBe(1);
+        const formation2 = BloodHuntersLevel.formations[2];
+        expect(formation2[0].formationType).toBe(DiamondFormation);
+        expect(formation2[0].shipConfig).toBe(BloodFighter2L);
+        expect(formation2[0].count).toBe(1);
     });
 });
+
+

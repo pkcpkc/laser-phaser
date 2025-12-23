@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import { Ship, type ShipCollisionConfig } from '../../ships/ship';
-import type { ShipConfig } from '../../ships/types';
+import { Ship, type ShipCollisionConfig } from '../ships/ship';
+import type { ShipConfig } from '../ships/types';
+import { BaseFormation } from './base-formation';
 
-export interface WaveConfig {
+export interface FormationConfig {
     enemyCount: { min: number; max: number };
     spacing: number;
     verticalOffset: number;
@@ -22,26 +23,18 @@ export interface EnemyData {
     verticalOffset: number;
 }
 
-export class SinusWave {
-    private scene: Phaser.Scene;
-    private enemies: EnemyData[] = [];
-    private config: WaveConfig;
-    private shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
-    private shipConfig?: ShipConfig;
-    private collisionConfig: ShipCollisionConfig;
-    private timers: Phaser.Time.TimerEvent[] = [];
+export class SinusFormation extends BaseFormation {
+    private config: FormationConfig;
+    protected enemies: EnemyData[] = [];
 
     constructor(
         scene: Phaser.Scene,
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
-        config?: Partial<WaveConfig>,
+        config?: Partial<FormationConfig>,
         shipConfig?: ShipConfig
     ) {
-        this.scene = scene;
-        this.shipClass = shipClass;
-        this.collisionConfig = collisionConfig;
-        this.shipConfig = shipConfig;
+        super(scene, shipClass, collisionConfig, shipConfig);
 
         // Default configuration
         this.config = {
@@ -57,7 +50,7 @@ export class SinusWave {
         };
     }
 
-    spawn() {
+    spawn(): void {
         const { width } = this.scene.scale;
         const startX = width * 0.5;
         const startY = -50; // Start slightly above screen
@@ -96,36 +89,17 @@ export class SinusWave {
                 verticalOffset: yOffset
             });
 
-            // Shooting behavior: Generic handling
-            // Check for continuous fire first
-            if (this.config.continuousFire) {
-                if (Math.random() < this.config.shootingChance) {
-                    // Random start delay 0-2s
-                    const startDelay = Phaser.Math.Between(0, 2000);
-                    this.scheduleContinuousFire(ship, startDelay);
-                }
-            } else if (this.config.shotsPerEnemy > 0) {
-                // Burst / Single fire mode
-                if (Math.random() < this.config.shootingChance) {
-                    for (let j = 0; j < this.config.shotsPerEnemy; j++) {
-                        const delay = Phaser.Math.Between(
-                            this.config.shotDelay.min,
-                            this.config.shotDelay.max
-                        ) + j * 500; // Stagger shots
-
-                        const timer = this.scene.time.delayedCall(delay, () => {
-                            if (enemy.active) {
-                                this.fireEnemyLaser(ship);
-                            }
-                        });
-                        this.timers.push(timer);
-                    }
-                }
-            }
+            // Shooting behavior
+            this.scheduleShootingBehavior(ship, enemy, {
+                shootingChance: this.config.shootingChance,
+                shotsPerEnemy: this.config.shotsPerEnemy,
+                shotDelay: this.config.shotDelay,
+                continuousFire: this.config.continuousFire
+            });
         }
     }
 
-    update(time: number) {
+    update(time: number): void {
         const { height } = this.scene.scale;
 
 
@@ -177,43 +151,7 @@ export class SinusWave {
         }
     }
 
-    private fireEnemyLaser(ship: Ship) {
-        if (!ship.sprite.active) return;
-        ship.fireLasers();
-    }
-
-    private scheduleContinuousFire(ship: Ship, delayOverride?: number) {
-        if (!ship.sprite.active) return;
-
-        const delay = delayOverride ?? Phaser.Math.Between(
-            this.config.shotDelay.min,
-            this.config.shotDelay.max
-        );
-
-        const timer = this.scene.time.delayedCall(delay, () => {
-            if (ship.sprite.active) {
-                this.fireEnemyLaser(ship);
-                // Reschedule
-                this.scheduleContinuousFire(ship);
-            }
-        });
-        this.timers.push(timer);
-    }
-
-    isComplete(): boolean {
-        return this.enemies.length === 0;
-    }
-
     getEnemies(): EnemyData[] {
         return this.enemies;
-    }
-
-    destroy() {
-        this.timers.forEach(timer => timer.remove());
-        this.timers = [];
-        this.enemies.forEach(enemyData => {
-            enemyData.ship.destroy();
-        });
-        this.enemies = [];
     }
 }

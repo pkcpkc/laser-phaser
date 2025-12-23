@@ -106,13 +106,15 @@ describe('MapInteractionManager', () => {
             visualScale: 1.0,
             interaction: {
                 levelId: 'blood-hunters'
-            }
+            },
+            tint: 0xffff00  // yellow
         };
 
         manager.launchLevelIfAvailable(planet);
         expect(mockScene.scene.start).toHaveBeenCalledWith('BloodHunters', {
             returnPlanetId: 'level-planet',
-            warpUniverseId: undefined
+            warpUniverseId: undefined,
+            planetColor: '#ffff00'
         });
     });
 

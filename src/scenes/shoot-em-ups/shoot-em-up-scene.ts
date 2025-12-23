@@ -71,13 +71,10 @@ export abstract class ShootEmUpScene extends BaseScene {
     }
 
     protected handleVictory() {
-        // Stop the game/level logic
-        if (this.level) {
-            this.level.destroy();
-            this.level = null;
-        }
+        // We do NOT stop the level here anymore.
+        // The game continues (physics, loot collection) until user input.
 
-        this.gameManager.handleVictory(this.planetColor);
+        this.gameManager.handleVictory(this.planetColor ?? '#ffff00');
     }
 
     protected handleGameOver() {

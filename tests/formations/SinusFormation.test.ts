@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SinusWave } from '../../src/waves/sinus/index';
+import { SinusFormation } from '../../src/formations/index.ts';
 import { Ship } from '../../src/ships/ship';
 
 // Mock Phaser
@@ -47,8 +47,8 @@ vi.mock('../../src/ships/ship', () => {
     };
 });
 
-describe('SinusWave', () => {
-    let sinusWave: SinusWave;
+describe('SinusFormation', () => {
+    let sinusFormation: SinusFormation;
     let mockScene: any;
     let mockShipClass: any;
     let mockCollisionConfig: any;
@@ -67,24 +67,24 @@ describe('SinusWave', () => {
         mockShipClass = Ship;
         mockCollisionConfig = {};
 
-        sinusWave = new SinusWave(mockScene, mockShipClass, mockCollisionConfig, {
+        sinusFormation = new SinusFormation(mockScene, mockShipClass, mockCollisionConfig, {
             enemyCount: { min: 3, max: 3 }, // Force 3 enemies
             shootingChance: 0 // Disable shooting for basic movement tests
         });
     });
 
     it('should spawn enemies correctly', () => {
-        sinusWave.spawn();
-        const enemies = sinusWave.getEnemies();
+        sinusFormation.spawn();
+        const enemies = sinusFormation.getEnemies();
         expect(enemies).toHaveLength(3);
     });
 
     it('should update enemy positions', () => {
-        sinusWave.spawn();
-        const enemies = sinusWave.getEnemies();
+        sinusFormation.spawn();
+        const enemies = sinusFormation.getEnemies();
 
         // Mock time update
-        sinusWave.update(1000);
+        sinusFormation.update(1000);
 
         // Check if setPosition was called
         expect(enemies[0].ship.sprite.setPosition).toHaveBeenCalled();
@@ -92,41 +92,41 @@ describe('SinusWave', () => {
     });
 
     it('should remove enemies when they go out of bounds', () => {
-        sinusWave.spawn();
-        const enemies = sinusWave.getEnemies();
+        sinusFormation.spawn();
+        const enemies = sinusFormation.getEnemies();
         const firstEnemy = enemies[0];
 
         // Move enemy out of bounds
         firstEnemy.ship.sprite.y = 700; // > 600 + 50
 
-        sinusWave.update(1000);
+        sinusFormation.update(1000);
 
         expect(firstEnemy.ship.destroy).toHaveBeenCalled();
-        expect(sinusWave.getEnemies()).toHaveLength(2);
+        expect(sinusFormation.getEnemies()).toHaveLength(2);
     });
 
     it('should be complete when all enemies are gone', () => {
-        sinusWave.spawn();
-        const enemies = sinusWave.getEnemies();
+        sinusFormation.spawn();
+        const enemies = sinusFormation.getEnemies();
 
         // Destroy all enemies
-        enemies.forEach(e => {
+        enemies.forEach((e: any) => {
             e.ship.sprite.y = 700;
         });
 
-        sinusWave.update(1000);
+        sinusFormation.update(1000);
 
-        expect(sinusWave.isComplete()).toBe(true);
+        expect(sinusFormation.isComplete()).toBe(true);
     });
 
     it('should cleanup on destroy', () => {
-        sinusWave.spawn();
-        const enemies = sinusWave.getEnemies();
+        sinusFormation.spawn();
+        const enemies = sinusFormation.getEnemies();
         const firstEnemyShip = enemies[0].ship;
 
-        sinusWave.destroy();
+        sinusFormation.destroy();
 
         expect(firstEnemyShip.destroy).toHaveBeenCalled();
-        expect(sinusWave.getEnemies()).toHaveLength(0);
+        expect(sinusFormation.getEnemies()).toHaveLength(0);
     });
 });

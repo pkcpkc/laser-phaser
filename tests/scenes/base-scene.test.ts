@@ -214,8 +214,9 @@ describe('BaseScene', () => {
         (scene as any).handleResize({ width: 1000, height: 800 });
 
         expect(scene.matter.world.setBounds).toHaveBeenCalledWith(0, 0, 1000, 800);
-        // Verify mock calls on text objects
-        expect(mockGameObject.setPosition).toHaveBeenCalled();
+        // Verify lootUI.updatePositions was called
+        const lootUIInstance = (LootUI as any).mock.instances[0];
+        expect(lootUIInstance.updatePositions).toHaveBeenCalled();
     });
 
     it('should handle loot collection - silver', () => {
@@ -230,8 +231,9 @@ describe('BaseScene', () => {
         // Invoke directly to test logic
         (scene as any).handleLootCollected(mockLoot);
 
-        // Verify lootUI.updateCounts was called
+        // Verify lootUI.updateCounts was called with accumulated count
         const lootUIInstance = (LootUI as any).mock.instances[0];
+        // Since silverCount starts at 0 (from GameStatus mock), it should be 10
         expect(lootUIInstance.updateCounts).toHaveBeenCalledWith('silver', 10);
 
         // Verify delayed call

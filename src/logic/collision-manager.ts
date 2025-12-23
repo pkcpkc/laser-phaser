@@ -59,12 +59,6 @@ export class CollisionManager {
                 }
 
                 if (gameObjectA && gameObjectB) {
-                    if (gameObjectA.constructor.name === 'Loot' || gameObjectB.constructor.name === 'Loot') {
-                        console.log('!!! LOOT COLLISION DETECTED !!!');
-                        console.log('A:', gameObjectA.constructor.name, bodyA.collisionFilter.category);
-                        console.log('B:', gameObjectB.constructor.name, bodyB.collisionFilter.category);
-                    }
-
                     const categoryA = bodyA.collisionFilter.category;
                     const categoryB = bodyB.collisionFilter.category;
 

@@ -26,6 +26,9 @@ describe('GameManager', () => {
             setVisible: vi.fn().mockReturnThis(),
             setDepth: vi.fn().mockReturnThis(),
             setPosition: vi.fn().mockReturnThis(),
+            setText: vi.fn().mockReturnThis(),
+            setColor: vi.fn().mockReturnThis(),
+            setScale: vi.fn().mockReturnThis(),
         };
 
         mockRestartText = {
@@ -39,11 +42,15 @@ describe('GameManager', () => {
             scale: { width: 800, height: 600 },
             add: {
                 text: vi.fn((_x, _y, text) => {
-                    if (text === 'GAME OVER') return mockGameOverText;
+                    if (text === '' || text === 'GAME OVER' || text === 'VICTORY') return mockGameOverText;
                     if (text === 'Press FIRE') return mockRestartText;
-                    return {};
+                    return mockGameOverText; // default to game over text
                 }),
             },
+            tweens: {
+                add: vi.fn(),
+                killTweensOf: vi.fn(),
+            }
         };
 
         gameManager = new GameManager(mockScene);
@@ -66,6 +73,12 @@ describe('GameManager', () => {
         expect(mockRestartText.setVisible).toHaveBeenCalledWith(true);
     });
 
+    it('should stay active on victory', () => {
+        gameManager.handleVictory('#ffffff');
+        expect(gameManager.isGameActive()).toBe(true);
+        expect(gameManager.isVictoryState()).toBe(true);
+    });
+
     it('should reset game state', () => {
         gameManager.handleGameOver(); // set to game over first
         gameManager.reset();
@@ -81,6 +94,6 @@ describe('GameManager', () => {
         gameManager.handleResize(newWidth, newHeight);
 
         expect(mockGameOverText.setPosition).toHaveBeenCalledWith(newWidth * 0.5, newHeight * 0.4);
-        expect(mockRestartText.setPosition).toHaveBeenCalledWith(newWidth * 0.5, newHeight * 0.6);
+        expect(mockRestartText.setPosition).toHaveBeenCalledWith(newWidth * 0.5, newHeight * 0.4 + 60);
     });
 });

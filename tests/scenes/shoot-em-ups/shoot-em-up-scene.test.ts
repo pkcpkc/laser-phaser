@@ -183,4 +183,26 @@ describe('ShootEmUpScene', () => {
 
         expect(Level).toHaveBeenCalled();
     });
+    it('should NOT destroy level on victory', () => {
+        // Setup level
+        (scene as any).createPlayerShip = vi.fn();
+        (scene as any).createUI = vi.fn();
+        (scene as any).setupControls = vi.fn();
+        scene.scale.on = vi.fn();
+
+        scene.create();
+
+        const level = (scene as any).level;
+        expect(level).toBeDefined();
+
+        // Mock gameManager.handleVictory
+        (scene as any).gameManager.handleVictory = vi.fn();
+
+        // Trigger handleVictory
+        (scene as any).handleVictory();
+
+        // Level should persist
+        expect(level.destroy).not.toHaveBeenCalled();
+        expect((scene as any).gameManager.handleVictory).toHaveBeenCalled();
+    });
 });
