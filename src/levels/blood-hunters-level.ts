@@ -2,7 +2,7 @@ import type { LevelConfig } from './level';
 import { SinusWave } from '../waves/sinus';
 
 import { BloodHunter2L } from '../ships/configurations/blood-hunter-2l';
-import { GreenRocketCarrier2R } from '../ships/configurations/green-rocket-carrier-2r';
+import { BloodFighter2L } from '../ships/configurations/blood-fighter-2l';
 
 export const BloodHuntersLevel: LevelConfig = {
     name: 'Blood Hunters',
@@ -17,7 +17,7 @@ export const BloodHuntersLevel: LevelConfig = {
             }
         }, {
             waveType: SinusWave, // Reusing SinusWave for now
-            shipConfig: GreenRocketCarrier2R,
+            shipConfig: BloodFighter2L,
             count: 1,
             interval: 3000,
             config: {
@@ -36,7 +36,7 @@ export const BloodHuntersLevel: LevelConfig = {
             }
         }, {
             waveType: SinusWave, // Reusing SinusWave for now
-            shipConfig: GreenRocketCarrier2R,
+            shipConfig: BloodFighter2L,
             count: 1,
             interval: 3000,
             config: {
@@ -55,7 +55,7 @@ export const BloodHuntersLevel: LevelConfig = {
             }
         }, {
             waveType: SinusWave, // Reusing SinusWave for now
-            shipConfig: GreenRocketCarrier2R,
+            shipConfig: BloodFighter2L,
             count: 1,
             interval: 3000,
             config: {

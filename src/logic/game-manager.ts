@@ -30,9 +30,9 @@ export class GameManager {
         this.showStatus('GAME OVER', '#00dd00');
     }
 
-    public handleVictory() {
+    public handleVictory(color?: string) {
         this.isVictory = true;
-        this.showStatus('VICTORY', '#ffff00', true);
+        this.showStatus('VICTORY', color ?? '#ffff00', true);
     }
 
     private showStatus(text: string, color: string, pulsate: boolean = false) {

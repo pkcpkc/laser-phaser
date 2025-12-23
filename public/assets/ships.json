@@ -4,8 +4,8 @@
 			"image": "ships.png",
 			"format": "RGBA8888",
 			"size": {
-				"w": 202,
-				"h": 57
+				"w": 207,
+				"h": 80
 			},
 			"scale": 1,
 			"frames": [
@@ -52,6 +52,27 @@
 					}
 				},
 				{
+					"filename": "blood-fighter",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 45,
+						"h": 45
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 45,
+						"h": 45
+					},
+					"frame": {
+						"x": 160,
+						"y": 2,
+						"w": 45,
+						"h": 45
+					}
+				},
+				{
 					"filename": "blood-hunter",
 					"rotated": false,
 					"trimmed": false,
@@ -66,8 +87,8 @@
 						"h": 38
 					},
 					"frame": {
-						"x": 160,
-						"y": 2,
+						"x": 106,
+						"y": 40,
 						"w": 40,
 						"h": 38
 					}

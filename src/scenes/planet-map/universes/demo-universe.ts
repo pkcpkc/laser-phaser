@@ -12,6 +12,7 @@ import { GhostShadeEffect } from '../effects/ghost-shade-effect';
 import { GlimmeringSnowEffect } from '../effects/glimmering-snow-effect';
 import { SpikesEffect } from '../effects/spikes-effect';
 import { BubbleEffect } from '../effects/bubble-effect';
+import { ColorCircleEffect } from '../effects/color-circle-effect';
 
 // Helper to Create Object References
 const createPlanet = (data: Partial<PlanetData>): PlanetData => {
@@ -245,6 +246,22 @@ export class DemoUniverse extends BaseUniverse {
             })
         ];
 
+        const prism = createPlanet({
+            id: 'prism',
+            name: 'Prism',
+            visualScale: 1.2,
+            tint: 0x004466, // Deep blue ocean
+            x: 0, y: 0
+        });
+        prism.effects = [
+            new ColorCircleEffect(scene, prism, {
+                type: 'color-circle',
+                colors: [0x00DDFF, 0xFF00DD, 0xDDFF00, 0x00FFAA], // 4 waves: Cyan, magenta, yellow, mint
+                speed: 1.2,
+                waveWidth: 1.0
+            })
+        ];
+
         return [
             astra,
             aurelia,
@@ -257,7 +274,8 @@ export class DemoUniverse extends BaseUniverse {
             umbra,
             metropolis,
             cyber,
-            thalassa
+            thalassa,
+            prism
         ];
     }
 }

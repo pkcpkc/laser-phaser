@@ -253,9 +253,13 @@ export class MapInteractionManager {
 
     private launchLevel(levelId: string, planet: PlanetData) {
         if (levelId === 'blood-hunters') {
+            // Convert planet tint to hex color string
+            const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
+
             this.scene.scene.start('BloodHunters', {
                 returnPlanetId: planet.id,
-                warpUniverseId: planet.warpUniverseId
+                warpUniverseId: planet.warpUniverseId,
+                planetColor: planetColor
             });
         } else {
             console.warn('Level not implemented:', levelId);

@@ -5,14 +5,16 @@ export abstract class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
     protected returnPlanetId?: string;
     protected warpUniverseId?: string;
+    protected planetColor?: string;
 
     constructor(key: string) {
         super(key);
     }
 
-    init(data: { returnPlanetId?: string, warpUniverseId?: string }) {
+    init(data: { returnPlanetId?: string, warpUniverseId?: string, planetColor?: string }) {
         this.returnPlanetId = data?.returnPlanetId;
         this.warpUniverseId = data?.warpUniverseId;
+        this.planetColor = data?.planetColor;
     }
 
     create() {
@@ -75,7 +77,7 @@ export abstract class ShootEmUpScene extends BaseScene {
             this.level = null;
         }
 
-        this.gameManager.handleVictory();
+        this.gameManager.handleVictory(this.planetColor);
     }
 
     protected handleGameOver() {

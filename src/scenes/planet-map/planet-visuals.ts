@@ -181,9 +181,11 @@ export class PlanetVisual {
 
         // Set target frame and make it fully opaque BEHIND the source
         targetObj.setText(newFrame);
-        targetObj.setAlpha(1);
         targetObj.setDepth(0.9); // Behind the source
         sourceObj.setDepth(1);   // Source stays on top during fade
+
+        // IMPORTANT: Keep target invisible initially to prevent flash during postFX application
+        targetObj.setAlpha(0);
 
         // Apply desaturation + tint to target only (source already has it)
         this.applyTintWithDesaturation(targetObj);
@@ -193,6 +195,9 @@ export class PlanetVisual {
             targetObj.setScale(targetScale);
         }
         targetObj.setAngle(45);
+
+        // Now make target visible AFTER postFX are applied
+        targetObj.setAlpha(1);
 
         this.scene.tweens.killTweensOf(targetObj);
         this.scene.tweens.killTweensOf(sourceObj);
