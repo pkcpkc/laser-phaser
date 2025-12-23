@@ -92,6 +92,9 @@ export abstract class BaseFormation {
         );
 
         const timer = this.scene.time.delayedCall(delay, () => {
+            // Remove myself from the list
+            this.timers = this.timers.filter(t => t !== timer);
+
             if (ship.sprite.active) {
                 this.fireEnemyLaser(ship);
                 this.scheduleContinuousFire(ship, shotDelay);

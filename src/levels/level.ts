@@ -2,8 +2,19 @@ import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../ships/ship';
 import type { ShipConfig } from '../ships/types';
 
+export interface IFormation {
+    spawn(): void;
+    update(time: number, delta: number): void;
+    isComplete(): boolean;
+    destroy(): void;
+}
+
+export interface IFormationConstructor {
+    new(scene: Phaser.Scene, shipClass: any, collisionConfig: ShipCollisionConfig, config: any, shipConfig?: ShipConfig): IFormation;
+}
+
 export interface FormationConfig {
-    formationType: any; // Constructor for the formation (e.g., SinusFormation)
+    formationType: IFormationConstructor; // Constructor for the formation (e.g., SinusFormation)
     shipClass?: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
     shipConfig?: ShipConfig;
     config?: any; // Specific config for the formation (e.g., SinusFormationConfig)
@@ -30,7 +41,7 @@ class FormationRunner {
     private scene: Phaser.Scene;
     private config: FormationConfig;
     private collisionConfig: ShipCollisionConfig;
-    private instance: any = null;
+    private instance: IFormation | null = null;
     private repeatCount: number = 0;
     private maxRepeats: number;
     private state: RunnerState;

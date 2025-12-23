@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import type { Laser } from './types';
+import { Projectile } from './projectile';
 
 export abstract class BaseLaser implements Laser {
     abstract readonly TEXTURE_KEY: string;
@@ -39,10 +40,16 @@ export abstract class BaseLaser implements Laser {
     ): Phaser.Physics.Matter.Image | undefined {
         this.createTexture(scene);
 
-        const laser = scene.matter.add.image(x, y, this.TEXTURE_KEY);
-        laser.setFrictionAir(0);
-        laser.setFixedRotation();
-        laser.setSleepThreshold(-1);
+        // Instantiate pure Projectile
+        const laser = new Projectile(
+            scene,
+            x,
+            y,
+            this.TEXTURE_KEY,
+            undefined,
+            category,
+            collidesWith
+        );
 
         laser.setRotation(angle);
         if (this.scale) {
@@ -50,42 +57,12 @@ export abstract class BaseLaser implements Laser {
         }
 
         // Calculate velocity vector from angle and speed
-        // Phaser rotation is in radians. 0 is right, PI/2 is down, PI is left, -PI/2 is up.
-        // However, standard math usually has 0 as right. 
-        // Let's assume the angle passed in matches Phaser's coordinate system.
         const velocityX = Math.cos(angle) * this.SPEED;
         const velocityY = Math.sin(angle) * this.SPEED;
 
         laser.setVelocity(velocityX, velocityY);
 
-        laser.setCollisionCategory(category);
-        laser.setCollidesWith(collidesWith);
-
-        const timer = scene.time.addEvent({
-            delay: 100,
-            loop: true,
-            callback: () => {
-                if (!laser.active) {
-                    timer.remove();
-                    return;
-                }
-                // Check bounds for cleanup
-                if (laser.y < -100 || laser.y > scene.scale.height + 100 ||
-                    laser.x < -100 || laser.x > scene.scale.width + 100) {
-                    laser.destroy();
-                    timer.remove();
-                }
-            }
-        });
-
-        laser.setOnCollide((data: any) => {
-            const bodyB = data.bodyB;
-            if (!bodyB.gameObject) {
-                laser.destroy();
-                timer.remove();
-            }
-        });
-
         return laser;
     }
 }
+

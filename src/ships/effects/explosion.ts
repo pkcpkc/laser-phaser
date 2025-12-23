@@ -45,14 +45,7 @@ export class Explosion {
             emitting: false
         });
 
-        this.centerEmitter = scene.add.particles(0, 0, 'flare-white', {
-            speed: 0,
-            scale: { start: 2, end: 0 },
-            lifespan: 300,
-            blendMode: 'ADD',
-            tint: 0xffa500, // Orange
-            emitting: false
-        });
+
 
         this.emitter.setDepth(200);
         this.sparkEmitter.setDepth(201);

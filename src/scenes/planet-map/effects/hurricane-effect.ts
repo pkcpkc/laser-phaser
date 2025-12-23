@@ -138,6 +138,15 @@ export class HurricaneEffect implements IPlanetEffect {
         }
     }
 
+    // Reusable objects to reduce GC
+    private readonly tempQ = new Phaser.Math.Quaternion();
+    private readonly tempVec3 = new Phaser.Math.Vector3();
+    private readonly globalUp = new Phaser.Math.Vector3(0, 1, 0);
+    private readonly normal = new Phaser.Math.Vector3();
+    private readonly right = new Phaser.Math.Vector3();
+    private readonly forward = new Phaser.Math.Vector3();
+
+
     private onUpdate() {
         // Skip update entirely if planet is hidden
         if (this.planet.hidden ?? true) {
@@ -152,9 +161,8 @@ export class HurricaneEffect implements IPlanetEffect {
         const rotSpeed = (0.025 + this.speedVariance) / scale;
 
         // Rotation
-        const q = new Phaser.Math.Quaternion();
-        q.setAxisAngle(this.orbitAxis, rotSpeed);
-        this.currentPos.transformQuat(q).normalize();
+        this.tempQ.setAxisAngle(this.orbitAxis, rotSpeed);
+        this.currentPos.transformQuat(this.tempQ).normalize();
 
         // --- SPHERICAL BASIS CALCULATION ---
         const nx = this.currentPos.x;
@@ -162,18 +170,15 @@ export class HurricaneEffect implements IPlanetEffect {
         const nz = this.currentPos.z;
 
         // Basis Vectors
-        const globalUp = new Phaser.Math.Vector3(0, 1, 0);
-        const normal = new Phaser.Math.Vector3(nx, ny, nz);
-        const right = new Phaser.Math.Vector3();
-        const forward = new Phaser.Math.Vector3();
+        this.normal.set(nx, ny, nz);
 
-        if (Math.abs(normal.dot(globalUp)) > 0.99) {
-            right.crossVectors(new Phaser.Math.Vector3(1, 0, 0), normal).normalize();
+        if (Math.abs(this.normal.dot(this.globalUp)) > 0.99) {
+            this.right.crossVectors(this.tempVec3.set(1, 0, 0), this.normal).normalize();
         } else {
-            right.crossVectors(globalUp, normal).normalize();
+            this.right.crossVectors(this.globalUp, this.normal).normalize();
         }
 
-        forward.crossVectors(normal, right).normalize();
+        this.forward.crossVectors(this.normal, this.right).normalize();
 
         const zDepth = nz;
 
@@ -230,9 +235,9 @@ export class HurricaneEffect implements IPlanetEffect {
                 const rlx = lx * cTilt - ly * sTilt;
                 const rly = lx * sTilt + ly * cTilt;
 
-                const px = rlx * right.x + rly * forward.x + localZ * normal.x;
-                const py = rlx * right.y + rly * forward.y + localZ * normal.y;
-                const pz = rlx * right.z + rly * forward.z + localZ * normal.z;
+                const px = rlx * this.right.x + rly * this.forward.x + localZ * this.normal.x;
+                const py = rlx * this.right.y + rly * this.forward.y + localZ * this.normal.y;
+                const pz = rlx * this.right.z + rly * this.forward.z + localZ * this.normal.z;
 
                 // Strict positive Z only
                 if (pz > 0) {

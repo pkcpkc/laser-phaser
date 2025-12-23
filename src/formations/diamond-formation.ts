@@ -50,7 +50,7 @@ export class DiamondFormation extends BaseFormation {
             shotDelay: { min: 1000, max: 3000 },
             continuousFire: false,
             movementVariation: 10,
-            formationGrid: [1, 2, 3], // Default 1-2-3 pattern
+            formationGrid: config?.formationGrid || [1, 2, 3], // Default 1-2-3 pattern
             ...config
         };
     }
