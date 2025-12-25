@@ -1,29 +1,28 @@
 import type { ShipDefinition } from '../types';
-import { markers as allMarkers } from '../../generated/green-rocket-carrier.markers';
+import { markers as allMarkers } from '../markers-generated/green-rocket-carrier.markers';
 
 export const GreenRocketCarrierDefinition: ShipDefinition = {
     id: 'green-rocket-carrier',
     assetKey: 'ships',
     frame: 'green-rocket-carrier',
     assetPath: 'assets/ships/green-rocket-carrier.png',
-    markers: allMarkers.map(m => ({ ...m, type: 'rocket' })),
+    markers: allMarkers,
     physics: {
-        mass: 40,
-        frictionAir: 0,
-        fixedRotation: true,
-        initialAngle: -90
+        frictionAir: 0.05,
+        fixedRotation: false,
+        mass: 5
     },
     gameplay: {
-        health: 150,
+        health: 4,
         speed: 2,
-        thrust: 0.15,
-        rotationSpeed: 0.04
+        rotationSpeed: 0.08,
+        thrust: 0.1
     },
     explosion: {
-        frame: 'green',
-        speed: { min: 50, max: 200 },
-        scale: { start: 0.7, end: 0 },
-        lifespan: 1000,
+        frame: 'red', // Default, user can adjust
+        speed: { min: 30, max: 100 },
+        scale: { start: 0.8, end: 0 },
+        lifespan: 800,
         blendMode: 'ADD'
     }
 };

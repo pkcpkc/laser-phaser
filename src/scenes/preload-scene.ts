@@ -26,7 +26,7 @@ export default class PreloadScene extends Phaser.Scene {
         this.logo.setAlpha(0); // Hide initially to prevent size jump
 
         // Add error handlers for asset loading
-        this.load.on('loaderror', (file: any) => {
+        this.load.on('loaderror', (file: Phaser.Loader.File) => {
             console.error('Error loading file:', file.key, file.src);
         });
 

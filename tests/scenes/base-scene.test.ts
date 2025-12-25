@@ -34,7 +34,8 @@ import { GameManager } from '../../src/logic/game-manager';
 import { CollisionManager } from '../../src/logic/collision-manager';
 import { PlayerController } from '../../src/logic/player-controller';
 import { Starfield } from '../../src/backgrounds/starfield';
-import { BigCruiser } from '../../src/ships/big-cruiser';
+import { BigCruiserWhiteLaser } from '../../src/ships/configurations/big-cruiser-white-laser';
+import { Ship } from '../../src/ships/ship';
 import { EngineTrail } from '../../src/ships/effects/engine-trail';
 import { LootUI } from '../../src/ui/loot-ui';
 
@@ -51,8 +52,8 @@ vi.mock('../../src/logic/player-controller', () => ({
 vi.mock('../../src/backgrounds/starfield', () => ({
     Starfield: vi.fn()
 }));
-vi.mock('../../src/ships/big-cruiser', () => ({
-    BigCruiser: vi.fn()
+vi.mock('../../src/ships/ship', () => ({
+    Ship: vi.fn()
 }));
 vi.mock('../../src/ships/effects/engine-trail', () => ({
     EngineTrail: vi.fn()
@@ -90,6 +91,7 @@ describe('BaseScene', () => {
     let mockGameObject: any;
 
     beforeEach(() => {
+        vi.clearAllMocks();
         scene = new ConcreteBaseScene();
 
         // Mock Phaser Scene stuff
@@ -176,7 +178,7 @@ describe('BaseScene', () => {
             };
         });
 
-        (BigCruiser as any).mockImplementation(function () {
+        (Ship as any).mockImplementation(function () {
             return {
                 setEffect: vi.fn(),
                 sprite: {
@@ -194,7 +196,7 @@ describe('BaseScene', () => {
         expect(GameManager).toHaveBeenCalledWith(scene);
         expect(CollisionManager).toHaveBeenCalledWith(scene, expect.any(Function), expect.any(Function));
         expect(Starfield).toHaveBeenCalledWith(scene, 'nebula', undefined);
-        expect(BigCruiser).toHaveBeenCalled();
+        expect(Ship).toHaveBeenCalledWith(expect.any(Object), expect.any(Number), expect.any(Number), BigCruiserWhiteLaser, expect.any(Object));
         expect(EngineTrail).toHaveBeenCalled();
     });
 
@@ -249,7 +251,7 @@ describe('BaseScene', () => {
         gameOverCallback();
 
         // Expect ship explode
-        const shipInstance = (BigCruiser as any).mock.instances[0];
+        const shipInstance = (Ship as any).mock.instances[0];
         expect(shipInstance.explode).toHaveBeenCalled();
 
         // Expect game manager handle game over

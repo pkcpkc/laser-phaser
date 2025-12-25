@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ShootEmUpScene } from '../../../src/scenes/shoot-em-ups/shoot-em-up-scene';
-import { Level } from '../../../src/levels/level';
+import { Level, type LevelConfig } from '../../../src/scenes/shoot-em-ups/levels/level';
 
 const MockPhaser = vi.hoisted(() => {
     const mock = {
@@ -81,7 +81,7 @@ vi.mock('phaser', () => {
 });
 
 // Mock Level
-vi.mock('../../../src/levels/level', () => {
+vi.mock('../../../src/scenes/shoot-em-ups/levels/level', () => {
     return {
         // Use a function declaration so it can be called with 'new'
         Level: vi.fn(function () {
@@ -94,13 +94,19 @@ vi.mock('../../../src/levels/level', () => {
     };
 });
 
+// Mock LevelConfig for testing
+const mockLevelConfig: LevelConfig = {
+    name: 'Test Level',
+    formations: []
+};
+
 // Concrete class for testing abstract base
 class TestScene extends ShootEmUpScene {
     constructor() {
         super('TestScene');
     }
-    protected getLevelClass() {
-        return class { }; // Mock config class
+    protected getLevelClass(): LevelConfig {
+        return mockLevelConfig;
     }
 }
 

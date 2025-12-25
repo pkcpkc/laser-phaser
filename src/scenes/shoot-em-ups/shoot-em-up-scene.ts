@@ -1,5 +1,5 @@
 import BaseScene from '../base-scene';
-import { Level } from '../../levels/level';
+import { Level, type LevelConfig } from './levels/level';
 
 export abstract class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
@@ -23,7 +23,7 @@ export abstract class ShootEmUpScene extends BaseScene {
 
     }
 
-    protected abstract getLevelClass(): any;
+    protected abstract getLevelClass(): LevelConfig;
 
     private startLevel() {
         console.log('Starting Level');
@@ -35,7 +35,8 @@ export abstract class ShootEmUpScene extends BaseScene {
             laserCategory: categories.enemyLaserCategory,
             laserCollidesWith: categories.shipCategory,
             lootCategory: categories.lootCategory,
-            lootCollidesWith: categories.shipCategory
+            lootCollidesWith: categories.shipCategory,
+            isEnemy: true
         };
 
         const LevelClass = this.getLevelClass();

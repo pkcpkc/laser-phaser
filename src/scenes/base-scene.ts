@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BigCruiser } from '../ships/big-cruiser';
+import { BigCruiserWhiteLaser } from '../ships/configurations/big-cruiser-white-laser';
 import { Starfield } from '../backgrounds/starfield';
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
@@ -77,7 +77,7 @@ export default class BaseScene extends Phaser.Scene {
             lootCollidesWith: categories.shipCategory
         };
 
-        this.ship = new BigCruiser(this, width * 0.5, height - 50, collisionConfig);
+        this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaser, collisionConfig);
         this.ship.setEffect(new EngineTrail(this.ship));
     }
 

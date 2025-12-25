@@ -203,7 +203,7 @@ export class SolidRingEffect extends BaseRingEffect {
 
                 this.scene.tweens.add({
                     targets: trailSprites,
-                    alpha: (target: any) => target.getData('baseAlpha'),
+                    alpha: (target: Phaser.GameObjects.Image) => target.getData('baseAlpha'),
                     duration: duration,
                     delay: delay,
                     yoyo: true,

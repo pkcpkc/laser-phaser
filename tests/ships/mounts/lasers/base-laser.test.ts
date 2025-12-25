@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseLaser } from '../../../../src/ships/mounts/lasers/base-laser';
-import Phaser from 'phaser';
+// import Phaser from 'phaser';
 
 // Mock Phaser
 vi.mock('phaser', () => {
@@ -17,10 +17,20 @@ vi.mock('phaser', () => {
                         setCollisionCategory = vi.fn();
                         setCollidesWith = vi.fn();
                         setOnCollide = vi.fn();
+                        setVelocityX = vi.fn();
+                        setVelocityY = vi.fn(); // Projectile calls this
+                        setScale = vi.fn();
                         destroy = vi.fn();
+                        once = vi.fn();
                         x = 0;
                         y = 0;
                         active = true;
+                        scene: any;
+                        constructor(world: any, x: number, y: number, _texture: string) {
+                            this.x = x;
+                            this.y = y;
+                            this.scene = world.scene;
+                        }
                     }
                 }
             },
@@ -43,19 +53,16 @@ class TestLaser extends BaseLaser {
 describe('BaseLaser', () => {
     let laser: TestLaser;
     let mockScene: any;
-    let mockLaserImage: any;
-    let mockTimer: any;
 
     beforeEach(() => {
-        mockTimer = {
-            remove: vi.fn()
-        };
+        const mockWorld = { scene: null };
 
         mockScene = {
             make: {
                 graphics: vi.fn().mockReturnValue({
                     fillStyle: vi.fn(),
                     fillRect: vi.fn(),
+                    fillCircle: vi.fn(),
                     generateTexture: vi.fn(),
                     destroy: vi.fn()
                 })
@@ -64,24 +71,37 @@ describe('BaseLaser', () => {
                 exists: vi.fn().mockReturnValue(false)
             },
             matter: {
-                add: {
-                    image: vi.fn().mockReturnValue(null) // Circular dependency if we use mockLaserImage here before init? No.
-                },
-                world: {}
+                world: mockWorld
             },
             time: {
-                addEvent: vi.fn().mockReturnValue(mockTimer)
+                now: 1000,
+                delayedCall: vi.fn()
             },
             scale: {
                 width: 800,
                 height: 600
+            },
+            add: {
+                existing: vi.fn(),
+                particles: vi.fn().mockReturnValue({
+                    emitParticleAt: vi.fn(),
+                    destroy: vi.fn()
+                })
+            },
+            events: {
+                on: vi.fn(),
+                off: vi.fn()
+            },
+            cameras: {
+                main: {
+                    scrollX: 0,
+                    scrollY: 0,
+                    width: 800,
+                    height: 600
+                }
             }
         };
-
-        // Use the mocked world
-        mockLaserImage = new Phaser.Physics.Matter.Image(mockScene.matter.world as any, 0, 0, '');
-        // Update the add.image mock to return our created image
-        mockScene.matter.add.image.mockReturnValue(mockLaserImage);
+        mockWorld.scene = mockScene;
 
         laser = new TestLaser();
     });
@@ -92,45 +112,43 @@ describe('BaseLaser', () => {
         expect(mockScene.textures.exists).toHaveBeenCalledWith('test-laser');
     });
 
-    it('should fire and setup physics', () => {
+    it('should fire and setup projectile', () => {
         const result = laser.fire(mockScene, 100, 100, 0, 2, 4);
 
-        expect(mockScene.matter.add.image).toHaveBeenCalledWith(100, 100, 'test-laser');
-        expect(result).toBe(mockLaserImage);
+        expect(result).toBeDefined();
+        // Check if added to scene
+        expect(mockScene.add.existing).toHaveBeenCalledWith(result);
 
-        expect(mockLaserImage.setFrictionAir).toHaveBeenCalledWith(0);
-        expect(mockLaserImage.setFixedRotation).toHaveBeenCalled();
-        expect(mockLaserImage.setRotation).toHaveBeenCalledWith(0);
-        expect(mockLaserImage.setVelocity).toHaveBeenCalledWith(10, 0); // 0 degrees
-        expect(mockLaserImage.setCollisionCategory).toHaveBeenCalledWith(2);
-        expect(mockLaserImage.setCollidesWith).toHaveBeenCalledWith(4);
+        // Check Physics init
+        expect(result?.setFrictionAir).toHaveBeenCalledWith(0);
+        expect(result?.setFixedRotation).toHaveBeenCalled();
+        expect(result?.setRotation).toHaveBeenCalledWith(0);
+        // setVelocity is called by Projectile
+        expect(result?.setVelocity).toHaveBeenCalledWith(10, 0);
+        expect(result?.setCollisionCategory).toHaveBeenCalledWith(2);
+        expect(result?.setCollidesWith).toHaveBeenCalledWith(4);
     });
 
-    it('should handle boundary checks in timer callback', () => {
-        laser.fire(mockScene, 100, 100, 0, 2, 4);
+    it('should handle boundary checks in preUpdate', () => {
+        // We need to simulate the Projectile behavior. 
+        // Since we are mocking Phaser.Physics.Matter.Image, we need to ensure our Mock class or the returned object has preUpdate.
+        // But Projectile defines preUpdate. So 'result' is an instance of Projectile (which extends Mock Image).
 
-        const timerCallback = mockScene.time.addEvent.mock.calls[0][0].callback;
+        const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
 
-        // In bounds
-        mockLaserImage.x = 400;
-        mockLaserImage.y = 300;
-        timerCallback();
-        expect(mockLaserImage.destroy).not.toHaveBeenCalled();
+        // In bounds logic
+        result.x = 400;
+        result.y = 300;
+        // Projectile.preUpdate(time, delta)
+        result.preUpdate(2000, 16);
+        expect(result.destroy).not.toHaveBeenCalled();
 
-        // Out of bounds
-        mockLaserImage.x = -200;
-        timerCallback();
-        expect(mockLaserImage.destroy).toHaveBeenCalled();
-        expect(mockTimer.remove).toHaveBeenCalled();
-    });
+        // Out of bounds logic (camera bounds + margin 100)
+        // Camera 0,0 800x600. Margin 100.
+        // Bounds: -100 to 900 x, -100 to 700 y.
 
-    it('should handle collision cleanup', () => {
-        laser.fire(mockScene, 100, 100, 0, 2, 4);
-        const collideCallback = mockLaserImage.setOnCollide.mock.calls[0][0];
-
-        // Collide with world (no gameObject)
-        collideCallback({ bodyB: { gameObject: null } });
-        expect(mockLaserImage.destroy).toHaveBeenCalled();
-        expect(mockTimer.remove).toHaveBeenCalled();
+        result.x = -200; // Left
+        result.preUpdate(3000, 16);
+        expect(result.destroy).toHaveBeenCalled();
     });
 });

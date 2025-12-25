@@ -81,4 +81,5 @@ export interface ShipCollisionConfig {
     laserCollidesWith: number;
     lootCategory?: number;
     lootCollidesWith?: number;
+    isEnemy?: boolean; // Enemy ships have unlimited ammo
 }

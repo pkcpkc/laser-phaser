@@ -5,7 +5,7 @@
 			"format": "RGBA8888",
 			"size": {
 				"w": 207,
-				"h": 80
+				"h": 102
 			},
 			"scale": 1,
 			"frames": [
@@ -73,6 +73,27 @@
 					}
 				},
 				{
+					"filename": "blood-bomber",
+					"rotated": false,
+					"trimmed": false,
+					"sourceSize": {
+						"w": 41,
+						"h": 60
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 41,
+						"h": 60
+					},
+					"frame": {
+						"x": 106,
+						"y": 40,
+						"w": 41,
+						"h": 60
+					}
+				},
+				{
 					"filename": "blood-hunter",
 					"rotated": false,
 					"trimmed": false,
@@ -87,8 +108,8 @@
 						"h": 38
 					},
 					"frame": {
-						"x": 106,
-						"y": 40,
+						"x": 2,
+						"y": 59,
 						"w": 40,
 						"h": 38
 					}

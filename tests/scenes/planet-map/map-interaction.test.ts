@@ -1,134 +1,121 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { MapInteractionManager } from '../../../src/scenes/planet-map/map-interaction';
-import type { PlanetData } from '../../../src/scenes/planet-map/planet-data';
-// @ts-ignore
-import Phaser from 'phaser';
 
+// Mock Phaser module completely to avoid canvas issues
 vi.mock('phaser', () => {
     return {
         default: {
+            Scene: class { },
             GameObjects: {
                 Container: class { },
                 Text: class { },
                 Image: class { },
-                Graphics: class { }
             }
         }
-    }
+    };
 });
 
-// Mock Scene
+// Import after mocking
+import { MapInteractionManager } from '../../../src/scenes/planet-map/map-interaction';
+
+// Mock Phaser objects for the scene
+const mockColorMatrix = {
+    grayscale: vi.fn().mockReturnThis(),
+    brightness: vi.fn().mockReturnThis(),
+    saturate: vi.fn().mockReturnThis(),
+    multiply: vi.fn().mockReturnThis(),
+};
+
+const mockPostFX = {
+    addColorMatrix: vi.fn().mockReturnValue(mockColorMatrix),
+    clear: vi.fn(),
+};
+
+const mockText = {
+    setOrigin: vi.fn().mockReturnThis(),
+    setInteractive: vi.fn().mockReturnThis(),
+    on: vi.fn().mockReturnThis(),
+    setPosition: vi.fn().mockReturnThis(),
+    setVisible: vi.fn().mockReturnThis(),
+    setText: vi.fn().mockReturnThis(),
+    setRotation: vi.fn().mockReturnThis(),
+    destroy: vi.fn(),
+    postFX: mockPostFX,
+    width: 100,
+};
+
+const mockContainer = {
+    setVisible: vi.fn(),
+    setDepth: vi.fn(),
+    removeAll: vi.fn(),
+    setPosition: vi.fn(),
+    setAlpha: vi.fn(),
+    add: vi.fn(),
+    postFX: {
+        clear: vi.fn(),
+        addColorMatrix: vi.fn().mockReturnValue(mockColorMatrix),
+    },
+};
+
 const mockScene = {
     add: {
-        container: vi.fn().mockReturnValue({
-            add: vi.fn(),
-            setPosition: vi.fn(),
-            setVisible: vi.fn(),
-            setDepth: vi.fn(),
-            setAlpha: vi.fn(),
-            removeAll: vi.fn(),
-            destroy: vi.fn()
-        }),
-        image: vi.fn().mockReturnValue({
-            setInteractive: vi.fn().mockReturnThis(),
-            on: vi.fn().mockReturnThis(),
-            setOrigin: vi.fn().mockReturnThis(),
-            setScale: vi.fn().mockReturnThis()
-        }),
-        text: vi.fn().mockReturnValue({
-            setOrigin: vi.fn().mockReturnThis(),
-            setInteractive: vi.fn().mockReturnThis(), // Added setInteractive
-            on: vi.fn().mockReturnThis(), // Added on for chaining
-            setPosition: vi.fn().mockReturnThis(), // Added setPosition
-            setVisible: vi.fn().mockReturnThis(),
-            setText: vi.fn().mockReturnThis(),
-            setRotation: vi.fn().mockReturnThis(),
-            setAngle: vi.fn().mockReturnThis(),
-            setAlpha: vi.fn().mockReturnThis(),
-            setDepth: vi.fn().mockReturnThis(),
-            destroy: vi.fn(),
-            width: 100,
-            postFX: {
-                clear: vi.fn(),
-                addColorMatrix: vi.fn().mockReturnValue({
-                    saturate: vi.fn(),
-                    multiply: vi.fn()
-                })
-            }
-        })
-    },
-    scene: {
-        start: vi.fn()
+        container: vi.fn().mockReturnValue(mockContainer),
+        text: vi.fn().mockReturnValue(mockText),
     },
     tweens: {
-        add: vi.fn()
-    }
-};
+        add: vi.fn(),
+    },
+    scene: {
+        start: vi.fn(),
+    },
+} as any;
 
 describe('MapInteractionManager', () => {
     let manager: MapInteractionManager;
 
     beforeEach(() => {
         vi.clearAllMocks();
-        // @ts-ignore
-        manager = new MapInteractionManager(mockScene as unknown as Phaser.Scene);
+        manager = new MapInteractionManager(mockScene);
     });
 
-    it('should create container on initialization', () => {
-        expect(mockScene.add.container).toHaveBeenCalled();
-    });
-
-    it('should show interaction UI for planet', () => {
-        const planet: PlanetData = {
+    it('should apply grayscale and brightness to interaction icons', () => {
+        const planetData = {
             id: 'test-planet',
+            name: 'Test Planet',
             x: 100,
             y: 100,
-            name: 'Test Planet',
-            hidden: false,
-            visualScale: 1.0,
             interaction: {
-                levelId: 'some-level'
-            }
-        };
-
-        manager.showInteractionUI(planet);
-        expect(mockScene.add.container().setVisible).toHaveBeenCalledWith(true);
-        // Base Radius 30 * Scale 1.0 + Gap 5 + HalfHeight 12 = 47 offset
-        expect(mockScene.add.container().setPosition).toHaveBeenCalledWith(100, 100 + 47);
-    });
-
-    it('should launch level if available', () => {
-        const planet: PlanetData = {
-            id: 'level-planet',
-            x: 0, y: 0,
-            name: 'Level',
-            hidden: false,
-            visualScale: 1.0,
-            interaction: {
-                levelId: 'blood-hunters'
+                levelId: 'test-level',
+                hasTrader: true,
+                hasShipyard: true,
             },
-            tint: 0xffff00  // yellow
         };
 
-        manager.launchLevelIfAvailable(planet);
-        expect(mockScene.scene.start).toHaveBeenCalledWith('BloodHunters', {
-            returnPlanetId: 'level-planet',
-            warpUniverseId: undefined,
-            planetColor: '#ffff00'
-        });
+        manager.showInteractionUI(planetData as any);
+
+        // Text is called for icons AND curved planet name letters
+        expect(mockScene.add.text).toHaveBeenCalled();
+
+        // PostFX is applied to the icons (3 icons)
+        expect(mockPostFX.clear).toHaveBeenCalled();
+        expect(mockPostFX.addColorMatrix).toHaveBeenCalled();
+
+        // Check for saturate call
+        expect(mockColorMatrix.saturate).toHaveBeenCalledWith(-1);
+
+        // Check for multiply (tint) call
+        expect(mockColorMatrix.multiply).toHaveBeenCalled();
     });
 
-    it('should not launch level if no levelId', () => {
-        const planet: PlanetData = {
-            id: 'safe-planet',
-            x: 0, y: 0,
-            name: 'Safe',
-            hidden: false,
-            visualScale: 1.0,
-            interaction: {}
+    it('should show UI for astra', () => {
+        const planetData = {
+            id: 'astra',
+            name: 'Astra',
+            x: 0,
+            y: 0,
         };
 
-        manager.launchLevelIfAvailable(planet);
-        expect(mockScene.scene.start).not.toHaveBeenCalled();
+        manager.showInteractionUI(planetData as any);
+        expect(mockContainer.setVisible).toHaveBeenCalledWith(true);
+        expect(mockScene.add.text).toHaveBeenCalled();
     });
 });

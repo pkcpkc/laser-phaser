@@ -8,6 +8,8 @@ export interface Laser {
     mountTextureKey?: string;
     reloadTime?: number;
     currentAmmo?: number;
+    firingDelay?: { min: number; max: number }; // Weapon-specific firing rate
+    addMountEffect?(scene: Phaser.Scene, mountSprite: Phaser.GameObjects.Image): void;
     fire(
         scene: Phaser.Scene,
         x: number,

@@ -1,6 +1,24 @@
 import Phaser from 'phaser';
 import { Ship } from '../ships/ship';
-import { BigCruiser } from '../ships/big-cruiser';
+import { BigCruiserDefinition } from '../ships/definitions/big-cruiser';
+
+// Target Effect Constants
+const TARGET_RADIUS = 5;
+const TARGET_COLOR = 0x00ff00;
+const TARGET_ALPHA = 0.8;
+const TARGET_EFFECT_DEPTH = 100;
+const TARGET_ANIMATION_SCALE = 4;
+const TARGET_ANIMATION_DURATION = 500;
+const TARGET_FADE_THRESHOLD = 0.1;
+
+// Movement Constants
+const STOP_THRESHOLD = 5;
+const MAX_SPEED = 12;
+const ACCELERATION = 0.5;
+const DECELERATION = 0.6;
+const MIN_SPEED = 0.5;
+const SCREEN_MARGIN = 30;
+const DEFAULT_THRUST = 0.1;
 
 export class PlayerController {
     private scene: Phaser.Scene;
@@ -58,17 +76,17 @@ export class PlayerController {
         }
 
         // Create a visual marker
-        this.targetEffect = this.scene.add.circle(x, y, 5, 0x00ff00, 0.8);
-        this.targetEffect.setDepth(100);
+        this.targetEffect = this.scene.add.circle(x, y, TARGET_RADIUS, TARGET_COLOR, TARGET_ALPHA);
+        this.targetEffect.setDepth(TARGET_EFFECT_DEPTH);
 
         // Simple animation: Expand and fade
         this.scene.tweens.add({
             targets: this.targetEffect,
-            scale: 4,
+            scale: TARGET_ANIMATION_SCALE,
             alpha: 0,
-            duration: 500,
+            duration: TARGET_ANIMATION_DURATION,
             onComplete: () => {
-                if (this.targetEffect && this.targetEffect.alpha <= 0.1) {
+                if (this.targetEffect && this.targetEffect.alpha <= TARGET_FADE_THRESHOLD) {
                     this.targetEffect.destroy();
                     this.targetEffect = null;
                 }
@@ -93,17 +111,17 @@ export class PlayerController {
         let movingWithKeys = false;
 
         if (this.cursors.left.isDown) {
-            this.ship.sprite.thrustLeft(BigCruiser.gameplay.thrust || 0.1);
+            this.ship.sprite.thrustLeft(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
             movingWithKeys = true;
         } else if (this.cursors.right.isDown) {
-            this.ship.sprite.thrustRight(BigCruiser.gameplay.thrust || 0.1);
+            this.ship.sprite.thrustRight(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
             movingWithKeys = true;
         }
         if (this.cursors.up.isDown) {
-            this.ship.sprite.thrust(BigCruiser.gameplay.thrust || 0.1);
+            this.ship.sprite.thrust(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
             movingWithKeys = true;
         } else if (this.cursors.down.isDown) {
-            this.ship.sprite.thrustBack(BigCruiser.gameplay.thrust || 0.1);
+            this.ship.sprite.thrustBack(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
             movingWithKeys = true;
         }
 
@@ -117,10 +135,7 @@ export class PlayerController {
             const shipPos = new Phaser.Math.Vector2(this.ship.sprite.x, this.ship.sprite.y);
             const dist = shipPos.distance(this.targetPosition);
 
-            // Hard stop threshold (pixels)
-            const stopThreshold = 5;
-
-            if (dist < stopThreshold) {
+            if (dist < STOP_THRESHOLD) {
                 // Arrived
                 this.ship.sprite.setPosition(this.targetPosition.x, this.targetPosition.y);
                 this.ship.sprite.setVelocity(0, 0);
@@ -135,25 +150,20 @@ export class PlayerController {
                 // Move towards target
                 const angle = Phaser.Math.Angle.BetweenPoints(shipPos, this.targetPosition);
 
-                // Kinematic Parameters
-                const MAX_SPEED = 12;
-                const ACCEL = 0.5;
-                const DECEL = 0.6;
-
                 // 1. Calculate Braking Distance needed to stop from current speed
                 // d = (v^2) / (2 * a)
-                const brakingDistance = (this.currentSpeed * this.currentSpeed) / (2 * DECEL);
+                const brakingDistance = (this.currentSpeed * this.currentSpeed) / (2 * DECELERATION);
 
                 if (dist <= brakingDistance) {
                     // Deceleration Phase
                     // v = sqrt(2 * a * d)
                     // We want to arrive at distance 0 with speed 0. 
-                    this.currentSpeed -= DECEL;
-                    if (this.currentSpeed < 0.5) this.currentSpeed = 0.5; // Min speed to ensure arrival
+                    this.currentSpeed -= DECELERATION;
+                    if (this.currentSpeed < MIN_SPEED) this.currentSpeed = MIN_SPEED; // Min speed to ensure arrival
                 } else {
                     // Acceleration Phase
                     if (this.currentSpeed < MAX_SPEED) {
-                        this.currentSpeed += ACCEL;
+                        this.currentSpeed += ACCELERATION;
                         if (this.currentSpeed > MAX_SPEED) this.currentSpeed = MAX_SPEED;
                     }
                 }
@@ -166,21 +176,21 @@ export class PlayerController {
         }
 
         // Fire logic
-        if (this.scene.input.keyboard!.checkDown(this.cursors.space, 250)) {
+        const firingInterval = this.getEffectiveFiringInterval();
+        if (this.scene.input.keyboard!.checkDown(this.cursors.space, firingInterval)) {
             this.fireLaser();
         }
 
         if (this.isFiring || this.autoFire) {
-            if (time > this.lastFired + 250) {
+            if (time > this.lastFired + firingInterval) {
                 this.fireLaser();
                 this.lastFired = time;
             }
         }
 
         // Keep ship within game boundaries
-        const margin = 30;
-        const clampedX = Phaser.Math.Clamp(this.ship.sprite.x, margin, width - margin);
-        const clampedY = Phaser.Math.Clamp(this.ship.sprite.y, margin, height - margin);
+        const clampedX = Phaser.Math.Clamp(this.ship.sprite.x, SCREEN_MARGIN, width - SCREEN_MARGIN);
+        const clampedY = Phaser.Math.Clamp(this.ship.sprite.y, SCREEN_MARGIN, height - SCREEN_MARGIN);
 
         if (this.ship.sprite.x !== clampedX || this.ship.sprite.y !== clampedY) {
             this.ship.sprite.setPosition(clampedX, clampedY);
@@ -198,8 +208,29 @@ export class PlayerController {
     }
 
     private autoFire: boolean = true;
+
+    /**
+     * Get the effective firing interval based on mounted weapons.
+     * Uses the slowest (highest) weapon firingDelay.min to respect weapon limits.
+     * If no weapon defines firingDelay, fires as fast as possible.
+     */
+    private getEffectiveFiringInterval(): number {
+        let maxInterval = 0; // No limit by default - fire as fast as possible
+
+        for (const mount of this.ship.config.mounts) {
+            const weapon = new mount.weapon();
+            if (weapon.firingDelay) {
+                // Use the minimum delay for maximum fire rate, but respect weapon limits
+                maxInterval = Math.max(maxInterval, weapon.firingDelay.min);
+            }
+        }
+
+        return maxInterval;
+    }
+
     private fireLaser() {
         if (!this.ship.sprite.active) return;
         this.ship.fireLasers();
     }
 }
+

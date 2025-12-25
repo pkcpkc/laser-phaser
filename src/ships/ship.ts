@@ -86,6 +86,11 @@ export class Ship {
                             mountSprite.setScale(mountData.weapon.scale);
                         }
                         this.mountSprites.set(mountData, mountSprite);
+
+                        // Add mount effect if weapon provides one
+                        if (mountData.weapon.addMountEffect) {
+                            mountData.weapon.addMountEffect(scene, mountSprite);
+                        }
                     } else {
                         console.warn('No texture key for visible mount weapon');
                     }
@@ -98,7 +103,8 @@ export class Ship {
         // Setup update listener to sync mount sprites
         if (this.mountSprites.size > 0) {
             this.updateListener = () => this.updateMounts();
-            this.sprite.scene.events.on('update', this.updateListener);
+            // Use postupdate to ensure ship physics/movement has finished for the frame
+            this.sprite.scene.events.on('postupdate', this.updateListener);
 
             // cleanup on destroy is important
             this.sprite.once('destroy', () => {
@@ -135,9 +141,11 @@ export class Ship {
                 }
             }
 
-            // Check ammo
-            if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
-                continue; // Out of ammo (BaseRocket checks this too, but good to check here for consistency/optimization)
+            // Check ammo (skip for enemies - unlimited ammo)
+            if (!this.collisionConfig.isEnemy) {
+                if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
+                    continue; // Out of ammo
+                }
             }
 
             const rotation = this.sprite.rotation;
@@ -164,6 +172,14 @@ export class Ship {
 
             if (projectile) {
                 mount.lastFired = now; // Mark time fired
+
+                // Refill ammo for enemies (unlimited ammo)
+                if (this.collisionConfig.isEnemy && mount.weapon.currentAmmo !== undefined) {
+                    const rocket = mount.weapon as any;
+                    if (rocket.maxAmmo) {
+                        mount.weapon.currentAmmo = rocket.maxAmmo;
+                    }
+                }
             }
 
             if (mount.weapon.recoil) {
@@ -179,7 +195,11 @@ export class Ship {
     }
 
     private updateMounts() {
-        if (!this.sprite.active) return;
+        // If ship is not active or not visible, hide all mounts
+        if (!this.sprite.active || !this.sprite.visible) {
+            this.mountSprites.forEach(sprite => sprite.setVisible(false));
+            return;
+        }
 
         const rotation = this.sprite.rotation;
         const cos = Math.cos(rotation);
@@ -306,7 +326,7 @@ export class Ship {
 
         // Clean up mount sprites
         if (this.updateListener) {
-            this.sprite?.scene?.events?.off('update', this.updateListener);
+            this.sprite?.scene?.events?.off('postupdate', this.updateListener);
             this.updateListener = undefined;
         }
         this.mountSprites.forEach(sprite => sprite.destroy());

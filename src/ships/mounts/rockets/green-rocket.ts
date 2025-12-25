@@ -11,6 +11,7 @@ export class GreenRocket extends BaseRocket {
     readonly height = 2;
 
     readonly reloadTime = 2000;
+    readonly firingDelay = { min: 200, max: 200 };
 
     readonly maxAmmo = 20;
 
@@ -73,7 +74,28 @@ export class GreenRocket extends BaseRocket {
         const radius = 8;
         const speed = 0.2; // Radians per frame approx
 
-        const particles = [
+        // Create particles for trail
+        const particles = scene.add.particles(0, 0, this.TEXTURE_KEY, {
+            lifespan: 500,
+            scale: { start: 1.0, end: 0 },
+            alpha: { start: 1.0, end: 0 },
+            tint: [0x00ff00, 0x00aa00],
+            speed: 0,
+            blendMode: 'ADD',
+            emitting: false
+        });
+
+        if (!scene.textures.exists('green-dot')) {
+            const g = scene.make.graphics({ x: 0, y: 0 });
+            g.fillStyle(0x00ff00);
+            g.fillRect(0, 0, 4, 4);
+            g.generateTexture('green-dot', 4, 4);
+            g.destroy();
+        }
+
+        particles.setTexture('green-dot');
+
+        const orbitingPixels = [
             scene.add.rectangle(rocket.x, rocket.y, 2, 2, 0x00ff00),
             scene.add.rectangle(rocket.x, rocket.y, 2, 2, 0x00ff00),
             scene.add.rectangle(rocket.x, rocket.y, 2, 2, 0x00ff00),
@@ -84,45 +106,37 @@ export class GreenRocket extends BaseRocket {
 
         const updateListener = () => {
             if (!rocket.active) {
-                particles.forEach(p => p.destroy());
+                orbitingPixels.forEach(p => p.destroy());
                 scene.events.off('update', updateListener);
+                // Delay particle destruction to let trails fade out
+                scene.time.delayedCall(500, () => {
+                    particles.destroy();
+                });
                 return;
             }
 
             rotation += speed;
 
             // Update particle positions
-            // Particle 1 (0 deg)
-            particles[0].setPosition(
-                rocket.x + Math.cos(rotation) * radius,
-                rocket.y + Math.sin(rotation) * radius
-            );
+            for (let i = 0; i < 4; i++) {
+                const angle = rotation + (Math.PI / 2) * i;
+                const px = rocket.x + Math.cos(angle) * radius;
+                const py = rocket.y + Math.sin(angle) * radius;
 
-            // Particle 2 (90 deg)
-            particles[1].setPosition(
-                rocket.x + Math.cos(rotation + Math.PI * 0.5) * radius,
-                rocket.y + Math.sin(rotation + Math.PI * 0.5) * radius
-            );
-
-            // Particle 3 (180 deg)
-            particles[2].setPosition(
-                rocket.x + Math.cos(rotation + Math.PI) * radius,
-                rocket.y + Math.sin(rotation + Math.PI) * radius
-            );
-
-            // Particle 4 (270 deg)
-            particles[3].setPosition(
-                rocket.x + Math.cos(rotation + Math.PI * 1.5) * radius,
-                rocket.y + Math.sin(rotation + Math.PI * 1.5) * radius
-            );
+                orbitingPixels[i].setPosition(px, py);
+                particles.emitParticleAt(px, py);
+            }
         };
 
         scene.events.on('update', updateListener);
 
         // Ensure cleanup if scene shuts down
         rocket.once('destroy', () => {
-            particles.forEach(p => p.destroy());
+            orbitingPixels.forEach(p => p.destroy());
             scene.events.off('update', updateListener);
+            scene.time.delayedCall(500, () => {
+                particles.destroy();
+            });
         });
     }
 }

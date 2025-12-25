@@ -1,7 +1,6 @@
 import type { ShipDefinition } from '../types';
-import { markers as allMarkers } from '../../generated/blood-hunter.markers';
+import { markers as allMarkers } from '../markers-generated/blood-hunter.markers';
 
-console.log('Evaluating BloodHunterDefinition module');
 export const BloodHunterDefinition: ShipDefinition = {
     id: 'blood-hunter',
     assetKey: 'ships',
@@ -9,20 +8,21 @@ export const BloodHunterDefinition: ShipDefinition = {
     assetPath: 'assets/ships/blood-hunter.png',
     markers: allMarkers,
     physics: {
-        frictionAir: 0,
-        fixedRotation: true,
-        initialAngle: 90
+        frictionAir: 0.05,
+        fixedRotation: false,
+        mass: 5
     },
     gameplay: {
-        health: 3,
+        health: 4,
         speed: 2,
-        rotationSpeed: 0.1
+        rotationSpeed: 0.08,
+        thrust: 0.1
     },
     explosion: {
-        frame: 'red',
-        speed: { min: 50, max: 150 },
-        scale: { start: 0.4, end: 0 },
-        lifespan: 500,
+        frame: 'red', // Default, user can adjust
+        speed: { min: 30, max: 100 },
+        scale: { start: 0.8, end: 0 },
+        lifespan: 800,
         blendMode: 'ADD'
     }
 };

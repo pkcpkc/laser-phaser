@@ -261,6 +261,13 @@ export class MapInteractionManager {
                 warpUniverseId: planet.warpUniverseId,
                 planetColor: planetColor
             });
+        } else if (levelId === 'ship-demo-level') {
+            const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
+            this.scene.scene.start('ShipDemoScene', {
+                returnPlanetId: planet.id,
+                warpUniverseId: planet.warpUniverseId,
+                planetColor: planetColor
+            });
         } else {
             console.warn('Level not implemented:', levelId);
         }

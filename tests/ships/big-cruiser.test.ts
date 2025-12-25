@@ -15,24 +15,19 @@ vi.mock('phaser', () => {
     };
 });
 
-import { BigCruiser } from '../../src/ships/big-cruiser';
 import { BigCruiserDefinition } from '../../src/ships/definitions/big-cruiser';
+import { BigCruiserWhiteLaser } from '../../src/ships/configurations/big-cruiser-white-laser';
 
 // Mock dependencies
 vi.mock('../../src/ships/ship');
 
-describe('BigCruiser', () => {
-    it('should have correct static properties', () => {
-        expect(BigCruiser.assetKey).toBe(BigCruiserDefinition.assetKey);
-        expect(BigCruiser.assetPath).toBe(BigCruiserDefinition.assetPath);
-        expect(BigCruiser.gameplay).toBe(BigCruiserDefinition.gameplay);
+describe('BigCruiser Configuration', () => {
+    it('should have correct definition properties', () => {
+        expect(BigCruiserDefinition.assetKey).toBe('ships');
+        expect(BigCruiserDefinition.gameplay.health).toBe(4);
     });
 
-    it('should construct correctly', () => {
-        const mockScene = {} as any;
-        const collisionConfig = {} as any;
-
-        const ship = new BigCruiser(mockScene, 100, 200, collisionConfig);
-        expect(ship).toBeDefined();
+    it('should use correct definition in config', () => {
+        expect(BigCruiserWhiteLaser.definition).toBe(BigCruiserDefinition);
     });
 });

@@ -33,6 +33,7 @@ vi.mock('phaser', () => {
                         setCollidesWith = vi.fn();
                         setOnCollide = vi.fn();
                         destroy = vi.fn();
+                        once = vi.fn();
                         active = true;
                     }
                 }
@@ -48,11 +49,50 @@ describe('BaseRocket', () => {
 
     beforeEach(() => {
         mockScene = {
-            make: { graphics: vi.fn().mockReturnValue({ fillStyle: vi.fn(), fillRect: vi.fn(), generateTexture: vi.fn(), destroy: vi.fn() }) },
+            make: {
+                graphics: vi.fn().mockReturnValue({
+                    fillStyle: vi.fn(),
+                    fillRect: vi.fn(),
+                    fillCircle: vi.fn(),
+                    generateTexture: vi.fn(),
+                    destroy: vi.fn()
+                })
+            },
             textures: { exists: vi.fn().mockReturnValue(true) },
-            matter: { add: { image: vi.fn().mockReturnValue(new Phaser.Physics.Matter.Image({} as any, 0, 0, '')) } },
-            time: { addEvent: vi.fn() }
+            matter: {
+                add: { image: vi.fn().mockReturnValue(new Phaser.Physics.Matter.Image({} as any, 0, 0, '')) },
+                world: { scene: null as any }
+            },
+            time: {
+                addEvent: vi.fn(),
+                now: 1000,
+                delayedCall: vi.fn()
+            },
+            scale: {
+                width: 800,
+                height: 600
+            },
+            add: {
+                existing: vi.fn(),
+                particles: vi.fn().mockReturnValue({
+                    emitParticleAt: vi.fn(),
+                    destroy: vi.fn()
+                })
+            },
+            events: {
+                on: vi.fn(),
+                off: vi.fn()
+            },
+            cameras: {
+                main: {
+                    scrollX: 0,
+                    scrollY: 0,
+                    width: 800,
+                    height: 600
+                }
+            }
         };
+        mockScene.matter.world.scene = mockScene;
         rocket = new TestRocket();
     });
 

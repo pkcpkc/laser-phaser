@@ -38,6 +38,9 @@ export class DemoUniverse extends BaseUniverse {
             visualScale: 1.0,
             x: cx,
             y: cy,
+            interaction: {
+                levelId: 'ship-demo-level'
+            },
             centralPlanet: true
         });
         astra.effects = [
