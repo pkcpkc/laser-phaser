@@ -136,9 +136,9 @@ export class PlayerController {
                 const angle = Phaser.Math.Angle.BetweenPoints(shipPos, this.targetPosition);
 
                 // Kinematic Parameters
-                const MAX_SPEED = 6;
-                const ACCEL = 0.25;
-                const DECEL = 0.3;
+                const MAX_SPEED = 12;
+                const ACCEL = 0.5;
+                const DECEL = 0.6;
 
                 // 1. Calculate Braking Distance needed to stop from current speed
                 // d = (v^2) / (2 * a)
@@ -170,7 +170,7 @@ export class PlayerController {
             this.fireLaser();
         }
 
-        if (this.isFiring) {
+        if (this.isFiring || this.autoFire) {
             if (time > this.lastFired + 250) {
                 this.fireLaser();
                 this.lastFired = time;
@@ -197,6 +197,7 @@ export class PlayerController {
         }
     }
 
+    private autoFire: boolean = true;
     private fireLaser() {
         if (!this.ship.sprite.active) return;
         this.ship.fireLasers();
