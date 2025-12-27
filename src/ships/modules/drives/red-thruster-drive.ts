@@ -1,17 +1,17 @@
 import { BaseDrive } from './base-drive';
-import { IonEffect } from '../../effects/ion-effect';
+import { RedThrusterEffect } from '../../effects/red-thruster-effect';
 
-export class IonDrive extends BaseDrive {
-    readonly thrust = 15;
-    readonly name = 'Ion Drive';
-    readonly description = 'Standard Ion Drive. Reliable and efficient.';
-    readonly TEXTURE_KEY = 'ion-drive-v10'; // Bump version
+export class RedThrusterDrive extends BaseDrive {
+    readonly thrust = 12;
+    readonly name = 'Red Thruster Drive';
+    readonly description = 'A powerful thruster with a fiery red flame.';
+    readonly TEXTURE_KEY = 'red-thruster-drive-v1';
 
     // Override defaults if necessary
     visibleOnMount = true;
 
     addMountEffect(scene: Phaser.Scene, sprite: Phaser.GameObjects.Image) {
-        new IonEffect(scene, sprite);
+        new RedThrusterEffect(scene, sprite);
     }
 
     createTexture(scene: Phaser.Scene) {

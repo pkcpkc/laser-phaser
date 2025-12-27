@@ -56,7 +56,8 @@ export class BloodRocket extends BaseRocket {
         y: number,
         angle: number,
         category: number,
-        collidesWith: number
+        collidesWith: number,
+        shipVelocity?: { x: number; y: number }
     ) {
         // Init ammo if needed (matching BaseRocket logic)
         if (this.currentAmmo === undefined) {
@@ -70,7 +71,7 @@ export class BloodRocket extends BaseRocket {
         const delay = Phaser.Math.Between(0, 300);
 
         const fireLogic = () => {
-            const rocket = super.fire(scene, x, y, angle, category, collidesWith);
+            const rocket = super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
             if (rocket) {
                 this.addTrailEffect(scene, rocket);
             }

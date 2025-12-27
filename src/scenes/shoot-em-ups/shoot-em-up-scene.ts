@@ -12,6 +12,7 @@ export abstract class ShootEmUpScene extends BaseScene {
     }
 
     init(data: { returnPlanetId?: string, warpUniverseId?: string, planetColor?: string }) {
+        this.isTransitioning = false;
         this.returnPlanetId = data?.returnPlanetId;
         this.warpUniverseId = data?.warpUniverseId;
         this.planetColor = data?.planetColor;

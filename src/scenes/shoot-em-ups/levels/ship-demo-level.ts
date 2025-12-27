@@ -50,10 +50,6 @@ const generateFormations = () => {
             // Add Tactic for oscillation
             tacticType: LinearTactic,
             tacticConfig: {
-                // LinearTactic uses: dist = speed * (elapsed / FRAME_DURATION_MS)
-                // speed is PX_PER_FRAME.
-                // config.oscillateSpeed is 0.05 px/ms -> 0.05 * 16.66 = 0.833 px/frame.
-                speed: commonFiringConfig.oscillateSpeed * 16.66,
                 angle: Math.PI / 2, // Down
                 loopLength: loopLength
             }

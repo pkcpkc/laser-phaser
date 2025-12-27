@@ -23,5 +23,10 @@
 ## Design Patterns
 - **DRY (Don't Repeat Yourself)**:
   - Avoid code duplication. Reuse logic via functions/classes.
+  - **When creating variants** (e.g., different colored effects, similar modules):
+    - Create a **base class** with configurable parameters instead of copy-pasting.
+    - Use **configuration objects/interfaces** for variant-specific values (colors, sizes, etc.).
+    - Derived classes should only contain variant-specific configuration, not duplicated logic.
+  - **Example pattern**: `ThrusterEffect` base class + `ThrusterColorConfig` interface, with `IonEffect` and `RedThrusterEffect` as thin wrappers.
 - **SOLID**:
   - Adhere to SOLID principles (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion).

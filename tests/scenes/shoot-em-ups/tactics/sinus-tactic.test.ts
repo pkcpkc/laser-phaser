@@ -30,7 +30,8 @@ describe('SinusTactic', () => {
                             speed: 100
                         }
                     }
-                }
+                },
+                speed: 100  // Ship.speed property used by tactics
             },
             startX: 100,
             startY: 0, // SPAWN_Y_OFFSET usually
@@ -46,8 +47,7 @@ describe('SinusTactic', () => {
 
         sinusTactic = new SinusTactic({
             amplitude: 50,
-            frequency: 0.002,
-            verticalSpeed: 100
+            frequency: 0.002
         });
         sinusTactic.addFormation(mockFormation);
     });

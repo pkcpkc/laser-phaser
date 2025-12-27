@@ -4,7 +4,6 @@ import { BaseLaser } from '../lasers/base-laser';
 export abstract class BaseRocket extends BaseLaser {
     abstract readonly maxAmmo: number;
     readonly visibleOnMount = true;
-    currentAmmo: number | undefined;
 
     constructor() {
         super();
@@ -18,7 +17,8 @@ export abstract class BaseRocket extends BaseLaser {
         y: number,
         angle: number,
         category: number,
-        collidesWith: number
+        collidesWith: number,
+        shipVelocity?: { x: number; y: number }
     ): Phaser.Physics.Matter.Image | undefined {
         // Initialize ammo if not set (or could be done in constructor if we passed maxAmmo there, but abstract properties are tricky with constructors)
         // A cleaner way is to just assume currentAmmo is synced with maxAmmo initially.
@@ -46,7 +46,7 @@ export abstract class BaseRocket extends BaseLaser {
         this.currentAmmo--;
         // console.log(`Ammo: ${this.currentAmmo}/${this.maxAmmo}`);
 
-        return super.fire(scene, x, y, angle, category, collidesWith);
+        return super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
     }
 
     // Helper to reload

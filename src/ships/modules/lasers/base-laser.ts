@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { Laser } from './types';
-import { Projectile } from './projectile';
+import { WeaponBase } from '../weapon-base';
 
 // Trail Effect Constants
 const TRAIL_CIRCLE_RADIUS = 2;
@@ -9,75 +9,16 @@ const TRAIL_LIFESPAN = 150;
 const TRAIL_SCALE_START = 0.8;
 const TRAIL_ALPHA_START = 0.6;
 const CLEANUP_DELAY = 200;
-const DEFAULT_RELOAD_TIME = 200;
 
-export abstract class BaseLaser implements Laser {
-    abstract readonly TEXTURE_KEY: string;
-    abstract readonly COLOR: number;
-    abstract readonly SPEED: number;
-
-    // Optional recoil property
-    readonly recoil?: number;
-    // Optional scale property
-    readonly scale?: number;
-
-    readonly reloadTime: number = DEFAULT_RELOAD_TIME; // Default 200ms between shots
-    readonly mountTextureKey?: string;
-
-    readonly visibleOnMount: boolean = false;
-
-    abstract readonly width: number;
-    abstract readonly height: number;
-
-    createTexture(scene: Phaser.Scene) {
-        if (!scene.textures.exists(this.TEXTURE_KEY)) {
-            const graphics = scene.make.graphics({ x: 0, y: 0 });
-            graphics.fillStyle(this.COLOR, 1);
-            graphics.fillRect(0, 0, this.width, this.height);
-            graphics.generateTexture(this.TEXTURE_KEY, this.width, this.height);
-            graphics.destroy();
-        }
-    }
-
-    fire(
-        scene: Phaser.Scene,
-        x: number,
-        y: number,
-        angle: number,
-        category: number,
-        collidesWith: number
-    ): Phaser.Physics.Matter.Image | undefined {
-        this.createTexture(scene);
-
-        // Instantiate pure Projectile
-        const laser = new Projectile(
-            scene,
-            x,
-            y,
-            this.TEXTURE_KEY,
-            undefined,
-            category,
-            collidesWith
-        );
-
-        laser.setRotation(angle);
-        if (this.scale) {
-            laser.setScale(this.scale);
-        }
-
-        // Calculate velocity vector from angle and speed
-        const velocityX = Math.cos(angle) * this.SPEED;
-        const velocityY = Math.sin(angle) * this.SPEED;
-
-        laser.setVelocity(velocityX, velocityY);
-
-        // Add trail effect
-        this.addTrailEffect(scene, laser);
-
-        return laser;
-    }
-
-    protected addTrailEffect(scene: Phaser.Scene, laser: Phaser.Physics.Matter.Image) {
+/**
+ * Base class for laser weapons.
+ * Extends WeaponBase with laser-specific trail effects.
+ */
+export abstract class BaseLaser extends WeaponBase implements Laser {
+    /**
+     * Add a glowing trail effect behind the laser.
+     */
+    protected override addTrailEffect(scene: Phaser.Scene, laser: Phaser.Physics.Matter.Image) {
         // Create trail particle texture if needed
         const trailTextureKey = `${this.TEXTURE_KEY}-trail`;
         if (!scene.textures.exists(trailTextureKey)) {
@@ -114,4 +55,3 @@ export abstract class BaseLaser implements Laser {
         });
     }
 }
-

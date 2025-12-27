@@ -174,13 +174,18 @@ export class Ship {
             const absoluteY = this.sprite.y + rotatedY;
             const absoluteAngle = rotation + (module.angle || 0);
 
+            // Get ship velocity to add to projectile
+            const shipBody = this.sprite.body as MatterJS.BodyType;
+            const shipVelocity = { x: shipBody.velocity.x, y: shipBody.velocity.y };
+
             const projectile = weapon.fire(
                 this.sprite.scene,
                 absoluteX,
                 absoluteY,
                 absoluteAngle,
                 this.collisionConfig.laserCategory,
-                this.collisionConfig.laserCollidesWith
+                this.collisionConfig.laserCollidesWith,
+                shipVelocity
             );
 
             if (projectile) {

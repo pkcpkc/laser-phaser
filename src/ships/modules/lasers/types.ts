@@ -16,6 +16,7 @@ export interface Laser {
         y: number,
         angle: number,
         category: number,
-        collidesWith: number
+        collidesWith: number,
+        shipVelocity?: { x: number; y: number }
     ): Phaser.Physics.Matter.Image | undefined;
 }

@@ -29,7 +29,8 @@ describe('LinearTactic', () => {
                             speed: 100
                         }
                     }
-                }
+                },
+                speed: 100  // Ship.speed property used by tactics
             },
             startX: 100,
             startY: 0,
@@ -43,9 +44,7 @@ describe('LinearTactic', () => {
     });
 
     it('should move ships straight down by default (angle PI/2)', () => {
-        linearTactic = new LinearTactic({
-            speed: 100
-        });
+        linearTactic = new LinearTactic({});
         linearTactic.addFormation(mockFormation);
 
         linearTactic.update(2000, 16);
@@ -64,7 +63,6 @@ describe('LinearTactic', () => {
 
     it('should move ships at specified angle', () => {
         linearTactic = new LinearTactic({
-            speed: 100,
             angle: 0 // Right
         });
         linearTactic.addFormation(mockFormation);

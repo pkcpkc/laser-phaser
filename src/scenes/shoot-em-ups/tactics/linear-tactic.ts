@@ -2,7 +2,6 @@ import { BaseTactic } from './base-tactic';
 import type { IFormation } from '../formations/types';
 
 export interface LinearTacticConfig {
-    speed?: number; // Override ship speed
     angle?: number; // Movement angle in radians (default: PI/2 = down)
     targetX?: number; // Optional target X to steer towards
     targetY?: number; // Optional target Y to steer towards
@@ -39,7 +38,7 @@ export class LinearTactic extends BaseTactic {
             // For Linear, adding velocity is usually enough if we set it once?
             // But we want to control it here.
 
-            const speed = this.config.speed ?? (enemyData.ship.config.definition.gameplay.speed || DEFAULT_SPEED);
+            const speed = enemyData.ship.speed || DEFAULT_SPEED;
 
 
             if (this.config.targetX !== undefined && this.config.targetY !== undefined) {

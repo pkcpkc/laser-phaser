@@ -2,7 +2,7 @@ import type { ShipConfig } from '../types';
 import { BloodBomberDefinition } from '../definitions/blood-bomber';
 import { BloodRocket } from '../modules/rockets/blood-rocket';
 
-import { IonDrive } from '../modules/drives/ion-drive';
+import { RedThrusterDrive } from '../modules/drives/red-thruster-drive';
 
 export const BloodBomberBloodRocketConfig: ShipConfig = {
     definition: BloodBomberDefinition,
@@ -12,7 +12,7 @@ export const BloodBomberBloodRocketConfig: ShipConfig = {
             .map(m => ({ marker: m, module: BloodRocket })),
         ...BloodBomberDefinition.markers
             .filter(m => m.type === 'drive')
-            .map(m => ({ marker: m, module: IonDrive }))
+            .map(m => ({ marker: m, module: RedThrusterDrive }))
     ],
     loot: {
         text: '🪙',

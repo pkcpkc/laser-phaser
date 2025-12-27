@@ -60,7 +60,6 @@ const createDiamondConfig = (
     return {
         tacticType: LinearTactic,
         tacticConfig: {
-            speed: 2, // Standard speed
             angle: angle
         },
         formationType: DiamondFormation,
@@ -77,8 +76,7 @@ const createSinusConfig = (): FormationConfig => ({
     tacticType: SinusTactic,
     tacticConfig: {
         amplitude: 50,
-        frequency: 0.002,
-        verticalSpeed: 2
+        frequency: 0.002
     },
     formationType: LineFormation,
     shipConfig: BloodHunterRedLaserConfig,
@@ -99,8 +97,7 @@ const createBomberConfig = (): FormationConfig => {
     return {
         tacticType: LinearTactic,
         tacticConfig: {
-            angle: angle,
-            speed: 2
+            angle: angle
         },
         formationType: DiamondFormation,
         shipConfig: BloodBomberBloodRocketConfig,

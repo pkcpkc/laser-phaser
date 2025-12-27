@@ -29,7 +29,8 @@ vi.mock('phaser', () => {
                         setData = vi.fn();
                         setBounce = vi.fn();
                         setSensor = vi.fn();
-                        on = vi.fn(); // Added on
+                        on = vi.fn();
+                        body = { velocity: { x: 0, y: 0 } };
                     },
                     Sprite: class { // Added Sprite
                         setAngle = vi.fn();
@@ -177,7 +178,8 @@ describe('Ship', () => {
             84,
             0, // rotation
             4,
-            [8]
+            [8],
+            { x: 0, y: 0 } // shipVelocity
         );
         expect(ship.sprite.thrustBack).toHaveBeenCalledWith(5);
     });
@@ -225,7 +227,8 @@ describe('Ship', () => {
             84,
             0,
             4,
-            [8]
+            [8],
+            { x: 0, y: 0 } // shipVelocity
         );
 
         // Second mount point: x=-10, y=0, angle=180 -> absX=74, absY=84, absAngle=PI
@@ -235,7 +238,8 @@ describe('Ship', () => {
             84,
             Math.PI,
             4,
-            [8]
+            [8],
+            { x: 0, y: 0 } // shipVelocity
         );
     });
     it('should calculate mass correctly', () => {

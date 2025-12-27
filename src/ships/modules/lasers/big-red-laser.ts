@@ -7,7 +7,7 @@ export class BigRedLaser extends BaseLaser {
     readonly SPEED = 5;
     readonly width = 4;
     readonly height = 4;
-    readonly reloadTime = 400; // Slow but powerful
+    readonly reloadTime = 600; // Slow but powerful
     readonly firingDelay = { min: 500, max: 800 };
 
     override fire(
@@ -16,16 +16,17 @@ export class BigRedLaser extends BaseLaser {
         y: number,
         angle: number,
         category: number,
-        collidesWith: number
+        collidesWith: number,
+        shipVelocity?: { x: number; y: number }
     ) {
         const delay = Phaser.Math.Between(0, 100);
 
         if (delay === 0) {
-            return super.fire(scene, x, y, angle, category, collidesWith);
+            return super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
         }
 
         scene.time.delayedCall(delay, () => {
-            super.fire(scene, x, y, angle, category, collidesWith);
+            super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
         });
 
         return {} as Phaser.Physics.Matter.Image;

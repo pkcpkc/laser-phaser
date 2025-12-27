@@ -41,7 +41,8 @@ vi.mock('phaser', () => {
                 Angle: {
                     BetweenPoints: vi.fn()
                 },
-                Clamp: (v: number, min: number, max: number) => Math.max(min, Math.min(v, max))
+                Clamp: (v: number, min: number, max: number) => Math.max(min, Math.min(v, max)),
+                RadToDeg: (radians: number) => radians * (180 / Math.PI)
             },
             Input: {
                 Pointer: class { }
@@ -81,6 +82,8 @@ describe('PlayerController', () => {
                 active: true,
                 x: 100,
                 y: 100,
+                angle: -90,
+                setAngle: vi.fn((a) => { mockShip.sprite.angle = a; }),
                 setPosition: vi.fn((x, y) => {
                     mockShip.sprite.x = x;
                     mockShip.sprite.y = y;

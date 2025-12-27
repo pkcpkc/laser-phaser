@@ -56,10 +56,11 @@ export class GreenRocket extends BaseRocket {
         y: number,
         angle: number,
         category: number,
-        collidesWith: number
+        collidesWith: number,
+        shipVelocity?: { x: number; y: number }
     ) {
         // Create the base projectile
-        const rocket = super.fire(scene, x, y, angle, category, collidesWith);
+        const rocket = super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
 
         if (rocket) {
             // Add rotating pixel effect

@@ -13,13 +13,16 @@ const TARGET_FADE_THRESHOLD = 0.1;
 
 // Movement Constants
 const STOP_THRESHOLD = 5;
-// const MAX_SPEED = 12; // Replaced by ship.speed
-const ACCELERATION = 0.5;
-const DECELERATION = 0.6;
+const TAP_SPEED_MULTIPLIER = 3; // Tap movement is 3x faster than base ship speed
+const ACCELERATION = 2.0; // Fast acceleration for tap movement
+const DECELERATION = 3.0; // Quick deceleration for snappy stops
 const MIN_SPEED = 0.5;
 const SCREEN_MARGIN = 30;
 
 const KEYBOARD_THRUST = 0.04;
+
+// Tilt Effect Constants
+const TILT_OUT_DURATION = 80; // Duration to return to upright (ms)
 
 export class PlayerController {
     private scene: Phaser.Scene;
@@ -33,6 +36,10 @@ export class PlayerController {
     private targetEffect: Phaser.GameObjects.Arc | null = null;
     private currentSpeed: number = 0;
 
+    // Tilt effect state
+    private currentTiltDirection: 'left' | 'right' | 'none' | 'moving' = 'none';
+    private tiltTween: Phaser.Tweens.Tween | null = null;
+
     constructor(scene: Phaser.Scene, ship: Ship, cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
         this.scene = scene;
         this.ship = ship;
@@ -40,6 +47,9 @@ export class PlayerController {
 
         // Setup input for movement
         this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+            // Skip if ship is destroyed (game over state)
+            if (!this.ship.sprite.active) return;
+
             // Ignore if clicking on fire button or other interactive UI (if any)
             // Ideally UI stops propagation, but we can check checking ignore here
             // Basic check: if clicking valid world area
@@ -68,6 +78,57 @@ export class PlayerController {
     private setTarget(x: number, y: number) {
         this.targetPosition = new Phaser.Math.Vector2(x, y);
         this.showTargetEffect(x, y);
+    }
+
+    /**
+     * Set the ship's rotation to point toward the movement direction.
+     * Uses smooth interpolation (lerp) for continuous updates.
+     */
+    private pointToAngle(angleRadians: number) {
+        if (!this.ship.sprite.active) return; // Skip if ship is destroyed
+
+        // Stop any return-to-upright tween that might be running
+        if (this.tiltTween) {
+            this.tiltTween.stop();
+            this.tiltTween = null;
+        }
+
+        // Convert to degrees (no offset needed - ship sprite is already oriented correctly)
+        const targetAngleDegrees = Phaser.Math.RadToDeg(angleRadians);
+
+        // Smooth interpolation toward target angle
+        const currentAngle = this.ship.sprite.angle;
+
+        // Handle angle wrapping to avoid spinning the long way around
+        let diff = targetAngleDegrees - currentAngle;
+        if (diff > 180) diff -= 360;
+        if (diff < -180) diff += 360;
+
+        // Lerp factor - higher = faster rotation (0.15 = smooth but responsive)
+        const lerpFactor = 0.15;
+        this.ship.sprite.setAngle(currentAngle + diff * lerpFactor);
+    }
+
+    /**
+     * Return the ship to upright position (pointing up).
+     */
+    private returnToUpright() {
+        if (this.currentTiltDirection === 'none') return;
+        if (!this.ship.sprite.active) return; // Skip if ship is destroyed
+        this.currentTiltDirection = 'none';
+
+        // Stop any existing tilt tween
+        if (this.tiltTween) {
+            this.tiltTween.stop();
+            this.tiltTween = null;
+        }
+
+        this.tiltTween = this.scene.tweens.add({
+            targets: this.ship.sprite,
+            angle: -90, // -90 = pointing up (ship sprite orientation)
+            duration: TILT_OUT_DURATION,
+            ease: 'Power2'
+        });
     }
 
     private showTargetEffect(x: number, y: number) {
@@ -147,6 +208,9 @@ export class PlayerController {
                     this.targetEffect.destroy();
                     this.targetEffect = null;
                 }
+
+                // Return to upright when arrived
+                this.returnToUpright();
             } else {
                 // Move towards target
                 const angle = Phaser.Math.Angle.BetweenPoints(shipPos, this.targetPosition);
@@ -155,18 +219,23 @@ export class PlayerController {
                 // d = (v^2) / (2 * a)
                 const brakingDistance = (this.currentSpeed * this.currentSpeed) / (2 * DECELERATION);
 
-                if (dist <= brakingDistance) {
-                    // Deceleration Phase
-                    // v = sqrt(2 * a * d)
-                    // We want to arrive at distance 0 with speed 0. 
+                const isDecelerating = dist <= brakingDistance;
+
+                if (isDecelerating) {
+                    // Deceleration Phase - return to upright
                     this.currentSpeed -= DECELERATION;
-                    if (this.currentSpeed < MIN_SPEED) this.currentSpeed = MIN_SPEED; // Min speed to ensure arrival
+                    if (this.currentSpeed < MIN_SPEED) this.currentSpeed = MIN_SPEED;
+                    this.returnToUpright();
                 } else {
-                    // Acceleration Phase
-                    if (this.currentSpeed < this.ship.speed) {
+                    // Acceleration Phase - point toward target
+                    const maxSpeed = this.ship.speed * TAP_SPEED_MULTIPLIER;
+                    if (this.currentSpeed < maxSpeed) {
                         this.currentSpeed += ACCELERATION;
-                        if (this.currentSpeed > this.ship.speed) this.currentSpeed = this.ship.speed;
+                        if (this.currentSpeed > maxSpeed) this.currentSpeed = maxSpeed;
                     }
+                    // Point ship nose toward movement direction
+                    this.currentTiltDirection = 'moving'; // Mark as moving to allow pointToAngle
+                    this.pointToAngle(angle);
                 }
 
                 const velX = Math.cos(angle) * this.currentSpeed;

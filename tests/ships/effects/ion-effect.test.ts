@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('phaser', () => {
     return {
         default: {
-            Scene: class {},
+            Scene: class { },
             GameObjects: {
                 Image: class {
                     setOrigin = vi.fn();
@@ -45,7 +45,7 @@ vi.mock('phaser', () => {
     };
 });
 
-describe('Placeholder Test for bunsen-burner-effect.ts', () => {
+describe('Placeholder Test for ion-effect.ts', () => {
     it('should pass', () => {
         expect(true).toBe(true);
     });

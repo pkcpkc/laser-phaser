@@ -1,4 +1,4 @@
-# Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a>
+# Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a> <a href="./LICENSE"><img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge" alt="License: CC BY-NC 4.0"></a>
 
 ![Laser Phaser Logo](./docs/assets/laser-phaser-logo.png)
 
@@ -63,6 +63,25 @@ Universes can be switched via URL query parameter (`?universeId=blood-hunters`) 
 *   **Shipyard**: (In Development) Customize your ship with different configurations and components.
 *   **Tower Defense**: (In Development) Defend strategic locations across the galaxy.
 
+### Controls
+
+The game supports two control schemes for navigating your ship:
+
+#### Click/Tap Navigation (Primary)
+Click or tap anywhere on the screen to set a target destination. Your ship will:
+*   Smoothly accelerate toward the target point at 3× base speed.
+*   Rotate to face the direction of travel.
+*   Decelerate and return to upright orientation as it approaches the destination.
+*   A green pulse effect marks the target location.
+
+#### Keyboard Navigation (Alternative)
+Use the arrow keys for direct thrust control:
+*   **↑ / ↓**: Thrust forward / backward.
+*   **← / →**: Thrust left / right.
+*   **Space**: Fire weapons (also triggers auto-fire).
+
+Keyboard input cancels any active click/tap target. The ship has automatic weapons fire enabled by default.
+
 ### Loot & Progression
 
 The game features a persistent loot system tracking:
@@ -70,7 +89,7 @@ The game features a persistent loot system tracking:
 *   **Silver**: Basic currency for purchases and upgrades.
 *   **Gold**: Premium currency for rare items.
 *   **Gems**: Special resources for unique enhancements.
-*   **Mounts**: Collectible ship configurations or companions.
+*   **Modules**: Collectible ship components (drives, lasers, rockets).
 
 All progress is saved locally using `GameStatus` and persists across sessions.
 
@@ -116,13 +135,15 @@ graph TD
     
     subgraph ShootEmUp Architecture
         ShootEmUpScene --> |Contains| Level
-        Level --> |Contains| Wave
-        Wave --> |Uses| WaveType(WaveType<br/>e.g. Sinus)
-        Wave --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
-        WaveType --> |Spawns| Ship
+        Level --> |Contains| Formation
+        Formation --> |Uses| Tactic(Tactic<br/>e.g. SinusTactic, LineTactic)
+        Formation --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
+        Tactic --> |Spawns| Ship
         Ship --> |Configured by| ShipConfig
-        Ship --> |Has| Mount
-        Mount --> |Equips| Weapon
+        Ship --> |Has| Module
+        Module --> |Types| Drives(Drives<br/>IonDrive, RedThrusterDrive)
+        Module --> |Types| Lasers(Lasers<br/>RedLaser, GreenLaser, WhiteLaser)
+        Module --> |Types| Rockets(Rockets<br/>GreenRocket, BloodRocket)
         ShootEmUpScene --> |On Victory| UniverseWarp(Warp to<br/>new Universe)
     end
 
@@ -137,24 +158,28 @@ graph TD
         PlanetMapScene --> |Uses| MapInteractionManager
         PlanetMapScene --> |Uses| GameStatus(Persistence)
         PlanetMapScene --> |Uses| LootUI
-        PlanetVisuals --> |Manages| AdjustableMoonVisual
-        AdjustableMoonVisual --> |Uses| SatelliteEffect
-        AdjustableMoonVisual --> |Uses| GhostShadeEffect
-        AdjustableMoonVisual --> |Uses| MiniMoonEffect
-        AdjustableMoonVisual --> |Uses| GlimmeringSnowEffect
-        AdjustableMoonVisual --> |Uses| HurricaneEffect
-        AdjustableMoonVisual --> |Uses| SpikesEffect
-        AdjustableMoonVisual --> |Uses| GasRingEffect
-        AdjustableMoonVisual --> |Uses| SolidRingEffect
+        PlanetVisuals --> |Uses| SatelliteEffect
+        PlanetVisuals --> |Uses| GhostShadeEffect
+        PlanetVisuals --> |Uses| MiniMoonEffect
+        PlanetVisuals --> |Uses| GlimmeringSnowEffect
+        PlanetVisuals --> |Uses| HurricaneEffect
+        PlanetVisuals --> |Uses| SpikesEffect
+        PlanetVisuals --> |Uses| GasRingEffect
+        PlanetVisuals --> |Uses| SolidRingEffect
     end
 ```
 
 ### Key Components
 
 *   **Universe System**: A modular architecture where each universe (Demo Universe, Blood Hunters Universe) is a self-contained configuration defining its own planets, backgrounds, and progression. Universes can be switched via URL query parameters (`?universeId=blood-hunters`) or through in-game warp mechanics.
-*   **GameStatus**: Persistent game state manager that tracks global loot (silver, gold, gems, mounts), unlocked planets, and player progress across sessions using localStorage.
+*   **GameStatus**: Persistent game state manager that tracks global loot (silver, gold, gems, modules), unlocked planets, and player progress across sessions using localStorage.
 *   **LootUI**: Reusable UI component for displaying and managing the player's collected loot across different scenes.
 *   **Planet Effects**: A rich visual system with multiple effect types including satellites, ghost shades, mini moons, glimmering snow, hurricanes, spikes, and ring effects (gas/solid).
+*   **Module System**: Ships are equipped with modular components organized into three categories:
+    *   **Drives**: Engine systems providing propulsion effects (IonDrive, RedThrusterDrive).
+    *   **Lasers**: Energy weapons with various colors and damage types (RedLaser, GreenLaser, WhiteLaser, BigRedLaser).
+    *   **Rockets**: Projectile weapons with homing or explosive capabilities (GreenRocket, BloodRocket).
+*   **Formation System**: Enemy spawning is controlled by formations that combine movement tactics (SinusTactic, LineTactic) with ship configurations for dynamic combat encounters.
 
 ### Directory Structure
 
@@ -162,11 +187,15 @@ The project follows a domain-driven structure for scenes and content:
 
 *   `src/scenes/`: Scene logic (Planet Map, Base Scene, etc.)
     *   `planet-map/`: Visuals and logic for the navigation map.
-    *   `shoot-em-ups/`: Active gameplay levels.
+    *   `shoot-em-ups/`: Active gameplay levels and formations.
     *   `traders/` & `shipyards/`: Meta-game interfaces.
-*   `src/ships/`: Ship definitions, configurations, and component logic.
+*   `src/ships/`: Ship definitions, configurations, and module logic.
+    *   `modules/drives/`: Engine drive systems with visual effects.
+    *   `modules/lasers/`: Laser weapon implementations and projectiles.
+    *   `modules/rockets/`: Rocket weapon systems.
+    *   `definitions/`: Ship type definitions (BloodHunter, BloodFighter, BloodBomber, etc.).
+    *   `configurations/`: Pre-built ship loadouts with modules.
 *   `src/logic/`: Core game managers (Collision, Game State, Player Control).
-*   `src/levels/` & `src/waves/`: Level definitions and wave spawning logic.
 
 ### Getting Started
 
