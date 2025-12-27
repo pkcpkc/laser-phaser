@@ -5,45 +5,45 @@ import { BaseFormation } from './base-formation';
 
 // Movement & Spawning Constants
 const SPAWN_Y = -65;
-const TRAVEL_Y_BUFFER = 150;
 const WOBBLE_SPEED_BASE = 0.8;
 const WOBBLE_SPEED_RANGE = 0.4;
 const WOBBLE_TIME_SCALE = 0.001;
 const WOBBLE_X_MULTIPLIER = 2;
 const WOBBLE_Y_MULTIPLIER = 1.5;
 const WOBBLE_Y_SCALE = 0.3;
-const FRAME_DURATION_MS = 16.66;
+// Bounds buffer is handled by Tactic or generic check? 
+// Ideally Tactic handles global bounds, but Formation might want self-cleanup.
 const BOUNDS_BUFFER = 200;
-const TOP_BOUND_BASE = -500;
-const VERTICAL_TRAVEL_BUFFER = 100;
-const DEFAULT_SPEED = 2;
 
 export interface DiamondFormationConfig {
     spacing?: number;
     verticalSpacing?: number;
-    startWidthPercentage?: number; // Where formation starts horizontally (0.5 = center)
-    endWidthPercentage?: number;   // Where formation ends/aims (0.5 = center, straight down)
+    startWidthPercentage?: number;
+    // endWidthPercentage removed, travel logic is now in Tactic (e.g. LinearTactic with angle)
     shootingChance?: number;
     shotsPerEnemy?: number;
     shotDelay?: { min: number; max: number };
     continuousFire?: boolean;
-    movementVariation?: number; // Amount of individual movement (default: 10)
-    formationGrid?: number[]; // Optional custom grid configuration (e.g. [1, 2, 3])
+    movementVariation?: number; // Wobble magnitude
+    formationGrid?: number[];
+    // We can also accept an angle to pre-rotate the formation alignment?
+    rotation?: number;
 }
 
-export interface EnemyData {
+export interface DiamondEnemyData {
     ship: Ship;
+    spawnTime: number;
     startX: number;
     startY: number;
-    targetX: number; // Target X position at bottom of screen
-    spawnTime: number;
-    wobbleOffset: number; // Individual wobble phase offset
-    wobbleSpeed: number; // Individual wobble speed
+    // Wobble state
+    wobbleOffset: number;
+    wobbleSpeed: number;
 }
 
 export class DiamondFormation extends BaseFormation {
-    private config: Required<DiamondFormationConfig>;
-    protected enemies: EnemyData[] = [];
+    private config: Required<Pick<DiamondFormationConfig, 'spacing' | 'verticalSpacing' | 'startWidthPercentage' | 'shootingChance' | 'shotsPerEnemy' | 'shotDelay' | 'continuousFire' | 'movementVariation' | 'formationGrid' | 'rotation'>>;
+    // @ts-ignore
+    protected enemies: DiamondEnemyData[] = [];
 
     constructor(
         scene: Phaser.Scene,
@@ -54,37 +54,32 @@ export class DiamondFormation extends BaseFormation {
     ) {
         super(scene, shipClass, collisionConfig, shipConfig);
 
-        // Default configuration
         this.config = {
             spacing: 80,
             verticalSpacing: 60,
-            startWidthPercentage: 0.5, // Default: center screen
-            endWidthPercentage: 0.5,   // Default: straight down
+            startWidthPercentage: 0.5,
             shootingChance: 0.5,
             shotsPerEnemy: 1,
             shotDelay: { min: 1000, max: 3000 },
             continuousFire: false,
             movementVariation: 10,
-            formationGrid: config?.formationGrid || [1, 2, 3], // Default 1-2-3 pattern
+            formationGrid: config?.formationGrid || [1, 2, 3],
+            rotation: config?.rotation || 0,
             ...config
         };
     }
 
     spawn(): void {
-        const { width, height } = this.scene.scale;
+        const { width } = this.scene.scale;
         const startCenterX = width * this.config.startWidthPercentage;
-        const endCenterX = width * this.config.endWidthPercentage;
 
-        // Calculate travel direction
-        const deltaX = endCenterX - startCenterX;
-        const deltaY = height + TRAVEL_Y_BUFFER; // Full vertical distance
-        const travelAngle = Math.atan2(deltaY, deltaX);
+        // Alignment Rotation
+        // If the formation is travelling at an angle, the shape might need to be rotated?
+        // Previously we calculated rotation based on travel target.
+        // Now Tactic handles travel. The formation alignment is static relative to "Head".
+        // Use config.rotation if provided.
+        const rotationAngle = this.config.rotation;
 
-        // Correct rotation: Formation points DOWN by default (Positive Y)
-        // So we rotate by (TravelAngle - PI/2) to align it
-        const rotationAngle = travelAngle - Math.PI / 2;
-
-        // Use custom formation grid or default to what was set in constructor (defaults to [1, 2, 3])
         const rows = this.config.formationGrid.map((count, index) => ({
             count: count,
             depth: index * this.config.verticalSpacing
@@ -93,19 +88,17 @@ export class DiamondFormation extends BaseFormation {
         for (const row of rows) {
             for (let i = 0; i < row.count; i++) {
                 // Local position in formation space
-                const localX = (i - (row.count - 1) / 2) * this.config.spacing; // Horizontal spread
-                const localY = -row.depth; // Depth (negative = behind the front)
+                const localX = (i - (row.count - 1) / 2) * this.config.spacing;
+                const localY = -row.depth;
 
-                // Rotate formation to align with travel direction
+                // Rotate formation shape
                 const cos = Math.cos(rotationAngle);
                 const sin = Math.sin(rotationAngle);
                 const rotatedX = localX * cos - localY * sin;
                 const rotatedY = localX * sin + localY * cos;
 
-                // Position ships
                 const x = startCenterX + rotatedX;
                 const y = SPAWN_Y + rotatedY;
-                const targetX = endCenterX + rotatedX;
 
                 const ship = new this.shipClass(this.scene, x, y, this.shipConfig!, this.collisionConfig);
                 const enemy = ship.sprite;
@@ -113,10 +106,9 @@ export class DiamondFormation extends BaseFormation {
 
                 this.enemies.push({
                     ship: ship,
+                    spawnTime: this.scene.time.now,
                     startX: x,
                     startY: y,
-                    targetX: targetX,
-                    spawnTime: this.scene.time.now,
                     wobbleOffset: Math.random() * Math.PI * 2,
                     wobbleSpeed: WOBBLE_SPEED_BASE + Math.random() * WOBBLE_SPEED_RANGE
                 });
@@ -137,64 +129,42 @@ export class DiamondFormation extends BaseFormation {
         for (let i = this.enemies.length - 1; i >= 0; i--) {
             const enemyData = this.enemies[i];
 
-            // Safety check for destroyed ships
             if (!enemyData.ship || !enemyData.ship.sprite || !enemyData.ship.sprite.active) {
                 this.enemies.splice(i, 1);
                 continue;
             }
 
             const enemy = enemyData.ship.sprite;
-            const elapsed = time - enemyData.spawnTime;
 
-            if (elapsed < 0) {
-                continue;
-            }
+            // Apply Wobble
+            // Note: Tactic sets the "Base" position (x, y).
+            // If Tactic.update() runs BEFORE Formation.update(), enemy.x/y is at the path position.
+            // We just add the wobble offset to the current position.
 
-            const speed = enemyData.ship.config.definition.gameplay.speed || DEFAULT_SPEED;
+            // CAUTION: If we blindly add wobble to current position `x += wobble`, it accumulates!
+            // We need to calculate the wobble offset and apply it *relative to the path*.
+            // But we don't know the path position here easily unless we stored it or Tactic is "Base".
 
-            // Calculate movement direction from start to target
-            const deltaX = enemyData.targetX - enemyData.startX;
-            const deltaY = height + VERTICAL_TRAVEL_BUFFER; // Distance to travel vertically
+            // Assumption: Tactic sets `enemy.setPosition(pathX, pathY)`.
+            // Formation applies `enemy.setPosition(pathX + wobbleX, pathY + wobbleY)`.
 
-            // Normalize direction
-            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-            const moveX = deltaX / distance;
-            const moveY = deltaY / distance;
+            // So we take current pos (which is path pos if Tactic ran first) and add offset?
+            // Yes, assuming Tactic runs first in the same frame.
 
-            // Add individual wobble for liveliness
             const wobbleTime = time * WOBBLE_TIME_SCALE * enemyData.wobbleSpeed + enemyData.wobbleOffset;
             const wobbleX = Math.sin(wobbleTime * WOBBLE_X_MULTIPLIER) * this.config.movementVariation;
             const wobbleY = Math.cos(wobbleTime * WOBBLE_Y_MULTIPLIER) * (this.config.movementVariation * WOBBLE_Y_SCALE);
 
-            // Calculate new position
-            const timeProgress = elapsed / FRAME_DURATION_MS;
-            const baseX = enemyData.startX + (moveX * speed * timeProgress);
-            const baseY = enemyData.startY + (moveY * speed * timeProgress);
+            enemy.x += wobbleX;
+            enemy.y += wobbleY;
 
-            const newX = baseX + wobbleX;
-            const newY = baseY + wobbleY;
-
-            enemy.setPosition(newX, newY);
-            enemy.setVelocity(0, 0); // Override physics velocity
-
-            // Rotate ship to face movement direction
-            const rotation = Math.atan2(moveY, moveX);
-            enemy.setRotation(rotation);
-
-            // Check if out of bounds (all directions) - widened buffer zones
-            // Calculate dynamic top bound based on formation depth
-            const maxDepth = this.config.formationGrid.length * this.config.verticalSpacing;
-            const topBound = TOP_BOUND_BASE - maxDepth;
-
-            if (enemy.y > height + BOUNDS_BUFFER || enemy.y < topBound || enemy.x < -BOUNDS_BUFFER || enemy.x > this.scene.scale.width + BOUNDS_BUFFER) {
+            // Cleanup checks
+            if (enemy.y > height + BOUNDS_BUFFER || enemy.x < -BOUNDS_BUFFER || enemy.x > this.scene.scale.width + BOUNDS_BUFFER) {
                 enemyData.ship.destroy();
                 this.enemies.splice(i, 1);
             }
         }
     }
-
-    getEnemies(): EnemyData[] {
-        return this.enemies;
-    }
 }
+
 

@@ -1,6 +1,7 @@
 import type { LevelConfig } from './level';
 import type { ShipConfig } from '../../../ships/types';
-import { FixedFormation } from '../formations/index';
+import { ExplicitFormation } from '../formations/index';
+import { LinearTactic } from '../tactics/linear-tactic';
 
 // Dynamically import all ship configurations from the configurations folder
 const configModules = import.meta.glob<{ [key: string]: ShipConfig }>(
@@ -33,14 +34,27 @@ const generateFormations = () => {
 
     return allShipConfigs.map((shipConfig, index) => {
         const x = startX + (index * shipSpacing);
+        // Calculate loop distance roughly to screen height plus buffer
+        // Note: We don't have Scene reference here, so we guess standard height + buffer
+        const loopLength = 600 + 200; // 800px loop
 
         return {
-            formationType: FixedFormation,
+            formationType: ExplicitFormation,
             shipConfig,
             count: 1,
             config: {
                 positions: [{ x, y: startY }],
                 ...commonFiringConfig
+            },
+            // Add Tactic for oscillation
+            tacticType: LinearTactic,
+            tacticConfig: {
+                // LinearTactic uses: dist = speed * (elapsed / FRAME_DURATION_MS)
+                // speed is PX_PER_FRAME.
+                // config.oscillateSpeed is 0.05 px/ms -> 0.05 * 16.66 = 0.833 px/frame.
+                speed: commonFiringConfig.oscillateSpeed * 16.66,
+                angle: Math.PI / 2, // Down
+                loopLength: loopLength
             }
         };
     });

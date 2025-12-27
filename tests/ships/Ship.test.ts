@@ -29,6 +29,30 @@ vi.mock('phaser', () => {
                         setData = vi.fn();
                         setBounce = vi.fn();
                         setSensor = vi.fn();
+                        on = vi.fn(); // Added on
+                    },
+                    Sprite: class { // Added Sprite
+                        setAngle = vi.fn();
+                        setFixedRotation = vi.fn();
+                        setFrictionAir = vi.fn();
+                        setMass = vi.fn();
+                        setSleepThreshold = vi.fn();
+                        setCollisionCategory = vi.fn();
+                        setCollidesWith = vi.fn();
+                        thrustBack = vi.fn();
+                        destroy = vi.fn();
+                        active = true;
+                        x = 100;
+                        y = 100;
+                        rotation = 0;
+                        scene = {};
+                        width = 32;
+                        height = 32;
+                        setData = vi.fn();
+                        setBounce = vi.fn();
+                        setSensor = vi.fn();
+                        on = vi.fn();
+                        setVelocity = vi.fn();
                     }
                 }
             }

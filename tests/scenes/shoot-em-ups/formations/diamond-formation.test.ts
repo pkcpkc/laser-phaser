@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DiamondFormation } from '../../../../src/scenes/shoot-em-ups/formations/index';
 import { Ship } from '../../../../src/ships/ship';
 
@@ -92,20 +92,7 @@ describe('DiamondFormation', () => {
         expect(uniqueYPositions).toHaveLength(3); // 3 rows
     });
 
-    it('should update enemy positions moving straight down', () => {
-        diamondFormation.spawn();
-        const enemies = diamondFormation.getEnemies();
-
-        // Mock time update
-        diamondFormation.update(1000);
-
-        // Check if setPosition was called
-        expect(enemies[0].ship.sprite.setPosition).toHaveBeenCalled();
-
-        // Check rotation is set to straight down (90 degrees = PI/2)
-        // With angle=0, moveX=0, moveY=1, rotation = atan2(1, 0) = PI/2
-        expect(enemies[0].ship.sprite.setRotation).toHaveBeenCalledWith(Math.PI / 2);
-    });
+    // Moving straight down test removed as logic moved to LinearTactic
 
     it('should remove enemies when they go out of bounds', () => {
         diamondFormation.spawn();
@@ -154,17 +141,15 @@ describe('DiamondFormation', () => {
         // Update formation
         diamondFormation.update(1000);
 
-        // Verify setPosition was called
-        const calls = (firstEnemy.ship.sprite.setPosition as Mock).mock.calls;
-        expect(calls.length).toBeGreaterThan(0);
+        // Check if x or y changed from initial
+        // Initial x is stored in startX, but sprite.x might track it?
+        // Logic: enemy.x += wobbleX. 
+        // The mock ship constructor sets sprite.x = 0.
+        // DiamondFormation.update() adds wobble to 0.
+        // So expect sprite.x != 0.
 
-        // The X position should vary slightly due to wobble (not exactly startX)
-        // We just verify position was updated, exact wobble amount varies by time/offset
-        if (calls.length > 0) {
-            const lastCall = calls[calls.length - 1];
-            expect(typeof lastCall[0]).toBe('number');
-            expect(typeof lastCall[1]).toBe('number');
-        }
+        expect(firstEnemy.ship.sprite.x).not.toBe(0);
+        expect(firstEnemy.ship.sprite.y).not.toBe(0);
     });
 
     it('should support custom formation grids', () => {
@@ -204,8 +189,9 @@ describe('DiamondFormation', () => {
         // Let's verify row counts implicitly by grouping
         const enemiesByY = new Map<number, number>();
         enemies.forEach(e => {
-            const count = enemiesByY.get(e.startY) || 0;
-            enemiesByY.set(e.startY, count + 1);
+            const y = e.startY ?? 0;
+            const count = enemiesByY.get(y) || 0;
+            enemiesByY.set(y, count + 1);
         });
 
         const counts = Array.from(enemiesByY.values());

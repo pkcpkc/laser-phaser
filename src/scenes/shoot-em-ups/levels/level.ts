@@ -1,26 +1,31 @@
 import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
-
-export interface IFormation {
-    spawn(): void;
-    update(time: number, delta: number): void;
-    isComplete(): boolean;
-    destroy(): void;
-}
+import type { IFormation } from '../formations/types';
+import type { ITactic } from '../tactics/types';
 
 export interface IFormationConstructor {
     new(scene: Phaser.Scene, shipClass: ShipConstructor, collisionConfig: ShipCollisionConfig, config?: Record<string, unknown>, shipConfig?: ShipConfig): IFormation;
 }
 
+export interface ITacticConstructor {
+    new(config: any): ITactic;
+}
+
 type ShipConstructor = new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
 
 export interface FormationConfig {
-    formationType: IFormationConstructor; // Constructor for the formation (e.g., SinusFormation)
+    // Tactic configuration
+    tacticType?: ITacticConstructor;
+    tacticConfig?: any;
+
+    // Formation configuration
+    formationType: IFormationConstructor;
     shipClass?: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
     shipConfig?: ShipConfig;
-    config?: Record<string, unknown>; // Specific config for the formation (e.g., SinusFormationConfig)
-    count?: number; // Number of times to repeat this formation
+    config?: Record<string, unknown>; // Specific config for the formation
+
+    count?: number;
     interval?: number; // Delay between repeats in ms
     startDelay?: number; // Delay before the first spawn of this formation in ms (relative to the step start)
 }
@@ -46,6 +51,7 @@ class FormationRunner {
     private config: FormationConfig;
     private collisionConfig: ShipCollisionConfig;
     private instance: IFormation | null = null;
+    private tactic: ITactic | null = null;
     private repeatCount: number = 0;
     private maxRepeats: number;
     private state: RunnerState;
@@ -73,7 +79,14 @@ class FormationRunner {
         const shipClass = this.config.shipClass || Ship;
         const shipConfig = this.config.shipConfig;
 
-        console.log(`Spawning formation: ${this.config.formationType.name} with ${shipClass.name}`);
+        console.log('Spawning formation: ' + this.config.formationType.name + ' with ' + shipClass.name);
+
+        // Instantiate Tactic first if present
+        if (this.config.tacticType) {
+            this.tactic = new this.config.tacticType(this.config.tacticConfig || {});
+        }
+
+        // Instantiate Formation
         this.instance = new this.config.formationType(
             this.scene,
             shipClass,
@@ -82,11 +95,23 @@ class FormationRunner {
             shipConfig
         );
         this.instance.spawn();
+
+        // Assign Formation to Tactic
+        if (this.tactic && this.instance) {
+            this.tactic.addFormation(this.instance);
+        }
     }
 
     public update(time: number, delta: number) {
         if (this.state === RUNNER_STATES.RUNNING && this.instance) {
+            // If we have a tactic, IT updates the formation movement
+            if (this.tactic) {
+                this.tactic.update(time, delta);
+            }
+
+            // Formation also needs update (for shooting, animations, self-cleanup)
             this.instance.update(time, delta);
+
             if (this.instance.isComplete()) {
                 this.handleComplete();
             }
@@ -98,6 +123,10 @@ class FormationRunner {
             this.instance.destroy();
             this.instance = null;
         }
+        // Tactic persists? usually one tactic per runner instance.
+        // If we replay, we create new instances?
+        // Let's destroy tactic too just in case it holds state, though BaseTactic is simple.
+        this.tactic = null;
 
         this.repeatCount++;
 
@@ -127,6 +156,7 @@ class FormationRunner {
         if (this.instance) {
             this.instance.destroy();
         }
+        this.tactic = null;
     }
 }
 

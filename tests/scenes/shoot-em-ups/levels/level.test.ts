@@ -61,6 +61,8 @@ class MockFormation {
     destroy = vi.fn();
     isComplete = vi.fn().mockReturnValue(false);
 
+    getShips = vi.fn().mockReturnValue([]);
+
     constructor(_scene: any, _shipClass: any, _collisionConfig: any, _config: any, _shipConfig: any) {
         MockFormation.instances.push(this);
     }

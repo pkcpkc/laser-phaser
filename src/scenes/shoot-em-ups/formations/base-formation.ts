@@ -1,10 +1,14 @@
 import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
+import type { IFormation } from './types';
 
 export interface BaseEnemyData {
     ship: Ship;
     spawnTime: number;
+    startX?: number;
+    startY?: number;
+    [key: string]: any; // Allow other properties like wobbleOffset
 }
 
 export interface ShootingConfig {
@@ -14,7 +18,7 @@ export interface ShootingConfig {
     continuousFire?: boolean;
 }
 
-export abstract class BaseFormation {
+export abstract class BaseFormation implements IFormation {
     protected scene: Phaser.Scene;
     protected enemies: BaseEnemyData[] = [];
     protected shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
@@ -149,6 +153,14 @@ export abstract class BaseFormation {
     }
 
     /**
+     * Alias for getEnemies to satisfy IFormation if needed, 
+     * but strictly IFormation returns BaseEnemyData[] which matches getEnemies
+     */
+    getShips(): BaseEnemyData[] {
+        return this.enemies;
+    }
+
+    /**
      * Destroy the formation and clean up resources
      */
     destroy(): void {
@@ -160,3 +172,4 @@ export abstract class BaseFormation {
         this.enemies = [];
     }
 }
+
