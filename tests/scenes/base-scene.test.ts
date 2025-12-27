@@ -34,7 +34,7 @@ import { GameManager } from '../../src/logic/game-manager';
 import { CollisionManager } from '../../src/logic/collision-manager';
 import { PlayerController } from '../../src/logic/player-controller';
 import { Starfield } from '../../src/backgrounds/starfield';
-import { BigCruiserWhiteLaser } from '../../src/ships/configurations/big-cruiser-white-laser';
+import { BigCruiserWhiteLaserConfig } from '../../src/ships/configurations/big-cruiser-white-laser';
 import { Ship } from '../../src/ships/ship';
 import { EngineTrail } from '../../src/ships/effects/engine-trail';
 import { LootUI } from '../../src/ui/loot-ui';
@@ -196,7 +196,7 @@ describe('BaseScene', () => {
         expect(GameManager).toHaveBeenCalledWith(scene);
         expect(CollisionManager).toHaveBeenCalledWith(scene, expect.any(Function), expect.any(Function));
         expect(Starfield).toHaveBeenCalledWith(scene, 'nebula', undefined);
-        expect(Ship).toHaveBeenCalledWith(expect.any(Object), expect.any(Number), expect.any(Number), BigCruiserWhiteLaser, expect.any(Object));
+        expect(Ship).toHaveBeenCalledWith(expect.any(Object), expect.any(Number), expect.any(Number), BigCruiserWhiteLaserConfig, expect.any(Object));
         expect(EngineTrail).toHaveBeenCalled();
     });
 

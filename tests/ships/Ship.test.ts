@@ -142,9 +142,9 @@ describe('Ship', () => {
                     speed: 5
                 }
             },
-            mounts: [{
+            modules: [{
                 marker: { x: 10, y: 0, angle: 0 },
-                weapon: mockLaserClass
+                module: mockLaserClass
             }]
         };
 
@@ -203,9 +203,9 @@ describe('Ship', () => {
     it('should fire lasers from multiple mount points', () => {
         const multiMountConfig = {
             ...mockConfig,
-            mounts: [
-                { marker: { x: 10, y: 0, angle: 0 }, weapon: mockLaserClass },
-                { marker: { x: -10, y: 0, angle: 180 }, weapon: mockLaserClass }
+            modules: [
+                { marker: { x: 10, y: 0, angle: 0 }, module: mockLaserClass },
+                { marker: { x: -10, y: 0, angle: 180 }, module: mockLaserClass }
             ]
         };
         const multiMountShip = new Ship(mockScene, 100, 100, multiMountConfig, mockCollisionConfig);
@@ -237,5 +237,38 @@ describe('Ship', () => {
             4,
             [8]
         );
+    });
+    it('should calculate mass correctly', () => {
+        expect(ship.mass).toBe(10);
+    });
+
+    it('should calculate speed without drives (base speed)', () => {
+        // Here we have no drives, only lasers. Laser doesn't have thrust.
+        // So totalThrust = 0.
+        // Should return gameplay.speed = 5.
+        expect(ship.speed).toBe(5);
+    });
+
+    it('should calculate speed with drives', () => {
+        const mockDriveClass = class {
+            thrust = 50;
+            name = 'Mock Drive';
+            description = 'Fast';
+            createTexture = vi.fn();
+            visibleOnMount = true;
+        };
+
+        const driveConfig = {
+            ...mockConfig,
+            modules: [
+                { marker: { x: 0, y: 0, angle: 0 }, module: mockDriveClass }
+            ]
+        };
+
+        const driveShip = new Ship(mockScene, 100, 100, driveConfig, mockCollisionConfig);
+        (driveShip.sprite as any).scene = mockScene;
+
+        // Mass is 10. Thrust is 50. Speed = 50 / 10 = 5.
+        expect(driveShip.speed).toBe(5);
     });
 });

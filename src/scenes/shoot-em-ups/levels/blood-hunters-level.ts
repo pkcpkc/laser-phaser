@@ -5,9 +5,9 @@ import { LineFormation } from '../formations/line-formation';
 import { SinusTactic } from '../tactics/sinus-tactic';
 import { LinearTactic } from '../tactics/linear-tactic';
 
-import { BloodHunterRedLaser } from '../../../ships/configurations/blood-hunter-red-laser';
-import { BloodFighterBigRedLaser } from '../../../ships/configurations/blood-fighter-big-red-laser';
-import { BloodBomberBloodRocket } from '../../../ships/configurations/blood-bomber-blood-rocket';
+import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
+import { BloodFighterBigRedLaserConfig } from '../../../ships/configurations/blood-fighter-big-red-laser';
+import { BloodBomberBloodRocketConfig } from '../../../ships/configurations/blood-bomber-blood-rocket';
 
 // Helper for Diamond Formations (with Linear Travel)
 const createDiamondConfig = (
@@ -64,7 +64,7 @@ const createDiamondConfig = (
             angle: angle
         },
         formationType: DiamondFormation,
-        shipConfig: BloodFighterBigRedLaser,
+        shipConfig: BloodFighterBigRedLaserConfig,
         count: 1,
         interval: 3000,
         startDelay: startDelay,
@@ -81,7 +81,7 @@ const createSinusConfig = (): FormationConfig => ({
         verticalSpeed: 2
     },
     formationType: LineFormation,
-    shipConfig: BloodHunterRedLaser,
+    shipConfig: BloodHunterRedLaserConfig,
     count: 1,
     interval: 2000,
     config: {
@@ -103,7 +103,7 @@ const createBomberConfig = (): FormationConfig => {
             speed: 2
         },
         formationType: DiamondFormation,
-        shipConfig: BloodBomberBloodRocket,
+        shipConfig: BloodBomberBloodRocketConfig,
         count: 1,
         interval: 4000,
         config: {

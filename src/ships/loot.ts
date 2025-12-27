@@ -9,7 +9,7 @@ export class Loot extends Phaser.Physics.Matter.Image {
         // Use type or text for texture key, ensuring it's safe
         let text = config.text;
         if (config.type === 'gem') text = '💎';
-        if (config.type === 'mount') text = '📦';
+        if (config.type === 'module') text = '📦';
 
         const safeKey = config.type || text.codePointAt(0)?.toString() || 'loot';
         const textureKey = `loot-${safeKey}`;
@@ -60,7 +60,7 @@ export class Loot extends Phaser.Physics.Matter.Image {
 
         const lifespan = config.lifespan || 3000;
 
-        if (config.type === 'mount') {
+        if (config.type === 'module') {
             // Add flare effect
             const particles = scene.add.particles(0, 0, 'flare-white', {
                 color: [0xffffff],

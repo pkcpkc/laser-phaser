@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { BigCruiserWhiteLaser } from '../ships/configurations/big-cruiser-white-laser';
+import { BigCruiserWhiteLaserConfig } from '../ships/configurations/big-cruiser-white-laser';
 import { Starfield } from '../backgrounds/starfield';
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
@@ -77,14 +77,14 @@ export default class BaseScene extends Phaser.Scene {
             lootCollidesWith: categories.shipCategory
         };
 
-        this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaser, collisionConfig);
+        this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
         this.ship.setEffect(new EngineTrail(this.ship));
     }
 
     protected goldCount: number = 0;
     protected silverCount: number = 0;
     protected gemCount: number = 0;
-    protected mountCount: number = 0;
+    protected moduleCount: number = 0;
 
     protected createUI() {
         const { width, height } = this.scale;
@@ -94,7 +94,7 @@ export default class BaseScene extends Phaser.Scene {
         this.goldCount = loot.gold;
         this.silverCount = loot.silver;
         this.gemCount = loot.gems;
-        this.mountCount = loot.mounts;
+        this.moduleCount = loot.modules;
 
         // Create Loot UI
         this.lootUI = new LootUI(this);
@@ -157,10 +157,10 @@ export default class BaseScene extends Phaser.Scene {
                 this.gemCount += value;
                 this.lootUI.updateCounts('gem', this.gemCount);
                 gameStatus.updateLoot('gem', value);
-            } else if (type === 'mount') {
-                this.mountCount += value;
-                this.lootUI.updateCounts('mount', this.mountCount);
-                gameStatus.updateLoot('mount', value);
+            } else if (type === 'module') {
+                this.moduleCount += value;
+                this.lootUI.updateCounts('module', this.moduleCount);
+                gameStatus.updateLoot('module', value);
             } else {
                 this.silverCount += value;
                 this.lootUI.updateCounts('silver', this.silverCount);

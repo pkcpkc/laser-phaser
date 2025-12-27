@@ -15,7 +15,7 @@ export const BigCruiserDefinition: ShipDefinition = {
     },
     gameplay: {
         health: 4,
-        speed: 2,
+        speed: 12,
         rotationSpeed: 0.08,
         thrust: 0.1
     },

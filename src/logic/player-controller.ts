@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { Ship } from '../ships/ship';
-import { BigCruiserDefinition } from '../ships/definitions/big-cruiser';
+
 
 // Target Effect Constants
 const TARGET_RADIUS = 5;
@@ -13,12 +13,13 @@ const TARGET_FADE_THRESHOLD = 0.1;
 
 // Movement Constants
 const STOP_THRESHOLD = 5;
-const MAX_SPEED = 12;
+// const MAX_SPEED = 12; // Replaced by ship.speed
 const ACCELERATION = 0.5;
 const DECELERATION = 0.6;
 const MIN_SPEED = 0.5;
 const SCREEN_MARGIN = 30;
-const DEFAULT_THRUST = 0.1;
+
+const KEYBOARD_THRUST = 0.04;
 
 export class PlayerController {
     private scene: Phaser.Scene;
@@ -111,17 +112,17 @@ export class PlayerController {
         let movingWithKeys = false;
 
         if (this.cursors.left.isDown) {
-            this.ship.sprite.thrustLeft(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
+            this.ship.sprite.thrustLeft(KEYBOARD_THRUST);
             movingWithKeys = true;
         } else if (this.cursors.right.isDown) {
-            this.ship.sprite.thrustRight(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
+            this.ship.sprite.thrustRight(KEYBOARD_THRUST);
             movingWithKeys = true;
         }
         if (this.cursors.up.isDown) {
-            this.ship.sprite.thrust(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
+            this.ship.sprite.thrust(KEYBOARD_THRUST);
             movingWithKeys = true;
         } else if (this.cursors.down.isDown) {
-            this.ship.sprite.thrustBack(BigCruiserDefinition.gameplay.thrust || DEFAULT_THRUST);
+            this.ship.sprite.thrustBack(KEYBOARD_THRUST);
             movingWithKeys = true;
         }
 
@@ -162,9 +163,9 @@ export class PlayerController {
                     if (this.currentSpeed < MIN_SPEED) this.currentSpeed = MIN_SPEED; // Min speed to ensure arrival
                 } else {
                     // Acceleration Phase
-                    if (this.currentSpeed < MAX_SPEED) {
+                    if (this.currentSpeed < this.ship.speed) {
                         this.currentSpeed += ACCELERATION;
-                        if (this.currentSpeed > MAX_SPEED) this.currentSpeed = MAX_SPEED;
+                        if (this.currentSpeed > this.ship.speed) this.currentSpeed = this.ship.speed;
                     }
                 }
 
@@ -217,8 +218,9 @@ export class PlayerController {
     private getEffectiveFiringInterval(): number {
         let maxInterval = 0; // No limit by default - fire as fast as possible
 
-        for (const mount of this.ship.config.mounts) {
-            const weapon = new mount.weapon();
+        for (const module of this.ship.config.modules) {
+            const shipModule = new module.module();
+            const weapon = shipModule as any;
             if (weapon.firingDelay) {
                 // Use the minimum delay for maximum fire rate, but respect weapon limits
                 maxInterval = Math.max(maxInterval, weapon.firingDelay.min);

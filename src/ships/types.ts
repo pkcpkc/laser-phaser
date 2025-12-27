@@ -1,4 +1,4 @@
-import type { Laser } from './mounts/lasers/types';
+import type { Laser } from './modules/lasers/types';
 
 export interface ShipPhysicsConfig {
     mass?: number;
@@ -40,7 +40,7 @@ export interface LootConfig {
     dropChance?: number; // 0-1, default 1
     lifespan?: number; // ms, default 3000
     value?: number;
-    type?: 'gold' | 'silver' | 'gem' | 'mount';
+    type?: 'gold' | 'silver' | 'gem' | 'module';
 }
 
 // --- New Architecture ---
@@ -65,11 +65,13 @@ export interface ShipDefinition {
  * Configuration for a specific instance of a ship type.
  * Combines the static definition with a specific loadout.
  */
+import type { Drive } from './modules/drives/types';
+
 export interface ShipConfig {
     definition: ShipDefinition;
-    mounts: {
+    modules: {
         marker: ShipMarker;
-        weapon: new () => Laser;
+        module: new () => Laser | Drive;
     }[];
     loot?: LootConfig;
 }

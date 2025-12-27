@@ -18,7 +18,7 @@ vi.mock('phaser', () => ({
 }));
 
 import { GreenRocketCarrierDefinition } from '../../src/ships/definitions/green-rocket-carrier';
-import { GreenRocketCarrierGreenRocket } from '../../src/ships/configurations/green-rocket-carrier-green-rocket';
+import { GreenRocketCarrierGreenRocketConfig } from '../../src/ships/configurations/green-rocket-carrier-green-rocket';
 
 describe('GreenRocketCarrier Configuration', () => {
     it('should have static properties defined in definition', () => {
@@ -28,6 +28,7 @@ describe('GreenRocketCarrier Configuration', () => {
     });
 
     it('should use correct definition in config', () => {
-        expect(GreenRocketCarrierGreenRocket.definition).toBe(GreenRocketCarrierDefinition);
+        const config = GreenRocketCarrierGreenRocketConfig;
+        expect(config.definition).toBe(GreenRocketCarrierDefinition);
     });
 });

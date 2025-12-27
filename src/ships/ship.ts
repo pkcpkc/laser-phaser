@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
-import type { Laser } from './mounts/lasers/types';
+import type { Laser } from './modules/lasers/types';
+import type { Drive } from './modules/drives/types';
 import type { ShipEffect } from './effects/types';
 import { Explosion } from './effects/explosion';
 
@@ -8,18 +9,18 @@ import type { ShipConfig, ShipCollisionConfig } from './types';
 
 import { Loot } from './loot';
 
-interface ActiveMount {
+interface ActiveModule {
     x: number;
     y: number;
     angle: number;
-    weapon: Laser;
+    module: Laser | Drive;
     lastFired?: number;
 }
 
 export class Ship {
     readonly sprite: Phaser.Physics.Matter.Image;
-    private activeMounts: ActiveMount[] = [];
-    private mountSprites: Map<ActiveMount, Phaser.GameObjects.Image> = new Map();
+    private activeModules: ActiveModule[] = [];
+    private moduleSprites: Map<ActiveModule, Phaser.GameObjects.Image> = new Map();
     private effect?: ShipEffect;
     private updateListener?: () => void;
 
@@ -43,66 +44,73 @@ export class Ship {
 
         this.sprite.setSleepThreshold(-1);
 
+        // Initial mass set
+        if (this.mass) {
+            this.sprite.setMass(this.mass);
+        }
+
         // Apply Collision Config
         this.sprite.setCollisionCategory(collisionConfig.category);
         this.sprite.setCollidesWith(collisionConfig.collidesWith);
 
-        // Initialize Mounts
-        this.activeMounts = [];
-        if (config.mounts) {
-            this.activeMounts = config.mounts.map(m => {
+        // Initialize Modules
+        this.activeModules = [];
+        if (config.modules) {
+            this.activeModules = config.modules.map(m => {
                 // Determine relative position based on sprite center
                 // Markers are usually absolute pixels on the original image? 
                 // Previous code assumed marker x/y are pixels on the image.
-                const mountX = m.marker.x - (this.sprite.width * 0.5);
-                const mountY = m.marker.y - (this.sprite.height * 0.5);
-                const mountAngle = m.marker.angle * (Math.PI / 180);
+                const moduleX = m.marker.x - (this.sprite.width * 0.5);
+                const moduleY = m.marker.y - (this.sprite.height * 0.5);
+                const moduleAngle = m.marker.angle * (Math.PI / 180);
 
-                const mountData = {
-                    x: mountX,
-                    y: mountY,
-                    angle: mountAngle,
-                    weapon: new m.weapon()
+                const moduleData = {
+                    x: moduleX,
+                    y: moduleY,
+                    angle: moduleAngle,
+                    module: new m.module()
                 };
 
-                // Create texture if needed
-                mountData.weapon.createTexture(scene);
+                // Create texture if needed/possible
+                if (moduleData.module.createTexture) {
+                    moduleData.module.createTexture(scene);
+                }
 
                 // Create sprite if visible on mount
-                if (mountData.weapon.visibleOnMount) {
+                if (moduleData.module.visibleOnMount) {
                     // Create a visual-only sprite (no physics)
                     // Use the mountTextureKey if available, otherwise TEXTURE_KEY
-                    const weapon = mountData.weapon as any;
-                    const textureKey = weapon.mountTextureKey || weapon.TEXTURE_KEY;
+                    const module = moduleData.module as any;
+                    const textureKey = module.mountTextureKey || module.TEXTURE_KEY;
 
                     if (textureKey) {
-                        const mountSprite = scene.add.image(x + mountX, y + mountY, textureKey);
+                        const moduleSprite = scene.add.image(x + moduleX, y + moduleY, textureKey);
 
                         // Initial rotation
-                        mountSprite.setRotation(this.sprite.rotation + mountAngle);
-                        mountSprite.setDepth(this.sprite.depth + 1); // Ensure on top
+                        moduleSprite.setRotation(this.sprite.rotation + moduleAngle);
+                        moduleSprite.setDepth(this.sprite.depth + 1); // Ensure on top
                         // Inherit scale if present
-                        if (mountData.weapon.scale) {
-                            mountSprite.setScale(mountData.weapon.scale);
+                        if (moduleData.module.scale) {
+                            moduleSprite.setScale(moduleData.module.scale);
                         }
-                        this.mountSprites.set(mountData, mountSprite);
+                        this.moduleSprites.set(moduleData, moduleSprite);
 
                         // Add mount effect if weapon provides one
-                        if (mountData.weapon.addMountEffect) {
-                            mountData.weapon.addMountEffect(scene, mountSprite);
+                        if (moduleData.module.addMountEffect) {
+                            moduleData.module.addMountEffect(scene, moduleSprite);
                         }
                     } else {
-                        console.warn('No texture key for visible mount weapon');
+                        console.warn('No texture key for visible mount module');
                     }
                 }
 
-                return mountData;
+                return moduleData;
             });
         }
 
         // Setup update listener to sync mount sprites
-        if (this.mountSprites.size > 0) {
-            this.updateListener = () => this.updateMounts();
+        if (this.moduleSprites.size > 0) {
+            this.updateListener = () => this.updateModules();
             // Use postupdate to ensure ship physics/movement has finished for the frame
             this.sprite.scene.events.on('postupdate', this.updateListener);
 
@@ -111,11 +119,11 @@ export class Ship {
                 this.destroy();
             });
             // Force initial update to set correct position and visibility
-            this.updateMounts();
+            this.updateModules();
 
             // Checking for load race conditions: Update again after a short delay to ensure dimensions are loaded
             scene.time.delayedCall(100, () => {
-                this.updateMounts();
+                this.updateModules();
             });
         }
     }
@@ -133,17 +141,22 @@ export class Ship {
         let totalRecoil = 0;
         const now = this.sprite.scene.time.now;
 
-        for (const mount of this.activeMounts) {
+
+        for (const module of this.activeModules) {
+            // Type guard: Check if module is a weapon (has fire method)
+            const weapon = module.module as any; // Cast to access potential weapon properties safely with checks
+            if (typeof weapon.fire !== 'function') continue;
+
             // Check reload cooldown
-            if (mount.weapon.reloadTime && mount.lastFired) {
-                if (now - mount.lastFired < mount.weapon.reloadTime) {
+            if (weapon.reloadTime && module.lastFired) {
+                if (now - module.lastFired < weapon.reloadTime) {
                     continue; // Still reloading
                 }
             }
 
             // Check ammo (skip for enemies - unlimited ammo)
             if (!this.collisionConfig.isEnemy) {
-                if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
+                if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
                     continue; // Out of ammo
                 }
             }
@@ -154,14 +167,14 @@ export class Ship {
             const cos = Math.cos(rotation);
             const sin = Math.sin(rotation);
 
-            const rotatedX = mount.x * cos - mount.y * sin;
-            const rotatedY = mount.x * sin + mount.y * cos;
+            const rotatedX = module.x * cos - module.y * sin;
+            const rotatedY = module.x * sin + module.y * cos;
 
             const absoluteX = this.sprite.x + rotatedX;
             const absoluteY = this.sprite.y + rotatedY;
-            const absoluteAngle = rotation + (mount.angle || 0);
+            const absoluteAngle = rotation + (module.angle || 0);
 
-            const projectile = mount.weapon.fire(
+            const projectile = weapon.fire(
                 this.sprite.scene,
                 absoluteX,
                 absoluteY,
@@ -171,33 +184,32 @@ export class Ship {
             );
 
             if (projectile) {
-                mount.lastFired = now; // Mark time fired
+                module.lastFired = now; // Mark time fired
 
                 // Refill ammo for enemies (unlimited ammo)
-                if (this.collisionConfig.isEnemy && mount.weapon.currentAmmo !== undefined) {
-                    const rocket = mount.weapon as any;
-                    if (rocket.maxAmmo) {
-                        mount.weapon.currentAmmo = rocket.maxAmmo;
+                if (this.collisionConfig.isEnemy && weapon.currentAmmo !== undefined) {
+                    if (weapon.maxAmmo) {
+                        weapon.currentAmmo = weapon.maxAmmo;
                     }
                 }
             }
 
-            if (mount.weapon.recoil) {
-                totalRecoil += mount.weapon.recoil;
+            if (weapon.recoil) {
+                totalRecoil += weapon.recoil;
             }
         }
 
         // Apply average or total recoil? Usually concurrent fire adds up.
         // If getting too crazy, might want to damp it, but let's try sum first.
         if (totalRecoil > 0) {
-            this.sprite.thrustBack(totalRecoil / (this.activeMounts.length || 1)); // Averaging recoil for stability for now
+            this.sprite.thrustBack(totalRecoil / (this.activeModules.length || 1)); // Averaging recoil for stability for now
         }
     }
 
-    private updateMounts() {
+    private updateModules() {
         // If ship is not active or not visible, hide all mounts
         if (!this.sprite.active || !this.sprite.visible) {
-            this.mountSprites.forEach(sprite => sprite.setVisible(false));
+            this.moduleSprites.forEach(sprite => sprite.setVisible(false));
             return;
         }
 
@@ -205,29 +217,25 @@ export class Ship {
         const cos = Math.cos(rotation);
         const sin = Math.sin(rotation);
 
-        this.mountSprites.forEach((sprite, mount) => {
+        this.moduleSprites.forEach((sprite, module) => {
             // Check ammo visibility
             const now = this.sprite.scene.time.now;
+            const weapon = module.module as any;
 
-            // 1. Check Ammo
-            if (mount.weapon.currentAmmo !== undefined && mount.weapon.currentAmmo <= 0) {
-                sprite.setVisible(false);
-                return;
-            }
-
-            // 2. Check Reload State
-            if (mount.weapon.reloadTime && mount.lastFired) {
-                if (now - mount.lastFired < mount.weapon.reloadTime) {
-                    sprite.setVisible(false); // Reloading -> Hide
+            // Only check usage stats for weapons
+            if (typeof weapon.fire === 'function') {
+                // 1. Check Ammo
+                if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
+                    sprite.setVisible(false);
                     return;
                 }
-            }
 
-            // 2. Check Reload State
-            if (mount.weapon.reloadTime && mount.lastFired) {
-                if (now - mount.lastFired < mount.weapon.reloadTime) {
-                    sprite.setVisible(false); // Reloading -> Hide
-                    return;
+                // 2. Check Reload State
+                if (weapon.reloadTime && module.lastFired) {
+                    if (now - module.lastFired < weapon.reloadTime) {
+                        sprite.setVisible(false); // Reloading -> Hide
+                        return;
+                    }
                 }
             }
 
@@ -235,12 +243,12 @@ export class Ship {
             sprite.setVisible(true);
 
             // Sync position
-            const rotatedX = mount.x * cos - mount.y * sin;
-            const rotatedY = mount.x * sin + mount.y * cos;
+            const rotatedX = module.x * cos - module.y * sin;
+            const rotatedY = module.x * sin + module.y * cos;
 
             const absoluteX = this.sprite.x + rotatedX;
             const absoluteY = this.sprite.y + rotatedY;
-            const absoluteAngle = rotation + (mount.angle || 0);
+            const absoluteAngle = rotation + (module.angle || 0);
 
             sprite.setPosition(absoluteX, absoluteY);
             sprite.setRotation(absoluteAngle);
@@ -274,7 +282,7 @@ export class Ship {
                 // console.log('Spawning MOUNT loot');
                 const mountLootConfig = {
                     text: '📦',
-                    type: 'mount' as const,
+                    type: 'module' as const,
                     lifespan: 5000
                 };
                 const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, mountLootConfig);
@@ -329,11 +337,34 @@ export class Ship {
             this.sprite?.scene?.events?.off('postupdate', this.updateListener);
             this.updateListener = undefined;
         }
-        this.mountSprites.forEach(sprite => sprite.destroy());
-        this.mountSprites.clear();
+        this.moduleSprites.forEach(sprite => sprite.destroy());
+        this.moduleSprites.clear();
 
         if (this.sprite && this.sprite.active) {
             this.sprite.destroy();
         }
+    }
+
+    // --- Physics Properties ---
+
+    get mass(): number {
+        return this.config.definition.physics.mass || 1;
+    }
+
+    get speed(): number {
+        let totalThrust = 0;
+        for (const m of this.activeModules) {
+            if ('thrust' in m.module) {
+                totalThrust += (m.module as Drive).thrust;
+            }
+        }
+
+        // Speed = (Sum(Drive.thrust)) / Ship.mass
+        // If no drives, fallback to defined speed or 0
+        if (totalThrust > 0) {
+            return totalThrust / this.mass;
+        }
+
+        return this.config.definition.gameplay.speed || 0;
     }
 }

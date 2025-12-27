@@ -1,13 +1,12 @@
 import type { ShipConfig } from '../types';
 import { BloodHunterDefinition } from '../definitions/blood-hunter';
-import { RedLaser } from '../mounts/lasers/red-laser';
+import { RedLaser } from '../modules/lasers/red-laser';
 
-console.log('Evaluating BloodHunterRedLaser module. Definition:', BloodHunterDefinition);
-export const BloodHunterRedLaser: ShipConfig = {
+export const BloodHunterRedLaserConfig: ShipConfig = {
     definition: BloodHunterDefinition,
-    mounts: BloodHunterDefinition.markers.map(m => ({
+    modules: BloodHunterDefinition.markers.map(m => ({
         marker: m,
-        weapon: RedLaser
+        module: RedLaser
     })),
     loot: {
         text: '🪙',

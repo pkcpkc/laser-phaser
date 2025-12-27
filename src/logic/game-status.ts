@@ -2,7 +2,7 @@ export interface LootData {
     gold: number;
     silver: number;
     gems: number;
-    mounts: number;
+    modules: number;
 }
 
 export interface PlanetPosition {
@@ -17,7 +17,7 @@ export class GameStatus {
         gold: 0,
         silver: 0,
         gems: 0,
-        mounts: 0
+        modules: 0
     };
 
     private revealedPlanets: Set<string> = new Set();
@@ -44,7 +44,7 @@ export class GameStatus {
     public updateLoot(type: string, amount: number) {
         if (type === 'gold') this.loot.gold += amount;
         else if (type === 'gems' || type === 'gem') this.loot.gems += amount;
-        else if (type === 'mounts' || type === 'mount') this.loot.mounts += amount;
+        else if (type === 'modules' || type === 'module') this.loot.modules += amount;
         else this.loot.silver += amount;
     }
 
@@ -67,7 +67,7 @@ export class GameStatus {
     }
 
     public reset() {
-        this.loot = { gold: 0, silver: 0, gems: 0, mounts: 0 };
+        this.loot = { gold: 0, silver: 0, gems: 0, modules: 0 };
         this.revealedPlanets.clear();
         this.planetPositions.clear();
     }

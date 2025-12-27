@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BaseLaser } from '../../../../src/ships/mounts/lasers/base-laser';
+import { BaseLaser } from '../../../../src/ships/modules/lasers/base-laser';
 // import Phaser from 'phaser';
 
 // Mock Phaser

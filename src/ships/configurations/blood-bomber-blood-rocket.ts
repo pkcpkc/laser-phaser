@@ -1,12 +1,12 @@
 import type { ShipConfig } from '../types';
 import { BloodBomberDefinition } from '../definitions/blood-bomber';
-import { BloodRocket } from '../mounts/rockets/blood-rocket';
+import { BloodRocket } from '../modules/rockets/blood-rocket';
 
-export const BloodBomberBloodRocket: ShipConfig = {
+export const BloodBomberBloodRocketConfig: ShipConfig = {
     definition: BloodBomberDefinition,
-    mounts: BloodBomberDefinition.markers.map(m => ({
+    modules: BloodBomberDefinition.markers.map(m => ({
         marker: m,
-        weapon: BloodRocket
+        module: BloodRocket
     })),
     loot: {
         text: '🪙',

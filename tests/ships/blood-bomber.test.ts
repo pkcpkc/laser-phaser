@@ -19,8 +19,8 @@ vi.mock('phaser', () => {
 vi.mock('../../src/ships/ship');
 
 import { BloodBomberDefinition } from '../../src/ships/definitions/blood-bomber';
-import { BloodBomberBloodRocket } from '../../src/ships/configurations/blood-bomber-blood-rocket';
-import { BloodRocket } from '../../src/ships/mounts/rockets/blood-rocket';
+import { BloodBomberBloodRocketConfig } from '../../src/ships/configurations/blood-bomber-blood-rocket';
+import { BloodRocket } from '../../src/ships/modules/rockets/blood-rocket';
 
 describe('BloodBomber Configuration', () => {
     it('should have correct definition properties', () => {
@@ -28,12 +28,13 @@ describe('BloodBomber Configuration', () => {
     });
 
     it('should use BloodBomber2R configuration', () => {
-        expect(BloodBomberBloodRocket.definition).toBe(BloodBomberDefinition);
-        expect(BloodBomberBloodRocket.mounts.length).toBeGreaterThan(0);
+        expect(BloodBomberBloodRocketConfig.definition).toBe(BloodBomberDefinition);
+        const config = BloodBomberBloodRocketConfig;
+        expect(config.modules).toHaveLength(2);
 
         // Verify all mounts are BloodRockets
-        BloodBomberBloodRocket.mounts.forEach(mount => {
-            expect(mount.weapon).toBe(BloodRocket);
+        BloodBomberBloodRocketConfig.modules.forEach(m => {
+            expect(m.module).toBe(BloodRocket);
         });
     });
 });

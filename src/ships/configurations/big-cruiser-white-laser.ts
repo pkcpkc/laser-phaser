@@ -1,15 +1,13 @@
 import type { ShipConfig } from '../types';
 import { BigCruiserDefinition } from '../definitions/big-cruiser';
-import { WhiteLaser } from '../mounts/lasers/white-laser';
+import { WhiteLaser } from '../modules/lasers/white-laser';
 
-export const BigCruiserWhiteLaser: ShipConfig = {
+export const BigCruiserWhiteLaserConfig: ShipConfig = {
     definition: BigCruiserDefinition,
-    mounts: [
+    modules: [
         {
-            // Filter for the specific marker at 24, 35
-            marker: BigCruiserDefinition.markers.find(m => m.x === 24 && m.y === 35)!,
-            weapon: WhiteLaser
+            marker: BigCruiserDefinition.markers[0],
+            module: WhiteLaser
         }
-    ],
-    loot: undefined // Default behavior or specific loot
+    ]
 };

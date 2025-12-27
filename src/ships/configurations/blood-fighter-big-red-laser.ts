@@ -1,13 +1,12 @@
 import type { ShipConfig } from '../types';
 import { BloodFighterDefinition } from '../definitions/blood-fighter';
-import { BigRedLaser } from '../mounts/lasers/big-red-laser';
+import { BigRedLaser } from '../modules/lasers/big-red-laser';
 
-console.log('Evaluating BloodFighterBigRedLaser module. Definition:', BloodFighterDefinition);
-export const BloodFighterBigRedLaser: ShipConfig = {
+export const BloodFighterBigRedLaserConfig: ShipConfig = {
     definition: BloodFighterDefinition,
-    mounts: BloodFighterDefinition.markers.map(m => ({
+    modules: BloodFighterDefinition.markers.map(m => ({
         marker: m,
-        weapon: BigRedLaser
+        module: BigRedLaser
     })),
     loot: {
         text: '🪙',

@@ -44,12 +44,12 @@ export class LootUI {
         this.gemIcon = this.scene.add.text(xPos, startY + spacing * 2, '💎', iconStyle).setOrigin(0.5).setDepth(depth);
         this.gemText = this.scene.add.text(xPos, startY + spacing * 2 + countOffset, loot.gems.toString(), countStyle).setOrigin(0.5).setDepth(depth);
 
-        // Mount
+        // Module
         this.mountIcon = this.scene.add.text(xPos, startY + spacing * 3, '📦', iconStyle).setOrigin(0.5).setDepth(depth);
-        this.mountText = this.scene.add.text(xPos, startY + spacing * 3 + countOffset, loot.mounts.toString(), countStyle).setOrigin(0.5).setDepth(depth);
+        this.mountText = this.scene.add.text(xPos, startY + spacing * 3 + countOffset, loot.modules.toString(), countStyle).setOrigin(0.5).setDepth(depth);
     }
 
-    public updateCounts(type: 'silver' | 'gold' | 'gem' | 'mount', count: number): void {
+    public updateCounts(type: 'silver' | 'gold' | 'gem' | 'module', count: number): void {
         switch (type) {
             case 'silver':
                 if (this.silverText) this.silverText.setText(count.toString());
@@ -60,7 +60,7 @@ export class LootUI {
             case 'gem':
                 if (this.gemText) this.gemText.setText(count.toString());
                 break;
-            case 'mount':
+            case 'module':
                 if (this.mountText) this.mountText.setText(count.toString());
                 break;
         }

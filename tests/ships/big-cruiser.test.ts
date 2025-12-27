@@ -16,7 +16,7 @@ vi.mock('phaser', () => {
 });
 
 import { BigCruiserDefinition } from '../../src/ships/definitions/big-cruiser';
-import { BigCruiserWhiteLaser } from '../../src/ships/configurations/big-cruiser-white-laser';
+import { BigCruiserWhiteLaserConfig } from '../../src/ships/configurations/big-cruiser-white-laser';
 
 // Mock dependencies
 vi.mock('../../src/ships/ship');
@@ -28,6 +28,7 @@ describe('BigCruiser Configuration', () => {
     });
 
     it('should use correct definition in config', () => {
-        expect(BigCruiserWhiteLaser.definition).toBe(BigCruiserDefinition);
+        const config = BigCruiserWhiteLaserConfig;
+        expect(config.definition).toBe(BigCruiserDefinition);
     });
 });

@@ -90,24 +90,27 @@ export abstract class BaseFormation implements IFormation {
      * the weapon's delay is used instead.
      */
     protected getEffectiveShotDelay(ship: Ship, formationDelay: { min: number; max: number }): { min: number; max: number } {
-        // Check all weapons on the ship for their firingDelay
-        // Use the highest (slowest) weapon delay to respect weapon limits
-        let weaponMinDelay = 0;
-        let weaponMaxDelay = 0;
+        // Check all modules on the ship for their firingDelay
+        // Use the highest (slowest) module delay to respect module limits
+        let moduleMinDelay = 0;
+        let moduleMaxDelay = 0;
 
-        for (const mount of ship.config.mounts) {
-            const weapon = new mount.weapon();
+        for (const module of ship.config.modules) {
+            const shipModule = new module.module();
+            // Check if it's a weapon (has firingDelay)
+            const weapon = shipModule as any;
             if (weapon.firingDelay) {
-                weaponMinDelay = Math.max(weaponMinDelay, weapon.firingDelay.min);
-                weaponMaxDelay = Math.max(weaponMaxDelay, weapon.firingDelay.max);
+                // Use the minimum delay for maximum fire rate, but respect weapon limits
+                moduleMinDelay = Math.max(moduleMinDelay, weapon.firingDelay.min);
+                moduleMaxDelay = Math.max(moduleMaxDelay, weapon.firingDelay.max);
             }
         }
 
         // If any weapon has a firingDelay, use the higher (slower) of formation or weapon
-        if (weaponMaxDelay > 0) {
+        if (moduleMaxDelay > 0) {
             return {
-                min: Math.max(formationDelay.min, weaponMinDelay),
-                max: Math.max(formationDelay.max, weaponMaxDelay)
+                min: Math.max(formationDelay.min, moduleMinDelay),
+                max: Math.max(formationDelay.max, moduleMaxDelay)
             };
         }
 

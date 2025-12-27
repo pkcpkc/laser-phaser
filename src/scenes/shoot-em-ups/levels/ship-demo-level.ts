@@ -12,7 +12,8 @@ const configModules = import.meta.glob<{ [key: string]: ShipConfig }>(
 // Extract all ShipConfig exports from the modules
 const allShipConfigs: ShipConfig[] = Object.values(configModules).flatMap(
     (module) => Object.values(module).filter((exp): exp is ShipConfig =>
-        exp && typeof exp === 'object' && 'definition' in exp && 'mounts' in exp
+        // Check if it's a ship config (has definition and modules)
+        !!(exp && typeof exp === 'object' && 'definition' in exp && 'modules' in exp)
     )
 );
 

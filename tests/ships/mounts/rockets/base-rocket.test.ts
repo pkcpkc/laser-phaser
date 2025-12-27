@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { BaseRocket } from '../../../../src/ships/mounts/rockets/base-rocket';
+import { BaseRocket } from '../../../../src/ships/modules/rockets/base-rocket';
 import Phaser from 'phaser';
 
 class TestRocket extends BaseRocket {
