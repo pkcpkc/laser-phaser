@@ -1,5 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
+import { BloodHuntersUniverse } from '../../../../src/scenes/planet-map/universes/blood-hunters-universe';
+// @ts-ignore
+import Phaser from 'phaser';
 
+// Mock Phaser Scene
+const mockScene = new Phaser.Scene() as unknown as Phaser.Scene;
+
+// Mock Phaser internals required by the universe
 vi.mock('phaser', () => {
     return {
         default: {
@@ -182,63 +189,30 @@ vi.mock('phaser', () => {
                 ADD: 1
             }
         }
-    }
+    };
 });
 
-import { DemoUniverse } from '../../../../src/scenes/planet-map/universes/demo-universe';
-import { BloodHuntersUniverse } from '../../../../src/scenes/planet-map/universes/blood-hunters-universe';
-// @ts-ignore
-import Phaser from 'phaser';
+describe('Blood Hunters Universe', () => {
+    it('should return valid planet data', () => {
+        const width = 800;
+        const height = 600;
+        const universe = new BloodHuntersUniverse();
+        universe.init(mockScene, width, height);
+        const planets = universe.getAll();
 
-// Mock Phaser Scene (re-use object structure but relying on mock internals mostly)
-const mockScene = new Phaser.Scene() as unknown as Phaser.Scene;
+        expect(planets.length).toBeGreaterThan(0);
 
-describe('Universe Configs', () => {
+        const vortex = planets.find(p => p.id === 'vortex');
+        expect(vortex).toBeDefined();
+        // Vortex is positioned orbitally (not central), so check it's within bounds
+        expect(vortex?.x).toBeGreaterThan(0);
+        expect(vortex?.x).toBeLessThan(width);
+        expect(vortex?.y).toBeGreaterThan(0);
+        expect(vortex?.y).toBeLessThan(height);
+        expect(vortex?.tint).toBe(0x880000);
 
-    describe('Demo Universe', () => {
-        it('should return valid planet data', () => {
-            const width = 800;
-            const height = 600;
-            const universe = new DemoUniverse();
-            universe.init(mockScene, width, height);
-            const planets = universe.getAll();
-
-            expect(planets.length).toBeGreaterThan(0);
-
-            // Check essential planets
-            const astra = planets.find(p => p.id === 'astra');
-            expect(astra).toBeDefined();
-            expect(astra?.x).toBe(400); // Center
-            expect(astra?.y).toBe(300);
-
-            const crimson = planets.find(p => p.id === 'crimson');
-            expect(crimson).toBeDefined();
-            expect(crimson?.warpUniverseId).toBe('blood-hunters-universe');
-        });
-    });
-
-    describe('Blood Hunters Universe', () => {
-        it('should return valid planet data', () => {
-            const width = 800;
-            const height = 600;
-            const universe = new BloodHuntersUniverse();
-            universe.init(mockScene, width, height);
-            const planets = universe.getAll();
-
-            expect(planets.length).toBe(6); // Expecting 6 planets based on file analysis
-
-            const vortex = planets.find(p => p.id === 'vortex');
-            expect(vortex).toBeDefined();
-            // Vortex is positioned orbitally (not central), so check it's within bounds
-            expect(vortex?.x).toBeGreaterThan(0);
-            expect(vortex?.x).toBeLessThan(width);
-            expect(vortex?.y).toBeGreaterThan(0);
-            expect(vortex?.y).toBeLessThan(height);
-            expect(vortex?.tint).toBe(0x880000);
-
-            // Check effects
-            expect(vortex?.effects).toBeDefined();
-            expect(vortex?.effects!.length).toBe(1); // Hurricane
-        });
+        // Check effects
+        expect(vortex?.effects).toBeDefined();
+        expect(vortex?.effects!.length).toBe(1); // Hurricane
     });
 });

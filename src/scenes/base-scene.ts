@@ -122,7 +122,8 @@ export default class BaseScene extends Phaser.Scene {
             }
         });
 
-        this.fireButton.on('pointerdown', () => {
+        this.fireButton.on('pointerdown', (_pointer: Phaser.Input.Pointer, _localX: number, _localY: number, event: Phaser.Types.Input.EventData) => {
+            event.stopPropagation();
             if (!this.gameManager.isGameActive() || this.gameManager.isVictoryState()) {
                 this.onGameOverInput();
             }
@@ -136,7 +137,11 @@ export default class BaseScene extends Phaser.Scene {
         });
     }
 
+    protected isTransitioning: boolean = false;
+
     protected onGameOverInput() {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
         this.scene.restart();
     }
 

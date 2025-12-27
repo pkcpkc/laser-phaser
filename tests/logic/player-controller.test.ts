@@ -94,7 +94,7 @@ describe('PlayerController', () => {
                 thrustRight: vi.fn(),
             },
             config: {
-                mounts: [] // Empty mounts array to satisfy getEffectiveFiringInterval
+                modules: [] // Empty modules array to satisfy getEffectiveFiringInterval
             },
             fireLasers: vi.fn()
         };

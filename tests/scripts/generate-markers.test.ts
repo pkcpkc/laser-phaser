@@ -45,7 +45,7 @@ describe('Marker Generator', () => {
         expect(markers).toHaveLength(4);
 
         // Check specific markers
-        const thruster = markers.find((m: any) => m.type === 'thruster');
+        const thruster = markers.find((m: any) => m.type === 'drive');
         expect(thruster).toBeDefined();
         expect(thruster.x).toBe(10);
         expect(thruster.y).toBe(10);

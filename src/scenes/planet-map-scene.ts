@@ -14,7 +14,7 @@ export default class PlanetMapScene extends Phaser.Scene {
     private interactions!: MapInteractionManager;
 
     private playerShip!: Phaser.GameObjects.Image;
-    private currentPlanetId: string = 'astra';
+    private currentPlanetId: string = '';
 
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -30,8 +30,6 @@ export default class PlanetMapScene extends Phaser.Scene {
     }
 
     init(data: { universeId?: string, planetId?: string, victory?: boolean }) {
-        console.log('PlanetMapScene: init', data);
-
         // Store target planet to move to in create()
         if (data?.planetId) {
             this.currentPlanetId = data.planetId;
@@ -101,10 +99,12 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         // Validate currentPlanetId for this universe
         if (!this.universe.getById(this.currentPlanetId)) {
-            const firstPlanet = this.universe.getAll()[0];
-            if (firstPlanet) {
-                console.warn(`Planet ${this.currentPlanetId} not found in new universe. Defaulting to ${firstPlanet.id}`);
-                this.currentPlanetId = firstPlanet.id;
+            const planets = this.universe.getAll();
+            // Try to find a central planet first, then any visible planet, then default to the first one
+            const corePlanet = planets.find(p => p.centralPlanet) || planets.find(p => !p.hidden) || planets[0];
+
+            if (corePlanet) {
+                this.currentPlanetId = corePlanet.id;
             }
         }
 

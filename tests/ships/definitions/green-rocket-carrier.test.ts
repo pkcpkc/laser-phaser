@@ -17,8 +17,8 @@ vi.mock('phaser', () => ({
     }
 }));
 
-import { GreenRocketCarrierDefinition } from '../../src/ships/definitions/green-rocket-carrier';
-import { GreenRocketCarrierGreenRocketConfig } from '../../src/ships/configurations/green-rocket-carrier-green-rocket';
+import { GreenRocketCarrierDefinition } from '../../../src/ships/definitions/green-rocket-carrier';
+import { GreenRocketCarrierGreenRocketConfig } from '../../../src/ships/configurations/green-rocket-carrier-green-rocket';
 
 describe('GreenRocketCarrier Configuration', () => {
     it('should have static properties defined in definition', () => {

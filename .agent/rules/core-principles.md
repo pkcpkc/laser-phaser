@@ -5,6 +5,7 @@
   - **ALWAYS** write tests for new code.
   - **ALWAYS** update tests for modified code.
   - **ALWAYS** run tests (`npm test`) after changes.
+  - **ALWAYS** run `npm run test:check` to ensure tests are in sync with source files.
   - **ALWAYS** fix failing tests before moving on.
 - **Strict Linting**:
   - **ALWAYS** fix linting errors (`npx tsc --noEmit`) before completing work.

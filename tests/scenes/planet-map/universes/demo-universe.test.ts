@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DemoUniverse } from '../../../src/scenes/planet-map/universes/demo-universe';
+import { DemoUniverse } from '../../../../src/scenes/planet-map/universes/demo-universe';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -265,7 +265,7 @@ describe('UniverseRegistry (testing DemoUniverse)', () => {
     });
 
     it('should initialize Blood Hunters Universe', async () => {
-        const bloodHunters = new (await import('../../../src/scenes/planet-map/universes/blood-hunters-universe')).BloodHuntersUniverse();
+        const bloodHunters = new (await import('../../../../src/scenes/planet-map/universes/blood-hunters-universe')).BloodHuntersUniverse();
         bloodHunters.init(mockScene, 800, 600);
         const planets = bloodHunters.getAll();
 

@@ -15,11 +15,11 @@ vi.mock('phaser', () => {
     };
 });
 
-import { BigCruiserDefinition } from '../../src/ships/definitions/big-cruiser';
-import { BigCruiserWhiteLaserConfig } from '../../src/ships/configurations/big-cruiser-white-laser';
+import { BigCruiserDefinition } from '../../../src/ships/definitions/big-cruiser';
+import { BigCruiserWhiteLaserConfig } from '../../../src/ships/configurations/big-cruiser-white-laser';
 
 // Mock dependencies
-vi.mock('../../src/ships/ship');
+vi.mock('../../../src/ships/ship');
 
 describe('BigCruiser Configuration', () => {
     it('should have correct definition properties', () => {

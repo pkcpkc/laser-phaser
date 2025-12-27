@@ -58,6 +58,10 @@ export abstract class ShootEmUpScene extends BaseScene {
             this.level = null;
         }
 
+        if (this.ship) {
+            this.ship.destroy();
+        }
+
         const sceneData: { planetId?: string, victory?: boolean, universeId?: string } = {
             planetId: this.returnPlanetId,
             victory: victory
@@ -87,6 +91,9 @@ export abstract class ShootEmUpScene extends BaseScene {
     }
 
     protected onGameOverInput() {
+        if (this.isTransitioning) return;
+        this.isTransitioning = true;
+
         // Find if we are in victory or game over state
         const isVictory = this.gameManager.isVictoryState();
         this.finishLevel(isVictory);

@@ -100,6 +100,15 @@ describe('SpikesEffect', () => {
 
         updateCallback();
 
+        // Force items to be on the "front" so they are drawn (z > 0.35)
+        const items = (effect as any).items;
+        items.forEach((item: any) => item.position.z = 1);
+
+        // Call update again or just call draw manually? 
+        // The updateCallback calls update() which calls draw().
+        // We need to set positions BEFORE update.
+        updateCallback();
+
         expect(mockGraphics.clear).toHaveBeenCalled();
         expect(mockGraphics.lineBetween).toHaveBeenCalled();
     });

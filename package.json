@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:check": "tsx scripts/check-tests.ts",
     "lint": "tsc --noEmit",
     "build:markers": "tsx scripts/generate-markers.ts",
     "build:atlases": "node scripts/generate-atlases.js"

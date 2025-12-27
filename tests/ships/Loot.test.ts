@@ -117,7 +117,7 @@ describe('Loot', () => {
     });
 
     it('should handle mount loot type specific logic', () => {
-        const mountConfig = { ...mockConfig, type: 'mount' };
+        const mountConfig = { ...mockConfig, type: 'module' };
         loot = new Loot(mockScene, 100, 100, mountConfig);
 
         expect(mockScene.add.particles).toHaveBeenCalled();

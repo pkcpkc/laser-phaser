@@ -1,7 +1,7 @@
 
 export namespace MarkerConfig {
     export const colors = {
-        thruster: 0xFFA500FF,    // Orange
+        drive: 0xFFA500FF,       // Orange
         laser: 0x00FF00FF,       // Green
         armor: 0x000000FF,       // Black
         rocket: 0xFFFFFFFF,      // White
