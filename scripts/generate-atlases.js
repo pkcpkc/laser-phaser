@@ -9,6 +9,8 @@ const __dirname = path.dirname(__filename);
 
 const inputDir = path.join(__dirname, '../res');
 const outputDir = path.join(__dirname, '../public/assets');
+const imagesDir = path.join(outputDir, 'images');
+const spritesDir = path.join(outputDir, 'sprites');
 
 async function generateAtlases() {
     try {
@@ -33,11 +35,15 @@ async function generateAtlases() {
             // Special handling for backgrounds: copy directly, do not pack
             if (dir === 'backgrounds') {
                 console.log(`Skipping atlas generation for ${dir}, copying files directly...`);
+                // Ensure the images directory exists
+                if (!fs.existsSync(imagesDir)) {
+                    fs.mkdirSync(imagesDir, { recursive: true });
+                }
                 for (const file of imageFiles) {
                     const srcPath = path.join(sourceDir, file);
-                    const destPath = path.join(outputDir, file);
+                    const destPath = path.join(imagesDir, file);
                     fs.copyFileSync(srcPath, destPath);
-                    console.log(`Copied ${file} to ${outputDir}`);
+                    console.log(`Copied ${file} to ${imagesDir}`);
                 }
                 continue;
             }
@@ -65,12 +71,16 @@ async function generateAtlases() {
             };
 
             try {
+                // Ensure the sprites directory exists
+                if (!fs.existsSync(spritesDir)) {
+                    fs.mkdirSync(spritesDir, { recursive: true });
+                }
                 packer(files, options, (files, error) => {
                     if (error) {
                         console.error('Packing error:', error);
                     } else {
                         for (const item of files) {
-                            const outFile = path.join(outputDir, item.name);
+                            const outFile = path.join(spritesDir, item.name);
                             fs.writeFileSync(outFile, item.buffer);
                             console.log(`Saved ${outFile}`);
                         }

@@ -7,6 +7,7 @@ import { UniverseFactory } from './planet-map/universe-factory';
 import { type PlanetData } from './planet-map/planet-data';
 import { GameStatus } from '../logic/game-status';
 import { LootUI } from '../ui/loot-ui';
+import { setupDebugKey } from '../logic/debug-utils';
 
 export default class PlanetMapScene extends Phaser.Scene {
     private universe!: BaseUniverse;
@@ -129,6 +130,8 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         console.log('PlanetMapScene: create() complete');
 
+        // Debug Mode
+        setupDebugKey(this);
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {

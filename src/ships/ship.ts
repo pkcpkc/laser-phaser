@@ -4,6 +4,7 @@ import type { Drive } from './modules/drives/types';
 import type { ShipEffect } from './effects/types';
 import { Explosion } from './effects/explosion';
 import { DustExplosion } from './effects/dust-explosion';
+import { isWeapon, type ShipModule } from './modules/module-types';
 
 export * from './types';
 import type { ShipConfig, ShipCollisionConfig } from './types';
@@ -93,8 +94,8 @@ export class Ship {
                 if (moduleData.module.visibleOnMount) {
                     // Create a visual-only sprite (no physics)
                     // Use the mountTextureKey if available, otherwise TEXTURE_KEY
-                    const module = moduleData.module as any;
-                    const textureKey = module.mountTextureKey || module.TEXTURE_KEY;
+                    const shipModule = moduleData.module as ShipModule;
+                    const textureKey = shipModule.mountTextureKey || shipModule.TEXTURE_KEY;
 
                     if (textureKey) {
                         const moduleSprite = scene.add.image(x + moduleX, y + moduleY, textureKey);
@@ -173,8 +174,8 @@ export class Ship {
 
         for (const module of this.activeModules) {
             // Type guard: Check if module is a weapon (has fire method)
-            const weapon = module.module as any; // Cast to access potential weapon properties safely with checks
-            if (typeof weapon.fire !== 'function') continue;
+            if (!isWeapon(module.module)) continue;
+            const weapon = module.module;
 
             // Check reload cooldown
             if (weapon.reloadTime && module.lastFired) {
@@ -254,10 +255,10 @@ export class Ship {
         this.moduleSprites.forEach((sprite, module) => {
             // Check ammo visibility
             const now = this.sprite.scene.time.now;
-            const weapon = module.module as any;
 
             // Only check usage stats for weapons
-            if (typeof weapon.fire === 'function') {
+            if (isWeapon(module.module)) {
+                const weapon = module.module;
                 // 1. Check Ammo
                 if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
                     sprite.setVisible(false);

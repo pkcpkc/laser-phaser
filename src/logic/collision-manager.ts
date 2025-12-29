@@ -1,5 +1,10 @@
 import Phaser from 'phaser';
-import { Ship } from '../ships/ship';
+import type { CollisionHandler } from './collision-handlers/collision-handler.interface';
+import { WallCollisionHandler } from './collision-handlers/wall-collision-handler';
+import { LaserEnemyHandler } from './collision-handlers/laser-enemy-handler';
+import { ShipEnemyHandler } from './collision-handlers/ship-enemy-handler';
+import { ShipHazardHandler } from './collision-handlers/ship-hazard-handler';
+import { ShipLootHandler } from './collision-handlers/ship-loot-handler';
 
 export class CollisionManager {
     private scene: Phaser.Scene;
@@ -8,13 +13,10 @@ export class CollisionManager {
     private enemyCategory: number;
     private enemyLaserCategory: number;
     private lootCategory: number;
-    private onGameOver: () => void;
-    private onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void;
+    private handlers: CollisionHandler[] = [];
 
     constructor(scene: Phaser.Scene, onGameOver: () => void, onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void) {
         this.scene = scene;
-        this.onGameOver = onGameOver;
-        this.onLootCollected = onLootCollected;
 
         this.shipCategory = 0x0002;
         this.laserCategory = 0x0004;
@@ -30,6 +32,15 @@ export class CollisionManager {
             enemyLaser: this.enemyLaserCategory,
             loot: this.lootCategory
         });
+
+        // Initialize Handlers
+        this.handlers.push(
+            new WallCollisionHandler(this.laserCategory, this.enemyLaserCategory),
+            new LaserEnemyHandler(this.laserCategory, this.enemyCategory),
+            new ShipEnemyHandler(this.shipCategory, this.enemyCategory, onGameOver),
+            new ShipHazardHandler(this.shipCategory, this.enemyLaserCategory, onGameOver),
+            new ShipLootHandler(this.shipCategory, this.lootCategory, onLootCollected)
+        );
     }
 
     public getCategories() {
@@ -52,102 +63,13 @@ export class CollisionManager {
                 const gameObjectA = bodyA.gameObject as Phaser.GameObjects.GameObject;
                 const gameObjectB = bodyB.gameObject as Phaser.GameObjects.GameObject;
 
-                // Laser hitting world bounds
-                if (((bodyA.collisionFilter.category === this.laserCategory || bodyA.collisionFilter.category === this.enemyLaserCategory) && !gameObjectB) ||
-                    ((bodyB.collisionFilter.category === this.laserCategory || bodyB.collisionFilter.category === this.enemyLaserCategory) && !gameObjectA)) {
-                    if (gameObjectA) gameObjectA.destroy();
-                    if (gameObjectB) gameObjectB.destroy();
-                    return;
-                }
+                const categoryA = bodyA.collisionFilter.category;
+                const categoryB = bodyB.collisionFilter.category;
 
-                if (gameObjectA && gameObjectB) {
-                    const categoryA = bodyA.collisionFilter.category;
-                    const categoryB = bodyB.collisionFilter.category;
-
-                    // console.log(`Collision: ${gameObjectA.constructor.name} (${categoryA}) vs ${gameObjectB.constructor.name} (${categoryB})`);
-                    // console.log('Ship Category:', this.shipCategory, 'Loot Category:', this.lootCategory);
-
-                    // Laser vs Enemy (ships and asteroids)
-                    if ((categoryA === this.laserCategory && categoryB === this.enemyCategory) ||
-                        (categoryB === this.laserCategory && categoryA === this.enemyCategory)) {
-
-                        const enemyBody = categoryA === this.enemyCategory ? bodyA : bodyB;
-                        const enemy = enemyBody.gameObject as Phaser.Physics.Matter.Image;
-
-                        if (enemy) {
-                            // All enemies (ships and asteroids) now use Ship class
-                            const ship = enemy.getData('ship') as Ship;
-                            if (ship) {
-                                ship.explode();
-                            } else {
-                                this.scene.time.delayedCall(0, () => {
-                                    if (categoryA === this.enemyCategory && gameObjectA.active) gameObjectA.destroy();
-                                    if (categoryB === this.enemyCategory && gameObjectB.active) gameObjectB.destroy();
-                                });
-                            }
-                        }
-
-                        this.scene.time.delayedCall(0, () => {
-                            if (categoryA === this.laserCategory && gameObjectA.active) gameObjectA.destroy();
-                            if (categoryB === this.laserCategory && gameObjectB.active) gameObjectB.destroy();
-                        });
-                    }
-
-                    // Ship vs Enemy (enemy ships and asteroids)
-                    if ((categoryA === this.shipCategory && categoryB === this.enemyCategory) ||
-                        (categoryB === this.shipCategory && categoryA === this.enemyCategory)) {
-
-                        if (categoryA === this.enemyCategory) {
-                            const enemy = gameObjectA as Phaser.Physics.Matter.Image;
-                            if (enemy.active) {
-                                const ship = enemy.getData('ship') as Ship;
-                                if (ship) {
-                                    ship.explode();
-                                } else {
-                                    this.scene.time.delayedCall(0, () => {
-                                        if (gameObjectA.active) gameObjectA.destroy();
-                                    });
-                                }
-                            }
-                        }
-                        if (categoryB === this.enemyCategory) {
-                            const enemy = gameObjectB as Phaser.Physics.Matter.Image;
-                            if (enemy.active) {
-                                const ship = enemy.getData('ship') as Ship;
-                                if (ship) {
-                                    ship.explode();
-                                } else {
-                                    this.scene.time.delayedCall(0, () => {
-                                        if (gameObjectB.active) gameObjectB.destroy();
-                                    });
-                                }
-                            }
-                        }
-
-                        this.onGameOver();
-                    }
-
-                    // Ship vs Enemy Laser
-                    if ((categoryA === this.shipCategory && categoryB === this.enemyLaserCategory) ||
-                        (categoryB === this.shipCategory && categoryA === this.enemyLaserCategory)) {
-
-                        // Destroy enemy laser
-                        this.scene.time.delayedCall(0, () => {
-                            if (categoryA === this.enemyLaserCategory && gameObjectA.active) gameObjectA.destroy();
-                            if (categoryB === this.enemyLaserCategory && gameObjectB.active) gameObjectB.destroy();
-                        });
-
-                        this.onGameOver();
-                    }
-
-                    // Ship vs Loot
-                    if ((categoryA === this.shipCategory && categoryB === this.lootCategory) ||
-                        (categoryB === this.shipCategory && categoryA === this.lootCategory)) {
-
-                        const loot = categoryA === this.lootCategory ? gameObjectA : gameObjectB;
-                        if (this.onLootCollected) {
-                            this.onLootCollected(loot);
-                        }
+                // Iterate through handlers until one handles the collision
+                for (const handler of this.handlers) {
+                    if (handler.handle(this.scene, categoryA, categoryB, gameObjectA, gameObjectB)) {
+                        break;
                     }
                 }
             });

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { setupDebugKey } from '../../logic/debug-utils';
 
 export default class ShipyardScene extends Phaser.Scene {
     constructor() {
@@ -25,5 +26,8 @@ export default class ShipyardScene extends Phaser.Scene {
         backButton.on('pointerdown', () => {
             this.scene.start('PlanetMapScene');
         });
+
+        // Debug Mode
+        setupDebugKey(this);
     }
 }

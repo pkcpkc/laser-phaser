@@ -9,6 +9,8 @@ import { GameManager } from '../logic/game-manager';
 import { GameStatus } from '../logic/game-status';
 import { LootUI } from '../ui/loot-ui';
 import { LootType } from '../ships/types';
+import { Loot } from '../ships/loot';
+import { setupDebugKey } from '../logic/debug-utils';
 
 
 export default class BaseScene extends Phaser.Scene {
@@ -66,28 +68,7 @@ export default class BaseScene extends Phaser.Scene {
         this.scale.on('resize', this.handleResize, this);
 
         // Debug Mode
-        if (import.meta.env.MODE === 'debug') {
-            this.input.keyboard?.on('keydown-B', () => {
-                this.matter.world.pause();
-                console.log('--- DEBUG STATE DUMP ---');
-
-                const stateDump = this.children.list.map((child: any) => {
-                    return {
-                        type: child.type,
-                        x: child.x,
-                        y: child.y,
-                        active: child.active,
-                        visible: child.visible,
-                        texture: child.texture ? child.texture.key : undefined,
-                        frame: child.frame ? child.frame.name : undefined,
-                        velocity: child.body ? child.body.velocity : undefined
-                    };
-                });
-
-                console.log('Scene State:', JSON.stringify(stateDump, null, 2));
-                console.log('Game Status:', JSON.stringify(GameStatus.getInstance(), null, 2));
-            });
-        }
+        setupDebugKey(this);
     }
 
     protected createPlayerShip() {
@@ -179,7 +160,7 @@ export default class BaseScene extends Phaser.Scene {
     protected handleLootCollected(lootGameObject: Phaser.GameObjects.GameObject) {
         if (!lootGameObject.active) return;
 
-        const loot = lootGameObject as any; // Cast to access properties
+        const loot = lootGameObject as Loot;
         if (loot.type) {
             const value = loot.value || 1;
             const type: LootType = loot.type || LootType.SILVER;

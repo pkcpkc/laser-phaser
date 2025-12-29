@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Ship } from '../ships/ship';
+import { isWeapon } from '../ships/modules/module-types';
 
 
 // Target Effect Constants
@@ -289,10 +290,9 @@ export class PlayerController {
 
         for (const module of this.ship.config.modules) {
             const shipModule = new module.module();
-            const weapon = shipModule as any;
-            if (weapon.firingDelay) {
+            if (isWeapon(shipModule) && shipModule.firingDelay) {
                 // Use the minimum delay for maximum fire rate, but respect weapon limits
-                maxInterval = Math.max(maxInterval, weapon.firingDelay.min);
+                maxInterval = Math.max(maxInterval, shipModule.firingDelay.min);
             }
         }
 

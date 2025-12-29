@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
 import type { IFormation } from './types';
+import { isWeapon } from '../../../ships/modules/module-types';
 
 export interface BaseEnemyData {
     ship: Ship;
@@ -98,11 +99,10 @@ export abstract class BaseFormation implements IFormation {
         for (const module of ship.config.modules) {
             const shipModule = new module.module();
             // Check if it's a weapon (has firingDelay)
-            const weapon = shipModule as any;
-            if (weapon.firingDelay) {
+            if (isWeapon(shipModule) && shipModule.firingDelay) {
                 // Use the minimum delay for maximum fire rate, but respect weapon limits
-                moduleMinDelay = Math.max(moduleMinDelay, weapon.firingDelay.min);
-                moduleMaxDelay = Math.max(moduleMaxDelay, weapon.firingDelay.max);
+                moduleMinDelay = Math.max(moduleMinDelay, shipModule.firingDelay.min);
+                moduleMaxDelay = Math.max(moduleMaxDelay, shipModule.firingDelay.max);
             }
         }
 

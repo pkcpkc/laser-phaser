@@ -40,9 +40,9 @@ export default class PreloadScene extends Phaser.Scene {
 
         // Load Game Assets
         // From BaseScene
-        this.load.atlas('ships', 'assets/ships.png', 'assets/ships.json');
-        this.load.image('nebula', 'assets/nebula.png');
-        this.load.image('blood_nebula', 'assets/blood_nebula.png');
+        this.load.atlas('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
+        this.load.image('nebula', 'assets/images/nebula.png');
+        this.load.image('blood_nebula', 'assets/images/blood_nebula.png');
     }
 
     create() {

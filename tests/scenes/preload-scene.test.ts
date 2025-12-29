@@ -107,9 +107,9 @@ describe('PreloadScene', () => {
     it('should preload assets', () => {
         preloadScene.preload();
         expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'logo');
-        expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/ships.png', 'assets/ships.json');
-        expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/nebula.png');
-        expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/blood_nebula.png');
+        expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
+        expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/images/nebula.png');
+        expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/images/blood_nebula.png');
     });
 
     it('should generate flares and setup loading text on create', () => {
