@@ -132,37 +132,32 @@ graph TD
     PlanetMapScene --> |Warps to| PlanetMapScene
     
     subgraph ShootEmUp Architecture
-        ShootEmUpScene --> |Contains| Level
-        Level --> |Contains| Formation
-        Formation --> |Uses| Tactic(Tactic<br/>e.g. SinusTactic, LineTactic)
-        Formation --> |Uses| ShipConfig(ShipConfig<br/>e.g. BloodHunter2L)
-        Tactic --> |Spawns| Ship
-        Ship --> |Configured by| ShipConfig
-        Ship --> |Has| Module
-        Module --> |Types| Drives(Drives<br/>IonDrive, RedThrusterDrive)
-        Module --> |Types| Lasers(Lasers<br/>RedLaser, GreenLaser, WhiteLaser)
-        Module --> |Types| Rockets(Rockets<br/>GreenRocket, BloodRocket)
-        ShootEmUpScene --> |On Victory| UniverseWarp(Warp to<br/>new Universe)
+        ShootEmUpScene --> |Contains| Levels
+        Levels --> |Contains| Tactics
+        Tactics --> |Contains| Formations
+        Formations --> |Spawns| Ships
+        Ships --> |Configured by| ShipConfig
+        ShipConfig --> |Uses| Drives
+        ShipConfig --> |Uses| Lasers
+        ShipConfig --> |Uses| Rockets
+        ShootEmUpScene --> |Warps to| NextUniverse
     end
 
     subgraph PlanetMap Architecture
         PlanetMapScene --> |Loads| UniverseFactory
-        UniverseFactory --> |Creates| BaseUniverse
-        BaseUniverse --> |Defines| DemoUniverse
-        BaseUniverse --> |Defines| BloodHuntersUniverse
-        DemoUniverse --> |Contains| PlanetData
-        BloodHuntersUniverse --> |Contains| PlanetData
+        UniverseFactory --> |Creates| Universe
+        Universe --> |Contains| PlanetDatas
         PlanetMapScene --> |Uses| PlanetVisuals
         PlanetMapScene --> |Uses| MapInteractionManager
         PlanetMapScene --> |Uses| GameStatus(Persistence)
         PlanetMapScene --> |Uses| LootUI
-        PlanetVisuals --> |Uses| PlanetaryEffects(Planetary Effects)
+        PlanetVisuals --> |Uses| PlanetEffects
     end
 ```
 
 ### Key Components
 
-*   **Universe System**: A modular architecture where each universe (Demo Universe, Blood Hunters Universe) is a self-contained configuration defining its own planets, backgrounds, and progression. Universes can be switched via URL query parameters (`?universeId=blood-hunters`) or through in-game warp mechanics.
+*   **Universe System**: A modular architecture where each universe (Demo Universe, Blood Hunters Universe) is a self-contained configuration defining its own planets, backgrounds, and progression. Universes can be switched via URL query parameters (`?universeId=blood-hunters-level`) or through in-game warp mechanics.
 *   **GameStatus**: Persistent game state manager that tracks global loot (silver, gold, gems, modules), unlocked planets, and player progress across sessions using localStorage.
 *   **LootUI**: Reusable UI component for displaying and managing the player's collected loot across different scenes.
 *   **Planet Effects**: A rich visual system with multiple effect types including satellites, ghost shades, mini moons, glimmering snow, hurricanes, spikes, and ring effects (gas/solid).
@@ -170,7 +165,7 @@ graph TD
     *   **Drives**: Engine systems providing propulsion effects (IonDrive, RedThrusterDrive, DustDrive).
     *   **Lasers**: Energy weapons with various colors and damage types (RedLaser, GreenLaser, WhiteLaser, BigRedLaser).
     *   **Rockets**: Projectile weapons with homing or explosive capabilities (GreenRocket, BloodRocket).
-*   **Formation System**: Enemy spawning is controlled by formations that combine movement tactics (SinusTactic, LineTactic) with ship configurations for dynamic combat encounters.
+*   **Tactic System**: Enemy behavior is controlled by tactics (SinusTactic, LineTactic) that manage formations and coordinate ship movement patterns for dynamic combat encounters.
 
 ### Directory Structure
 
@@ -212,6 +207,7 @@ To fire up the engines and start developing:
     ```bash
     npm run debug
     ```
+    *Press the **B** key during gameplay to pause the game and dump the current game state to `console.log`.*
 
 5.  **Build for production:**
     ```bash
