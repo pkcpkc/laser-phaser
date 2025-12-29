@@ -59,8 +59,7 @@ Universes can be switched via URL query parameter (`?universeId=blood-hunters`) 
 
 *   **Shoot 'Em Up**: Classic side-scrolling shooter gameplay inspired by 80s arcade classics. Features wave-based combat, multiple weapon types, and dynamic enemy formations.
 *   **Planet Map**: Navigate between planets in a living universe with orbital mechanics, unlockable locations, and visual effects.
-*   **Trading**: (In Development) Purchase upgrades and equipment from planetary merchants.
-*   **Shipyard**: (In Development) Customize your ship with different configurations and components.
+*   **Shipyard**: (In Development) Trade and customize your ship with different configurations and components.
 *   **Tower Defense**: (In Development) Defend strategic locations across the galaxy.
 
 ### Controls
@@ -129,7 +128,6 @@ We use a custom asset pipeline to optimize game performance and development work
 ```mermaid
 graph TD
     PlanetMapScene --> |Navigates to| ShootEmUpScene
-    PlanetMapScene --> |Navigates to| TraderScene
     PlanetMapScene --> |Navigates to| ShipyardScene
     PlanetMapScene --> |Warps to| PlanetMapScene
     
@@ -158,14 +156,7 @@ graph TD
         PlanetMapScene --> |Uses| MapInteractionManager
         PlanetMapScene --> |Uses| GameStatus(Persistence)
         PlanetMapScene --> |Uses| LootUI
-        PlanetVisuals --> |Uses| SatelliteEffect
-        PlanetVisuals --> |Uses| GhostShadeEffect
-        PlanetVisuals --> |Uses| MiniMoonEffect
-        PlanetVisuals --> |Uses| GlimmeringSnowEffect
-        PlanetVisuals --> |Uses| HurricaneEffect
-        PlanetVisuals --> |Uses| SpikesEffect
-        PlanetVisuals --> |Uses| GasRingEffect
-        PlanetVisuals --> |Uses| SolidRingEffect
+        PlanetVisuals --> |Uses| PlanetaryEffects(Planetary Effects)
     end
 ```
 
@@ -176,7 +167,7 @@ graph TD
 *   **LootUI**: Reusable UI component for displaying and managing the player's collected loot across different scenes.
 *   **Planet Effects**: A rich visual system with multiple effect types including satellites, ghost shades, mini moons, glimmering snow, hurricanes, spikes, and ring effects (gas/solid).
 *   **Module System**: Ships are equipped with modular components organized into three categories:
-    *   **Drives**: Engine systems providing propulsion effects (IonDrive, RedThrusterDrive).
+    *   **Drives**: Engine systems providing propulsion effects (IonDrive, RedThrusterDrive, DustDrive).
     *   **Lasers**: Energy weapons with various colors and damage types (RedLaser, GreenLaser, WhiteLaser, BigRedLaser).
     *   **Rockets**: Projectile weapons with homing or explosive capabilities (GreenRocket, BloodRocket).
 *   **Formation System**: Enemy spawning is controlled by formations that combine movement tactics (SinusTactic, LineTactic) with ship configurations for dynamic combat encounters.
@@ -188,12 +179,12 @@ The project follows a domain-driven structure for scenes and content:
 *   `src/scenes/`: Scene logic (Planet Map, Base Scene, etc.)
     *   `planet-map/`: Visuals and logic for the navigation map.
     *   `shoot-em-ups/`: Active gameplay levels and formations.
-    *   `traders/` & `shipyards/`: Meta-game interfaces.
+    *   `shipyards/`: Meta-game interfaces.
 *   `src/ships/`: Ship definitions, configurations, and module logic.
     *   `modules/drives/`: Engine drive systems with visual effects.
     *   `modules/lasers/`: Laser weapon implementations and projectiles.
     *   `modules/rockets/`: Rocket weapon systems.
-    *   `definitions/`: Ship type definitions (BloodHunter, BloodFighter, BloodBomber, etc.).
+    *   `definitions/`: Ship type definitions (BloodHunter, BloodFighter, BloodBomber, BigCruiser, GreenRocketCarrier, Asteroids).
     *   `configurations/`: Pre-built ship loadouts with modules.
 *   `src/logic/`: Core game managers (Collision, Game State, Player Control).
 
@@ -217,12 +208,17 @@ To fire up the engines and start developing:
     npm run dev
     ```
 
-4.  **Build for production:**
+4.  **Start with debug mode (shows physics bodies):**
+    ```bash
+    npm run debug
+    ```
+
+5.  **Build for production:**
     ```bash
     npm run build
     ```
 
-5.  **Run tests:**
+6.  **Run tests:**
     ```bash
     npm test
     ```
