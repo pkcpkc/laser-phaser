@@ -1,18 +1,18 @@
 import Phaser from 'phaser';
-import type { LootConfig } from './types';
+import { LootType } from './types';
+
 
 export class Loot extends Phaser.Physics.Matter.Image {
-    public readonly config: LootConfig;
+    public readonly type: LootType;
+    public readonly value: number = 1; // Default value as requested
 
-    constructor(scene: Phaser.Scene, x: number, y: number, config: LootConfig) {
-        // console.log('Creating Loot', config);
-        // Use type or text for texture key, ensuring it's safe
-        let text = config.text;
-        if (config.type === 'gem') text = '💎';
-        if (config.type === 'module') text = '📦';
+    constructor(scene: Phaser.Scene, x: number, y: number, type: LootType) {
+        // Resolve text based on type - now simpler as type IS the text/emoji
+        const text = type;
 
-        const safeKey = config.type || text.codePointAt(0)?.toString() || 'loot';
-        const textureKey = `loot-${safeKey}`;
+        // Generate a safe unique key for the texture based on the emoji char code
+        const charCode = text.codePointAt(0)?.toString() || 'loot';
+        const textureKey = `loot-${charCode}`;
 
         if (!scene.textures.exists(textureKey)) {
             // console.log('Generating Loot Texture', textureKey);
@@ -34,7 +34,7 @@ export class Loot extends Phaser.Physics.Matter.Image {
         }
 
         super(scene.matter.world, x, y, textureKey);
-        this.config = config;
+        this.type = type;
         scene.add.existing(this);
 
         // Physics properties
@@ -58,9 +58,9 @@ export class Loot extends Phaser.Physics.Matter.Image {
         // 5. 1->0  (duration/2)
         // Total = 4.5 * duration.
 
-        const lifespan = config.lifespan || 3000;
+        const lifespan = 3000;
 
-        if (config.type === 'module') {
+        if (type === LootType.MODULE) {
             // Add flare effect
             const particles = scene.add.particles(0, 0, 'flare-white', {
                 color: [0xffffff],

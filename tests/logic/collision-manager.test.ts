@@ -46,10 +46,10 @@ describe('CollisionManager', () => {
 
     it('should initialize categories correctly', () => {
         const categories = collisionManager.getCategories();
-        expect(categories.shipCategory).toBe(1);
-        expect(categories.laserCategory).toBe(2);
-        expect(categories.enemyCategory).toBe(4);
-        expect(categories.enemyLaserCategory).toBe(8);
+        expect(categories.shipCategory).toBe(2);
+        expect(categories.laserCategory).toBe(4);
+        expect(categories.enemyCategory).toBe(8);
+        expect(categories.enemyLaserCategory).toBe(16);
     });
 
     it('should setup collision listener', () => {
@@ -68,7 +68,7 @@ describe('CollisionManager', () => {
 
         it('should destroy laser when hitting world bounds (no gameObjectB)', () => {
             const mockLaserBody = {
-                collisionFilter: { category: 2 }, // laserCategory
+                collisionFilter: { category: 4 }, // laserCategory
                 gameObject: { destroy: vi.fn() }
             };
             const mockWorldBody = {
@@ -89,13 +89,13 @@ describe('CollisionManager', () => {
 
         it('should destroy laser and explode enemy when they collide', () => {
             const mockLaserBody = {
-                collisionFilter: { category: 2 }, // laserCategory
+                collisionFilter: { category: 4 }, // laserCategory
                 gameObject: { destroy: vi.fn(), active: true }
             };
 
             const mockShip = { explode: vi.fn() };
             const mockEnemyBody = {
-                collisionFilter: { category: 4 }, // enemyCategory
+                collisionFilter: { category: 8 }, // enemyCategory
                 gameObject: {
                     getData: vi.fn().mockReturnValue(mockShip),
                     active: true
@@ -116,13 +116,13 @@ describe('CollisionManager', () => {
 
         it('should trigger game over when ship collides with enemy', () => {
             const mockShipBody = {
-                collisionFilter: { category: 1 }, // shipCategory
+                collisionFilter: { category: 2 }, // shipCategory
                 gameObject: {}
             };
 
             const mockEnemyShip = { explode: vi.fn() };
             const mockEnemyBody = {
-                collisionFilter: { category: 4 }, // enemyCategory
+                collisionFilter: { category: 8 }, // enemyCategory
                 gameObject: {
                     getData: vi.fn().mockReturnValue(mockEnemyShip),
                     active: true
@@ -143,12 +143,12 @@ describe('CollisionManager', () => {
 
         it('should trigger game over when ship collides with enemy laser', () => {
             const mockShipBody = {
-                collisionFilter: { category: 1 }, // shipCategory
+                collisionFilter: { category: 2 }, // shipCategory
                 gameObject: {}
             };
 
             const mockEnemyLaserBody = {
-                collisionFilter: { category: 8 }, // enemyLaserCategory
+                collisionFilter: { category: 16 }, // enemyLaserCategory
                 gameObject: {
                     active: true,
                     destroy: vi.fn()

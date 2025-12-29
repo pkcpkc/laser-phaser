@@ -1,9 +1,6 @@
-export interface LootData {
-    gold: number;
-    silver: number;
-    gems: number;
-    modules: number;
-}
+export type LootData = Record<LootType, number>;
+
+import { LootType } from '../ships/types';
 
 export interface PlanetPosition {
     orbitAngle: number;
@@ -14,10 +11,10 @@ export class GameStatus {
     private static instance: GameStatus;
 
     private loot: LootData = {
-        gold: 0,
-        silver: 0,
-        gems: 0,
-        modules: 0
+        [LootType.GOLD]: 0,
+        [LootType.GEM]: 0,
+        [LootType.MODULE]: 0,
+        [LootType.SILVER]: 0
     };
 
     private revealedPlanets: Set<string> = new Set();
@@ -25,8 +22,11 @@ export class GameStatus {
     // Key format: "universeId:planetId"
     private planetPositions: Map<string, PlanetPosition> = new Map();
 
+    // Key format: "universeId" -> number of victories
+    private victories: Record<string, number> = {};
+
     private constructor() {
-        // No loading from storage
+        this.load();
     }
 
     public static getInstance(): GameStatus {
@@ -36,16 +36,38 @@ export class GameStatus {
         return GameStatus.instance;
     }
 
+    // Persistence
+    private load() {
+        // Persistence disabled by user request
+        // const dataStr = localStorage.getItem('laser-phaser-save');
+        // if (dataStr) {
+        //     const data = JSON.parse(dataStr);
+        //     this.loot = data.loot || {};
+        //     this.revealedPlanets = new Set(data.revealedPlanets || []);
+        //     this.planetPositions = new Map(data.planetPositions || []);
+        //     this.victories = data.victories || {};
+        // }
+    }
+
+    private save() {
+        // Persistence disabled by user request
+        // const data = {
+        //     loot: this.loot,
+        //     revealedPlanets: Array.from(this.revealedPlanets),
+        //     planetPositions: Array.from(this.planetPositions.entries()),
+        //     victories: this.victories
+        // };
+        // localStorage.setItem('laser-phaser-save', JSON.stringify(data));
+    }
+
     // Loot Management
     public getLoot(): LootData {
         return { ...this.loot };
     }
 
-    public updateLoot(type: string, amount: number) {
-        if (type === 'gold') this.loot.gold += amount;
-        else if (type === 'gems' || type === 'gem') this.loot.gems += amount;
-        else if (type === 'modules' || type === 'module') this.loot.modules += amount;
-        else this.loot.silver += amount;
+    public updateLoot(type: LootType, amount: number) {
+        this.loot[type] += amount;
+        this.save();
     }
 
     // Planet Management
@@ -55,6 +77,7 @@ export class GameStatus {
 
     public revealPlanet(id: string) {
         this.revealedPlanets.add(id);
+        this.save();
     }
 
     // Planet Position Management
@@ -64,11 +87,32 @@ export class GameStatus {
 
     public setPlanetPosition(universeId: string, planetId: string, position: PlanetPosition) {
         this.planetPositions.set(`${universeId}:${planetId}`, position);
+        this.save();
+    }
+
+    // Victory Management
+    public getVictories(universeId: string): number {
+        return this.victories[universeId] || 0;
+    }
+
+    public addVictory(universeId: string) {
+        if (!this.victories[universeId]) {
+            this.victories[universeId] = 0;
+        }
+        this.victories[universeId]++;
+        this.save();
     }
 
     public reset() {
-        this.loot = { gold: 0, silver: 0, gems: 0, modules: 0 };
+        this.loot = {
+            [LootType.GOLD]: 0,
+            [LootType.GEM]: 0,
+            [LootType.MODULE]: 0,
+            [LootType.SILVER]: 0
+        };
         this.revealedPlanets.clear();
         this.planetPositions.clear();
+        this.victories = {};
+        this.save();
     }
 }

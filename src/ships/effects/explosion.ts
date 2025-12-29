@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
 
 export interface ExplosionConfig {
-    frame: string;
+    type?: 'standard' | 'dust'; // Default: 'standard'
+    frame?: string;
     speed?: { min: number; max: number };
     scale?: { start: number; end: number };
     lifespan?: number;
     blendMode?: string | Phaser.BlendModes;
+    color?: number;
+    particleCount?: number;
 }
 
 export class Explosion {

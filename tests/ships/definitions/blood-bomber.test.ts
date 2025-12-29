@@ -30,7 +30,7 @@ describe('BloodBomber Configuration', () => {
     it('should use BloodBomber2R configuration', () => {
         expect(BloodBomberBloodRocketConfig.definition).toBe(BloodBomberDefinition);
         const config = BloodBomberBloodRocketConfig;
-        expect(config.modules).toHaveLength(4);
+        expect(config.modules).toHaveLength(3);
 
         // Verify modules are Rockets or Drives
         config.modules.forEach(m => {

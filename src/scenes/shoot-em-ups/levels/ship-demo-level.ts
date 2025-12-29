@@ -31,13 +31,13 @@ const generateFormations = () => {
     const shipWidth = 50; // Estimated ship width
     const shipSpacing = 100; // Space between ship centers
     const startX = shipWidth; // Start with half ship width offset so first ship is fully visible
-    const startY = -100;
+    const startY = -600;
 
     return allShipConfigs.map((shipConfig, index) => {
         const x = startX + (index * shipSpacing);
         // Calculate loop distance roughly to screen height plus buffer
         // Note: We don't have Scene reference here, so we guess standard height + buffer
-        const loopLength = 600 + 200; // 800px loop
+        const loopLength = 2000; // 2000px loop
 
         return {
             formationType: ExplicitFormation,

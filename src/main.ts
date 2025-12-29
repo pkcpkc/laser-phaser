@@ -29,7 +29,7 @@ const config: Phaser.Types.Core.GameConfig = {
     default: 'matter',
     matter: {
       gravity: { x: 0, y: 0 },
-      debug: false // Set to true if you want to see physics bodies
+      debug: import.meta.env.MODE === 'debug' // Set to true if you want to see physics bodies
     }
   },
   scene: [BootScene, PreloadScene, PlanetMapScene, BloodHuntersScene, ShipDemoScene, TraderScene, ShipyardScene, TowerDefenseScene]

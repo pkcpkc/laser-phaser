@@ -8,6 +8,8 @@ import { PlayerController } from '../logic/player-controller';
 import { GameManager } from '../logic/game-manager';
 import { GameStatus } from '../logic/game-status';
 import { LootUI } from '../ui/loot-ui';
+import { LootType } from '../ships/types';
+
 
 export default class BaseScene extends Phaser.Scene {
     protected ship!: Ship;
@@ -62,6 +64,30 @@ export default class BaseScene extends Phaser.Scene {
 
         // Handle resize
         this.scale.on('resize', this.handleResize, this);
+
+        // Debug Mode
+        if (import.meta.env.MODE === 'debug') {
+            this.input.keyboard?.on('keydown-B', () => {
+                this.matter.world.pause();
+                console.log('--- DEBUG STATE DUMP ---');
+
+                const stateDump = this.children.list.map((child: any) => {
+                    return {
+                        type: child.type,
+                        x: child.x,
+                        y: child.y,
+                        active: child.active,
+                        visible: child.visible,
+                        texture: child.texture ? child.texture.key : undefined,
+                        frame: child.frame ? child.frame.name : undefined,
+                        velocity: child.body ? child.body.velocity : undefined
+                    };
+                });
+
+                console.log('Scene State:', JSON.stringify(stateDump, null, 2));
+                console.log('Game Status:', JSON.stringify(GameStatus.getInstance(), null, 2));
+            });
+        }
     }
 
     protected createPlayerShip() {
@@ -70,7 +96,7 @@ export default class BaseScene extends Phaser.Scene {
 
         const collisionConfig = {
             category: categories.shipCategory,
-            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory,
+            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory | categories.wallCategory,
             laserCategory: categories.laserCategory,
             laserCollidesWith: categories.enemyCategory,
             lootCategory: categories.lootCategory,
@@ -78,6 +104,11 @@ export default class BaseScene extends Phaser.Scene {
         };
 
         this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
+
+        // Enforce player ship physics properties overrides
+        this.ship.sprite.setFixedRotation();
+        this.ship.sprite.setAngle(-90);
+
         this.ship.setEffect(new EngineTrail(this.ship));
     }
 
@@ -91,10 +122,10 @@ export default class BaseScene extends Phaser.Scene {
         const gameStatus = GameStatus.getInstance();
         const loot = gameStatus.getLoot();
 
-        this.goldCount = loot.gold;
-        this.silverCount = loot.silver;
-        this.gemCount = loot.gems;
-        this.moduleCount = loot.modules;
+        this.goldCount = loot[LootType.GOLD];
+        this.silverCount = loot[LootType.SILVER];
+        this.gemCount = loot[LootType.GEM];
+        this.moduleCount = loot[LootType.MODULE];
 
         // Create Loot UI
         this.lootUI = new LootUI(this);
@@ -148,29 +179,26 @@ export default class BaseScene extends Phaser.Scene {
     protected handleLootCollected(lootGameObject: Phaser.GameObjects.GameObject) {
         if (!lootGameObject.active) return;
 
-        const loot = lootGameObject as any; // Cast to access config
-        if (loot.config) {
-            const value = loot.config.value || 1;
-            const type = loot.config.type || 'silver';
+        const loot = lootGameObject as any; // Cast to access properties
+        if (loot.type) {
+            const value = loot.value || 1;
+            const type: LootType = loot.type || LootType.SILVER;
             const gameStatus = GameStatus.getInstance();
 
-            if (type === 'gold') {
+            if (type === LootType.GOLD) {
                 this.goldCount += value;
-                this.lootUI.updateCounts('gold', this.goldCount);
-                gameStatus.updateLoot('gold', value);
-            } else if (type === 'gem') {
+                this.lootUI.updateCounts(type, this.goldCount);
+            } else if (type === LootType.GEM) {
                 this.gemCount += value;
-                this.lootUI.updateCounts('gem', this.gemCount);
-                gameStatus.updateLoot('gem', value);
-            } else if (type === 'module') {
+                this.lootUI.updateCounts(type, this.gemCount);
+            } else if (type === LootType.MODULE) {
                 this.moduleCount += value;
-                this.lootUI.updateCounts('module', this.moduleCount);
-                gameStatus.updateLoot('module', value);
+                this.lootUI.updateCounts(type, this.moduleCount);
             } else {
                 this.silverCount += value;
-                this.lootUI.updateCounts('silver', this.silverCount);
-                gameStatus.updateLoot('silver', value);
+                this.lootUI.updateCounts(type, this.silverCount);
             }
+            gameStatus.updateLoot(type, value);
         }
 
         // Defer destruction to avoid physics issues

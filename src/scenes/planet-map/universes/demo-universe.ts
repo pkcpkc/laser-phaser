@@ -13,6 +13,7 @@ import { GlimmeringSnowEffect } from '../effects/glimmering-snow-effect';
 import { SpikesEffect } from '../effects/spikes-effect';
 import { BubbleEffect } from '../effects/bubble-effect';
 import { ColorCircleEffect } from '../effects/color-circle-effect';
+import { AsteroidBeltEffect } from '../effects/asteroid-belt-effect';
 
 // Helper to Create Object References
 const createPlanet = (data: Partial<PlanetData>): PlanetData => {
@@ -39,7 +40,8 @@ export class DemoUniverse extends BaseUniverse {
             x: cx,
             y: cy,
             interaction: {
-                levelId: 'ship-demo-level'
+                levelId: 'ship-demo-level',
+                warpUniverseId: 'blood-hunters-universe' // Warp to Blood Hunter Universe
             },
             centralPlanet: true
         });
@@ -93,7 +95,7 @@ export class DemoUniverse extends BaseUniverse {
             id: 'nox',
             name: 'Nox',
             interaction: {
-                levelId: 'blood-hunters'
+                levelId: 'blood-hunters-level'
             },
             visualScale: 1.5, // Smaller
             tint: 0xAA00FF, // Purple
@@ -114,12 +116,10 @@ export class DemoUniverse extends BaseUniverse {
             tint: 0x8B0000, // Dark red
             visualScale: 0.5,
             interaction: {
-                levelId: 'blood-hunters',
-                hasTrader: true,
-                hasShipyard: true
+                levelId: 'blood-hunters-level',
+                hasShipyard: true,
             },
-            x: 0, y: 0,
-            warpUniverseId: 'blood-hunters-universe' // Warp to Blood Hunter Universe test
+            x: 0, y: 0
         });
         crimson.effects = [
             new MiniMoonEffect(scene, crimson, { type: 'mini-moon', tint: 0xFFAAAA, tilt: -60 }), // Light red
@@ -133,8 +133,7 @@ export class DemoUniverse extends BaseUniverse {
             tint: 0xaB0000, // Dark red
             visualScale: 0.5,
             interaction: {
-                levelId: 'blood-hunters',
-                hasTrader: true,
+                levelId: 'blood-hunters-level',
                 hasShipyard: true
             },
             x: 0, y: 0
@@ -171,7 +170,7 @@ export class DemoUniverse extends BaseUniverse {
             visualScale: 0.9,
             hidden: true,
             interaction: {
-                levelId: 'blood-hunters'
+                levelId: 'blood-hunters-level'
             },
             x: 0, y: 0
         });
@@ -265,6 +264,23 @@ export class DemoUniverse extends BaseUniverse {
             })
         ];
 
+        const belt = createPlanet({
+            id: 'belt',
+            name: 'The Belt',
+            tint: 0x555555,
+            visualScale: 0.7,
+            x: 0, y: 0,
+            interaction: { levelId: 'intro-asteroid-level' }
+        });
+        belt.effects = [
+            new AsteroidBeltEffect(scene, belt, {
+                type: 'asteroid-belt',
+                color: 0x4a4a4a,
+                asteroidCount: 50,
+                angle: -15
+            })
+        ];
+
         return [
             astra,
             aurelia,
@@ -278,7 +294,8 @@ export class DemoUniverse extends BaseUniverse {
             metropolis,
             cyber,
             thalassa,
-            prism
+            prism,
+            belt
         ];
     }
 }

@@ -38,6 +38,7 @@ import { BigCruiserWhiteLaserConfig } from '../../src/ships/configurations/big-c
 import { Ship } from '../../src/ships/ship';
 import { EngineTrail } from '../../src/ships/effects/engine-trail';
 import { LootUI } from '../../src/ui/loot-ui';
+import { LootType } from '../../src/ships/types';
 
 // Mocks
 vi.mock('../../src/logic/game-manager', () => ({
@@ -61,7 +62,7 @@ vi.mock('../../src/ships/effects/engine-trail', () => ({
 vi.mock('../../src/logic/game-status', () => ({
     GameStatus: {
         getInstance: vi.fn().mockReturnValue({
-            getLoot: vi.fn().mockReturnValue({ gold: 0, silver: 0, gems: 0, mounts: 0 }),
+            getLoot: vi.fn().mockReturnValue({ '🌕': 0, '🪙': 0, '💎': 0, '📦': 0 }),
             updateLoot: vi.fn(),
             isPlanetRevealed: vi.fn().mockReturnValue(false),
             revealPlanet: vi.fn(),
@@ -184,7 +185,9 @@ describe('BaseScene', () => {
                 sprite: {
                     active: true,
                     x: 100,
-                    y: 100
+                    y: 100,
+                    setFixedRotation: vi.fn(),
+                    setAngle: vi.fn(),
                 },
                 explode: vi.fn(),
             };
@@ -226,7 +229,9 @@ describe('BaseScene', () => {
 
         const mockLoot = {
             active: true,
-            config: { value: 10, type: 'silver' },
+            value: 10,
+            type: LootType.SILVER,
+            config: { value: 10, type: LootType.SILVER },
             destroy: vi.fn(),
         };
 
@@ -236,7 +241,8 @@ describe('BaseScene', () => {
         // Verify lootUI.updateCounts was called with accumulated count
         const lootUIInstance = (LootUI as any).mock.instances[0];
         // Since silverCount starts at 0 (from GameStatus mock), it should be 10
-        expect(lootUIInstance.updateCounts).toHaveBeenCalledWith('silver', 10);
+        expect(lootUIInstance.updateCounts).toHaveBeenCalledWith(LootType.SILVER, 10);
+
 
         // Verify delayed call
         expect(scene.time.delayedCall).toHaveBeenCalledWith(0, expect.any(Function));

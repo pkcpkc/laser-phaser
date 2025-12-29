@@ -11,23 +11,14 @@ export interface ThrusterColorConfig {
     sparks: [number, number]; // Trailing sparks
 }
 
+
+
 /**
- * Preset color configurations for common thruster types.
+ * Configuration for thruster effects including colors and dimensions.
  */
-export const THRUSTER_COLORS = {
-    ION: {
-        outer: [0x0044aa, 0x002255],
-        core: [0x00ffff, 0x0088ff],
-        inner: [0xffffff, 0xddddff],
-        sparks: [0xffffff, 0xaaddff]
-    } as ThrusterColorConfig,
-    RED: {
-        outer: [0xff2200, 0xaa0000],
-        core: [0xff6600, 0xff4400],
-        inner: [0xffdd88, 0xffaa44],
-        sparks: [0xffeecc, 0xff8844]
-    } as ThrusterColorConfig
-};
+export interface ThrusterConfig extends ThrusterColorConfig {
+    lengthScale?: number; // Scaling factor for flame length (default: 1.0)
+}
 
 /**
  * Base thruster effect class. Creates particle emitters for engine exhaust.
@@ -42,12 +33,12 @@ export class ThrusterEffect {
     constructor(
         scene: Phaser.Scene,
         module: Phaser.GameObjects.Image,
-        colors: ThrusterColorConfig
+        config: ThrusterConfig
     ) {
         this.scene = scene;
         this.module = module;
 
-        this.createEmitters(colors);
+        this.createEmitters(config);
 
         this.updateListener = () => this.update();
         this.scene.events.on('update', this.updateListener);
@@ -55,7 +46,9 @@ export class ThrusterEffect {
         this.module.on('destroy', this.destroy, this);
     }
 
-    protected createEmitters(colors: ThrusterColorConfig) {
+    protected createEmitters(config: ThrusterConfig) {
+        const lengthScale = config.lengthScale ?? 1.0;
+
         const createCallback = (minSpeed: number, maxSpeed: number, spread: number) => {
             return (particle: Phaser.GameObjects.Particles.Particle) => {
                 if (!this.module || !this.module.active) return;
@@ -78,10 +71,10 @@ export class ThrusterEffect {
 
         // Outer Flame - Larger, Slower (Background)
         const outerEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            color: colors.outer,
+            color: config.outer,
             alpha: { start: 0.5, end: 0 },
             scale: { start: 0.4, end: 0.1 },
-            lifespan: { min: 400, max: 600 },
+            lifespan: { min: 400 * lengthScale, max: 600 * lengthScale },
             blendMode: 'ADD',
             quantity: 1,
             frequency: 30,
@@ -92,10 +85,10 @@ export class ThrusterEffect {
 
         // Core Flame - Small, Fast (Middle)
         const coreEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            color: colors.core,
+            color: config.core,
             alpha: { start: 1, end: 0 },
             scale: { start: 0.25, end: 0.05 },
-            lifespan: { min: 300, max: 500 },
+            lifespan: { min: 300 * lengthScale, max: 500 * lengthScale },
             blendMode: 'ADD',
             quantity: 1,
             frequency: 20,
@@ -106,10 +99,10 @@ export class ThrusterEffect {
 
         // Inner Flame - Smallest, Brightest (Foreground)
         const innerEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            color: colors.inner,
+            color: config.inner,
             alpha: { start: 1, end: 0 },
             scale: { start: 0.15, end: 0.05 },
-            lifespan: { min: 300, max: 500 },
+            lifespan: { min: 300 * lengthScale, max: 500 * lengthScale },
             blendMode: 'ADD',
             quantity: 1,
             frequency: 20,
@@ -120,10 +113,10 @@ export class ThrusterEffect {
 
         // Sparks - Tiny trailing particles
         const sparkEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            color: colors.sparks,
+            color: config.sparks,
             alpha: { start: 1, end: 0 },
             scale: { start: 0.1, end: 0 },
-            lifespan: { min: 400, max: 800 },
+            lifespan: { min: 400 * lengthScale, max: 800 * lengthScale },
             blendMode: 'ADD',
             quantity: 1,
             frequency: 100,

@@ -12,15 +12,13 @@ export interface PlanetData {
 
     // Configuration Objects
     effects?: IPlanetEffect[];
+    requiredVictories?: number;
 
     interaction?: {
         levelId?: string;
-        hasTrader?: boolean;
         hasShipyard?: boolean;
+        warpUniverseId?: string;
     };
-
-    // Warp Gate
-    warpUniverseId?: string;
 
     // Central planet flag - if true, this planet is positioned at the center and doesn't orbit
     centralPlanet?: boolean;

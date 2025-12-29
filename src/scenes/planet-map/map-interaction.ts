@@ -5,10 +5,15 @@ export class MapInteractionManager {
     private scene: Phaser.Scene;
     private interactionContainer!: Phaser.GameObjects.Container;
     private planetNameContainer!: Phaser.GameObjects.Container;
+    private universeId?: string;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
         this.createInteractionUI();
+    }
+
+    public setUniverseId(id: string) {
+        this.universeId = id;
     }
 
     private createInteractionUI() {
@@ -24,8 +29,6 @@ export class MapInteractionManager {
     public showInteractionUI(planet: PlanetData) {
         this.interactionContainer.removeAll(true);
         this.planetNameContainer.removeAll(true);
-
-
 
         // Calculate text positioning to place icons
         const basePlanetRadius = 30; // Base visual radius
@@ -74,18 +77,6 @@ export class MapInteractionManager {
             icons.push(playBtn);
         }
 
-        if (planet.interaction?.hasTrader) {
-            const traderBtn = this.scene.add.text(0, 0, '💰', {
-                fontSize: '24px',
-                padding: { x: 5, y: 5 },
-                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
-            })
-                .setOrigin(0.5)
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.scene.scene.start('TraderScene'));
-            icons.push(traderBtn);
-        }
-
         if (planet.interaction?.hasShipyard) {
             const shipyardBtn = this.scene.add.text(0, 0, '🛠️', {
                 fontSize: '24px',
@@ -96,6 +87,18 @@ export class MapInteractionManager {
                 .setInteractive({ useHandCursor: true })
                 .on('pointerdown', () => this.scene.scene.start('ShipyardScene'));
             icons.push(shipyardBtn);
+        }
+
+        if (planet.interaction?.warpUniverseId) {
+            const warpBtn = this.scene.add.text(0, 0, '🌀', {
+                fontSize: '24px',
+                padding: { x: 5, y: 5 },
+                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
+            })
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => this.scene.scene.start('PlanetMapScene', { universeId: planet.interaction?.warpUniverseId }));
+            icons.push(warpBtn);
         }
 
         // Horizontal Layout
@@ -128,8 +131,6 @@ export class MapInteractionManager {
             lines = fullText.split(' ');
         }
 
-        // Base settings
-        // Base settings
         // Base settings
         const startAngle = -Math.PI / 2;
         const fontSizeStr = '18px';
@@ -252,25 +253,27 @@ export class MapInteractionManager {
     }
 
     private launchLevel(levelId: string, planet: PlanetData) {
-        if (levelId === 'blood-hunters') {
-            // Convert planet tint to hex color string
-            const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
+        const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
 
-            this.scene.scene.start('BloodHunters', {
-                returnPlanetId: planet.id,
-                warpUniverseId: planet.warpUniverseId,
-                planetColor: planetColor
-            });
-        } else if (levelId === 'ship-demo-level') {
-            const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
+        // Special case for ship-demo-level which uses its own scene
+        if (levelId === 'ship-demo-level') {
             this.scene.scene.start('ShipDemoScene', {
                 returnPlanetId: planet.id,
-                warpUniverseId: planet.warpUniverseId,
-                planetColor: planetColor
+                warpUniverseId: planet.interaction?.warpUniverseId,
+                planetColor: planetColor,
+                universeId: this.universeId
             });
-        } else {
-            console.warn('Level not implemented:', levelId);
+            return;
         }
+
+        // All other levels use BloodHunters scene with levelId passed
+        this.scene.scene.start('BloodHunters', {
+            returnPlanetId: planet.id,
+            warpUniverseId: planet.interaction?.warpUniverseId,
+            planetColor: planetColor,
+            levelId: levelId,
+            universeId: this.universeId
+        });
     }
 
     public launchLevelIfAvailable(planet: PlanetData) {

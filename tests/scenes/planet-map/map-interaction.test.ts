@@ -85,7 +85,6 @@ describe('MapInteractionManager', () => {
             y: 100,
             interaction: {
                 levelId: 'test-level',
-                hasTrader: true,
                 hasShipyard: true,
             },
         };

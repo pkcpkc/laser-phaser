@@ -61,6 +61,13 @@ vi.mock('phaser', () => {
     };
 });
 
+// Mock DustExplosion
+vi.mock('../../src/ships/effects/dust-explosion', () => {
+    return {
+        DustExplosion: vi.fn()
+    };
+});
+
 // Mock Explosion
 vi.mock('../../src/ships/effects/explosion', () => {
     return {
@@ -274,5 +281,33 @@ describe('Ship', () => {
 
         // Mass is 10. Thrust is 50. Speed = 50 / 10 = 5.
         expect(driveShip.speed).toBe(5);
+    });
+
+    it('should reduce speed by 30% when multiple drives are installed', () => {
+        const mockDriveClass = class {
+            thrust = 50;
+            name = 'Mock Drive';
+            description = 'Fast';
+            createTexture = vi.fn();
+            visibleOnMount = true;
+        };
+
+        const multiDriveConfig = {
+            ...mockConfig,
+            modules: [
+                { marker: { x: 0, y: 0, angle: 0 }, module: mockDriveClass },
+                { marker: { x: 0, y: 0, angle: 0 }, module: mockDriveClass }
+            ]
+        };
+
+        const multiDriveShip = new Ship(mockScene, 100, 100, multiDriveConfig, mockCollisionConfig);
+        (multiDriveShip.sprite as any).scene = mockScene;
+
+        // Mass is 10.
+        // Total Thrust = 50 + 50 = 100.
+        // Base Speed = 100 / 10 = 10.
+        // Penalty = 30% -> Multiplier 0.7.
+        // Expected Speed = 10 * 0.7 = 7.
+        expect(multiDriveShip.speed).toBe(7);
     });
 });

@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameStatus } from '../logic/game-status';
+import { LootType } from '../ships/types';
 
 export class LootUI {
     private scene: Phaser.Scene;
@@ -34,33 +35,33 @@ export class LootUI {
 
         // Silver
         this.silverIcon = this.scene.add.text(xPos, startY, '🪙', iconStyle).setOrigin(0.5).setDepth(depth);
-        this.silverText = this.scene.add.text(xPos, startY + countOffset, loot.silver.toString(), countStyle).setOrigin(0.5).setDepth(depth);
+        this.silverText = this.scene.add.text(xPos, startY + countOffset, loot[LootType.SILVER].toString(), countStyle).setOrigin(0.5).setDepth(depth);
 
         // Gold
         this.goldIcon = this.scene.add.text(xPos, startY + spacing, '🌕', iconStyle).setOrigin(0.5).setDepth(depth);
-        this.goldText = this.scene.add.text(xPos, startY + spacing + countOffset, loot.gold.toString(), countStyle).setOrigin(0.5).setDepth(depth);
+        this.goldText = this.scene.add.text(xPos, startY + spacing + countOffset, loot[LootType.GOLD].toString(), countStyle).setOrigin(0.5).setDepth(depth);
 
         // Gem
         this.gemIcon = this.scene.add.text(xPos, startY + spacing * 2, '💎', iconStyle).setOrigin(0.5).setDepth(depth);
-        this.gemText = this.scene.add.text(xPos, startY + spacing * 2 + countOffset, loot.gems.toString(), countStyle).setOrigin(0.5).setDepth(depth);
+        this.gemText = this.scene.add.text(xPos, startY + spacing * 2 + countOffset, loot[LootType.GEM].toString(), countStyle).setOrigin(0.5).setDepth(depth);
 
         // Module
         this.mountIcon = this.scene.add.text(xPos, startY + spacing * 3, '📦', iconStyle).setOrigin(0.5).setDepth(depth);
-        this.mountText = this.scene.add.text(xPos, startY + spacing * 3 + countOffset, loot.modules.toString(), countStyle).setOrigin(0.5).setDepth(depth);
+        this.mountText = this.scene.add.text(xPos, startY + spacing * 3 + countOffset, loot[LootType.MODULE].toString(), countStyle).setOrigin(0.5).setDepth(depth);
     }
 
-    public updateCounts(type: 'silver' | 'gold' | 'gem' | 'module', count: number): void {
+    public updateCounts(type: LootType, count: number): void {
         switch (type) {
-            case 'silver':
+            case LootType.SILVER:
                 if (this.silverText) this.silverText.setText(count.toString());
                 break;
-            case 'gold':
+            case LootType.GOLD:
                 if (this.goldText) this.goldText.setText(count.toString());
                 break;
-            case 'gem':
+            case LootType.GEM:
                 if (this.gemText) this.gemText.setText(count.toString());
                 break;
-            case 'module':
+            case LootType.MODULE:
                 if (this.mountText) this.mountText.setText(count.toString());
                 break;
         }

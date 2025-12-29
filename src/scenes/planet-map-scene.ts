@@ -62,6 +62,9 @@ export default class PlanetMapScene extends Phaser.Scene {
         this.universe = UniverseFactory.create(distinctUniverseId);
         this.universe.init(this, width, height);
 
+        // Pass universe ID to interactions
+        this.interactions.setUniverseId(this.universe.id);
+
         console.log('PlanetMapScene: creating background');
         // Background
         this.add.rectangle(0, 0, width, height, 0x000011).setOrigin(0).setDepth(-100);
@@ -82,7 +85,7 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         console.log('PlanetMapScene: creating visuals');
         // Draw Planets
-        this.visuals.createVisuals(this.universe.getAll(), (planet) => this.handlePlanetClick(planet));
+        this.visuals.createVisuals(this.universe.getAll(), this.universe.id, (planet) => this.handlePlanetClick(planet));
 
         console.log('PlanetMapScene: creating player ship');
         // Create Player Ship
@@ -161,7 +164,21 @@ export default class PlanetMapScene extends Phaser.Scene {
 
 
 
+    private isPlanetLocked(planet: PlanetData): boolean {
+        const required = planet.requiredVictories ?? 0;
+        if (required <= 0) return false;
+
+        const currentWins = GameStatus.getInstance().getVictories(this.universe.id);
+        return currentWins < required;
+    }
+
     private handlePlanetClick(planet: PlanetData) {
+        if (this.isPlanetLocked(planet)) {
+            // Optional: Shake effect or sound to indicate locked?
+            // For now just block.
+            return;
+        }
+
         if (this.currentPlanetId === planet.id) {
             this.interactions.showInteractionUI(planet);
             return;
@@ -170,6 +187,9 @@ export default class PlanetMapScene extends Phaser.Scene {
     }
 
     private travelToPlanet(target: PlanetData) {
+        // Safety check, though callers should handle it
+        if (this.isPlanetLocked(target)) return;
+
         this.interactions.hide();
 
         const targetX = target.x - 60;
@@ -270,7 +290,7 @@ export default class PlanetMapScene extends Phaser.Scene {
 
     private navigate(dx: number, dy: number) {
         const bestCandidate = this.universe.findNearestNeighbor(this.currentPlanetId, dx, dy);
-        if (bestCandidate) {
+        if (bestCandidate && !this.isPlanetLocked(bestCandidate)) {
             this.travelToPlanet(bestCandidate);
         }
     }

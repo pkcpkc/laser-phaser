@@ -16,13 +16,14 @@ export class CollisionManager {
         this.onGameOver = onGameOver;
         this.onLootCollected = onLootCollected;
 
-        this.shipCategory = 0x0001;
-        this.laserCategory = 0x0002;
-        this.enemyCategory = 0x0004;
-        this.enemyLaserCategory = 0x0008;
-        this.lootCategory = 0x0010;
+        this.shipCategory = 0x0002;
+        this.laserCategory = 0x0004;
+        this.enemyCategory = 0x0008;
+        this.enemyLaserCategory = 0x0010;
+        this.lootCategory = 0x0020;
 
         console.log('CollisionManager Initialized. Categories:', {
+            wall: 0x0001,
             ship: this.shipCategory,
             laser: this.laserCategory,
             enemy: this.enemyCategory,
@@ -33,6 +34,7 @@ export class CollisionManager {
 
     public getCategories() {
         return {
+            wallCategory: 0x0001,
             shipCategory: this.shipCategory,
             laserCategory: this.laserCategory,
             enemyCategory: this.enemyCategory,
@@ -65,7 +67,7 @@ export class CollisionManager {
                     // console.log(`Collision: ${gameObjectA.constructor.name} (${categoryA}) vs ${gameObjectB.constructor.name} (${categoryB})`);
                     // console.log('Ship Category:', this.shipCategory, 'Loot Category:', this.lootCategory);
 
-                    // Laser vs Enemy
+                    // Laser vs Enemy (ships and asteroids)
                     if ((categoryA === this.laserCategory && categoryB === this.enemyCategory) ||
                         (categoryB === this.laserCategory && categoryA === this.enemyCategory)) {
 
@@ -73,9 +75,11 @@ export class CollisionManager {
                         const enemy = enemyBody.gameObject as Phaser.Physics.Matter.Image;
 
                         if (enemy) {
+                            // All enemies (ships and asteroids) now use Ship class
                             const ship = enemy.getData('ship') as Ship;
-                            if (ship) ship.explode();
-                            else {
+                            if (ship) {
+                                ship.explode();
+                            } else {
                                 this.scene.time.delayedCall(0, () => {
                                     if (categoryA === this.enemyCategory && gameObjectA.active) gameObjectA.destroy();
                                     if (categoryB === this.enemyCategory && gameObjectB.active) gameObjectB.destroy();
@@ -89,7 +93,7 @@ export class CollisionManager {
                         });
                     }
 
-                    // Ship vs Enemy
+                    // Ship vs Enemy (enemy ships and asteroids)
                     if ((categoryA === this.shipCategory && categoryB === this.enemyCategory) ||
                         (categoryB === this.shipCategory && categoryA === this.enemyCategory)) {
 
@@ -97,8 +101,9 @@ export class CollisionManager {
                             const enemy = gameObjectA as Phaser.Physics.Matter.Image;
                             if (enemy.active) {
                                 const ship = enemy.getData('ship') as Ship;
-                                if (ship) ship.explode();
-                                else {
+                                if (ship) {
+                                    ship.explode();
+                                } else {
                                     this.scene.time.delayedCall(0, () => {
                                         if (gameObjectA.active) gameObjectA.destroy();
                                     });
@@ -109,8 +114,9 @@ export class CollisionManager {
                             const enemy = gameObjectB as Phaser.Physics.Matter.Image;
                             if (enemy.active) {
                                 const ship = enemy.getData('ship') as Ship;
-                                if (ship) ship.explode();
-                                else {
+                                if (ship) {
+                                    ship.explode();
+                                } else {
                                     this.scene.time.delayedCall(0, () => {
                                         if (gameObjectB.active) gameObjectB.destroy();
                                     });

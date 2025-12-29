@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Loot } from '../../src/ships/loot';
+import { LootType } from '../../src/ships/types';
 
 
 // Mock Phaser
@@ -37,7 +38,7 @@ vi.mock('phaser', () => {
 describe('Loot', () => {
     let loot: Loot;
     let mockScene: any;
-    let mockConfig: any;
+    let mockType: LootType;
 
     beforeEach(() => {
         mockScene = {
@@ -66,12 +67,7 @@ describe('Loot', () => {
             }
         };
 
-        mockConfig = {
-            text: 'T',
-            type: 'gem',
-            dropChance: 1,
-            value: 10
-        };
+        mockType = LootType.GEM;
 
         // Mock canvas (JSDOM should handle this, but for explicit control)
         const mockContext = {
@@ -88,14 +84,14 @@ describe('Loot', () => {
         };
         vi.spyOn(document, 'createElement').mockReturnValue(mockCanvas as any);
 
-        loot = new Loot(mockScene, 100, 100, mockConfig);
+        loot = new Loot(mockScene, 100, 100, mockType);
         // Simulate scene compatibility
         (loot as any).scene = mockScene;
     });
 
     it('should initialize correctly', () => {
         expect(mockScene.add.existing).toHaveBeenCalledWith(loot);
-        expect(loot.config).toBe(mockConfig);
+        expect(loot.type).toBe(mockType);
         expect(loot.setFrictionAir).toHaveBeenCalledWith(0.05);
         expect(loot.setBounce).toHaveBeenCalledWith(0.5);
         expect(loot.setSensor).toHaveBeenCalledWith(true);
@@ -112,13 +108,13 @@ describe('Loot', () => {
         // Clear previous calls
         mockScene.textures.addCanvas.mockClear();
 
-        new Loot(mockScene, 100, 100, { ...mockConfig, type: 'gem' });
+        new Loot(mockScene, 100, 100, LootType.GEM);
         expect(mockScene.textures.addCanvas).not.toHaveBeenCalled();
     });
 
     it('should handle mount loot type specific logic', () => {
-        const mountConfig = { ...mockConfig, type: 'module' };
-        loot = new Loot(mockScene, 100, 100, mountConfig);
+        const mountType = LootType.MODULE;
+        loot = new Loot(mockScene, 100, 100, mountType);
 
         expect(mockScene.add.particles).toHaveBeenCalled();
         expect(loot.on).toHaveBeenCalledWith('destroy', expect.any(Function));

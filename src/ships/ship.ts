@@ -3,6 +3,7 @@ import type { Laser } from './modules/lasers/types';
 import type { Drive } from './modules/drives/types';
 import type { ShipEffect } from './effects/types';
 import { Explosion } from './effects/explosion';
+import { DustExplosion } from './effects/dust-explosion';
 
 export * from './types';
 import type { ShipConfig, ShipCollisionConfig } from './types';
@@ -23,6 +24,8 @@ export class Ship {
     private moduleSprites: Map<ActiveModule, Phaser.GameObjects.Image> = new Map();
     private effect?: ShipEffect;
     private updateListener?: () => void;
+    private hasEnteredScreen: boolean = false;
+    private originalCollidesWith: number = 0;
 
     constructor(
         scene: Phaser.Scene,
@@ -51,7 +54,17 @@ export class Ship {
 
         // Apply Collision Config
         this.sprite.setCollisionCategory(collisionConfig.category);
-        this.sprite.setCollidesWith(collisionConfig.collidesWith);
+
+        // Spawn protection: enemy ships start with no collision until they've entered the screen
+        // This prevents instant death from ships that spawn mid-screen due to timing/looping
+        if (collisionConfig.isEnemy && y < 0) {
+            this.originalCollidesWith = collisionConfig.collidesWith;
+            this.sprite.setCollidesWith(0); // No collision until entered screen
+            this.hasEnteredScreen = false;
+        } else {
+            this.sprite.setCollidesWith(collisionConfig.collidesWith);
+            this.hasEnteredScreen = true; // Player ships or ships already on-screen
+        }
 
         // Initialize Modules
         this.activeModules = [];
@@ -108,9 +121,14 @@ export class Ship {
             });
         }
 
-        // Setup update listener to sync mount sprites
-        if (this.moduleSprites.size > 0) {
-            this.updateListener = () => this.updateModules();
+        // Setup update listener to sync mount sprites and check spawn protection
+        const needsUpdateListener = this.moduleSprites.size > 0 || !this.hasEnteredScreen;
+
+        if (needsUpdateListener) {
+            this.updateListener = () => {
+                this.updateModules();
+                this.checkSpawnProtection();
+            };
             // Use postupdate to ensure ship physics/movement has finished for the frame
             this.sprite.scene.events.on('postupdate', this.updateListener);
 
@@ -125,6 +143,17 @@ export class Ship {
             scene.time.delayedCall(100, () => {
                 this.updateModules();
             });
+        }
+    }
+
+    private checkSpawnProtection() {
+        // Once ship has entered screen, enable collision
+        if (!this.hasEnteredScreen && this.sprite.active) {
+            // Check if ship is now visible on screen (y > 0 means partly visible)
+            if (this.sprite.y > 0) {
+                this.hasEnteredScreen = true;
+                this.sprite.setCollidesWith(this.originalCollidesWith);
+            }
         }
     }
 
@@ -274,55 +303,45 @@ export class Ship {
 
             const explosionConfig = this.config.definition.explosion;
             if (explosionConfig) {
-                new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
-            }
-
-            // Loot Spawning Logic
-            // Priority: Mount (5%) -> Standard Loot (Configured Chance)
-
-            let lootSpawned = false;
-
-            // 1. Try to spawn Mount (5% chance)
-            if (Math.random() <= 0.05) {
-                // console.log('Spawning MOUNT loot');
-                const mountLootConfig = {
-                    text: '📦',
-                    type: 'module' as const,
-                    lifespan: 5000
-                };
-                const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, mountLootConfig);
-                if (this.collisionConfig.lootCategory) {
-                    loot.setCollisionCategory(this.collisionConfig.lootCategory);
-                }
-                if (this.collisionConfig.lootCollidesWith) {
-                    loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
-                }
-                lootSpawned = true;
-            }
-
-            // 2. If no Mount spawned, try Standard Loot
-            // Loot config is now on the definition or the instance?
-            // Types says ShipConfig has loot, but ShipDefinition doesn't have it explicitly in my previous step?
-            // Checking types.ts content I wrote:
-            // ShipConfig has loot?: LootConfig
-
-            if (!lootSpawned && this.config.loot) {
                 try {
-                    const chance = this.config.loot.dropChance ?? 1;
-                    if (Math.random() <= chance) {
-                        // console.log('Spawning standard loot');
-                        const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, this.config.loot);
-                        if (this.collisionConfig.lootCategory) {
-                            loot.setCollisionCategory(this.collisionConfig.lootCategory);
-                        }
-                        if (this.collisionConfig.lootCollidesWith) {
-                            loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
-                        }
+                    if (explosionConfig.type === 'dust') {
+                        new DustExplosion(this.sprite.scene, this.sprite.x, this.sprite.y, {
+                            lifespan: explosionConfig.lifespan,
+                            speed: explosionConfig.speed,
+                            scale: explosionConfig.scale,
+                            color: explosionConfig.color,
+                            particleCount: explosionConfig.particleCount,
+                            radius: this.sprite.displayWidth * 0.5
+                        });
+                    } else {
+                        new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
                     }
                 } catch (e) {
-                    console.error('Failed to spawn loot:', e);
+                    console.error('Failed to play explosion effect:', e);
                 }
             }
+
+            // Loot Spawning Logic - fully controlled by ship's loot config
+            if (this.config.loot) {
+                this.config.loot.forEach(lootItem => {
+                    try {
+                        const chance = lootItem.dropChance ?? 1;
+                        if (Math.random() <= chance) {
+                            const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
+
+                            if (this.collisionConfig.lootCategory) {
+                                loot.setCollisionCategory(this.collisionConfig.lootCategory);
+                            }
+                            if (this.collisionConfig.lootCollidesWith) {
+                                loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to spawn loot:', e);
+                    }
+                });
+            }
+
 
             this.destroy();
         });
@@ -358,16 +377,26 @@ export class Ship {
 
     get speed(): number {
         let totalThrust = 0;
+        let driveCount = 0;
+
         for (const m of this.activeModules) {
             if ('thrust' in m.module) {
                 totalThrust += (m.module as Drive).thrust;
+                driveCount++;
             }
         }
 
         // Speed = (Sum(Drive.thrust)) / Ship.mass
         // If no drives, fallback to defined speed or 0
         if (totalThrust > 0) {
-            return totalThrust / this.mass;
+            let speed = totalThrust / this.mass;
+
+            // If multiple drives are installed, reduce total speed by 30%
+            if (driveCount > 1) {
+                speed *= 0.7;
+            }
+
+            return speed;
         }
 
         return this.config.definition.gameplay.speed || 0;

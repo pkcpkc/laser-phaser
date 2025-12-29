@@ -1,21 +1,34 @@
 import Phaser from 'phaser';
 import type { PlanetData } from './planet-data';
-// Concrete effect imports removed - PlanetVisual is now generic
+import { GameStatus } from '../../logic/game-status';
 
 export class PlanetVisual {
     protected scene: Phaser.Scene;
     protected planet: PlanetData;
+    protected universeId: string;
     private moonFrames = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];
     private frameIdx = 0;
+    private lockIcon?: Phaser.GameObjects.Text;
 
 
-    constructor(scene: Phaser.Scene, planet: PlanetData) {
+    constructor(scene: Phaser.Scene, planet: PlanetData, universeId: string) {
         this.scene = scene;
         this.planet = planet;
+        this.universeId = universeId;
+    }
+
+    private isLocked(): boolean {
+        // Check victory requirement
+        const required = this.planet.requiredVictories ?? 0;
+        if (required <= 0) return false;
+
+        const currentwins = GameStatus.getInstance().getVictories(this.universeId);
+        return currentwins < required;
     }
 
     public create(onClick: (planet: PlanetData) => void): void {
-        const initialVisual = '\ud83c\udf11'; // Always moon emoji, tint provides variation
+        const isLocked = this.isLocked();
+        const initialVisual = '\ud83c\udf11'; // Always moon emoji
 
         const visualObject = this.scene.add.text(this.planet.x, this.planet.y, initialVisual, {
             fontSize: '48px',
@@ -33,16 +46,16 @@ export class PlanetVisual {
 
         this.applyVisualProperties(visualObject, overlay);
 
-        visualObject.setInteractive({ useHandCursor: true }).on('pointerdown', () => onClick(this.planet));
-        overlay.setInteractive({ useHandCursor: true }).on('pointerdown', () => onClick(this.planet));
+        // Only interactive if NOT locked (or handle click validation in listener, but visuals imply state)
+        // Plan says: check in handlePlanetClick. So we leave it interactive.
+        visualObject.setInteractive({ useHandCursor: !isLocked }).on('pointerdown', () => onClick(this.planet));
+        overlay.setInteractive({ useHandCursor: !isLocked }).on('pointerdown', () => onClick(this.planet));
 
         this.planet.gameObject = visualObject;
 
         // Assign incremental depths to effects to respect array order
         if (this.planet.effects) {
             this.planet.effects.forEach((effect, index) => {
-                // Base depth for effects starts at 2 (Planet is at 1)
-                // We increment by 2 to leave room for internal layering (e.g. front/back)
                 const baseDepth = 2 + (index * 2);
                 if (effect.setDepth) {
                     effect.setDepth(baseDepth);
@@ -51,27 +64,28 @@ export class PlanetVisual {
         }
 
         // Effects are already instantiated. We just need to ensure their visibility is correct initially.
-        if (this.planet.hidden ?? true) {
-            // Hide all effects if locked
+        if ((this.planet.hidden ?? true) || isLocked) {
+            // Hide all effects if locked or hidden
             if (this.planet.effects) {
                 this.planet.effects.forEach(e => e.setVisible(false));
             }
         }
 
-        // Adjust planet depth to be between rings
-        // Back Emitter: 0
-        // Planet: 1
-        // Front Emitter: 2
+        // Adjust planet depth
         visualObject.setDepth(1);
         overlay.setDepth(1);
 
-        if (this.planet.hidden ?? true) {
-            this.addLockedParticleEffect();
+        // Add Lock Icon if locked
+        if (isLocked) {
+            this.createLockIcon();
+        }
+
+        // Show hidden particle effect for hidden planets (locked or not)
+        if ((this.planet.hidden ?? true)) {
+            this.addHiddenParticleEffect();
         }
 
         // Start animation loop
-        // Adjust speed based on size: Larger = Slower (Higher Delay)
-        // Base delay 500ms for scale 1.0
         const isRevealed = !(this.planet.hidden ?? true);
         const scale = (isRevealed && this.planet.visualScale) ? this.planet.visualScale : 0.8;
         const delay = 500 * scale;
@@ -83,7 +97,26 @@ export class PlanetVisual {
         });
     }
 
+    private createLockIcon() {
+        if (this.lockIcon) this.lockIcon.destroy();
 
+        // Account for planet visual offset (Origin 0.52, 0.40 rotated 45deg)
+        // Triangulated center based on user feedback ((-4, +4) too low?, (-3, -2) too high)
+        // Geometric calc suggests ~(-5, +3). Trying (-5, +1) to balance visual weight.
+        this.lockIcon = this.scene.add.text(this.planet.x - 1, this.planet.y + 1, '🔒', {
+            fontSize: '24px', // Smaller
+            padding: { x: 5, y: 5 },
+            color: '#000000' // Black
+        }).setOrigin(0.5, 0.5); // Center
+
+        // Should be on top of planet (1) and potential effects
+        this.lockIcon.setDepth(10);
+        this.lockIcon.setAngle(0); // Explicitly no tilt
+        this.lockIcon.setTint(0x000000); // Ensure it is black (overriding emoji colors)
+
+        // Make sure it's visible
+        this.lockIcon.setVisible(true);
+    }
 
     private applyTintWithDesaturation(obj: Phaser.GameObjects.Text) {
         // First desaturate to grayscale, then color through matrix
@@ -98,7 +131,7 @@ export class PlanetVisual {
         // Desaturate to grayscale first
         colorMatrix.saturate(-1);
 
-        // Apply color through matrix multiplication if tint defined, BUT ONLY if unlocked
+        // Apply color through matrix multiplication if tint defined, BUT ONLY if unlocked/revealed
         const isRevealed = !(this.planet.hidden ?? true);
         if (this.planet.tint && isRevealed) {
             const r = ((this.planet.tint >> 16) & 0xFF) / 255;
@@ -124,7 +157,9 @@ export class PlanetVisual {
         // Hardcoded angle for moons
         obj1.setAngle(45);
         obj2.setAngle(45);
-        if (this.planet.visualScale || (this.planet.hidden ?? true)) {
+
+        const isLocked = this.isLocked();
+        if (this.planet.visualScale || (this.planet.hidden ?? true) || isLocked) {
             const isRevealed = !(this.planet.hidden ?? true);
             const targetScale = (isRevealed && this.planet.visualScale) ? this.planet.visualScale : 0.8;
             obj1.setScale(targetScale);
@@ -141,6 +176,19 @@ export class PlanetVisual {
     public updateVisibility(): void {
         if (!this.planet.gameObject) return;
 
+        const isLocked = this.isLocked();
+        if (isLocked) {
+            if (!this.lockIcon) {
+                this.createLockIcon();
+            } else {
+                this.lockIcon.setVisible(true);
+            }
+        } else {
+            if (this.lockIcon) {
+                this.lockIcon.setVisible(false);
+            }
+        }
+
         const isRevealed = !(this.planet.hidden ?? true);
 
         if (isRevealed) {
@@ -155,6 +203,8 @@ export class PlanetVisual {
     }
 
     public animate(): void {
+        // Removed forced lock frame logic
+
         this.frameIdx = (this.frameIdx + 1) % this.moonFrames.length;
         this.planet.lightPhase = this.frameIdx;
 
@@ -191,7 +241,7 @@ export class PlanetVisual {
         this.applyTintWithDesaturation(targetObj);
 
         if (this.planet.visualScale) {
-            const targetScale = !(this.planet.hidden ?? true) ? this.planet.visualScale : 0.8;
+            const targetScale = (!(this.planet.hidden ?? true)) ? (this.planet.visualScale ?? 0.8) : 0.8;
             targetObj.setScale(targetScale);
         }
         targetObj.setAngle(45);
@@ -214,14 +264,18 @@ export class PlanetVisual {
 
         // Update visibility of effects based on unlocked state
         const isRevealed = !(this.planet.hidden ?? true);
+        const isLocked = this.isLocked();
 
         this.planet.effects?.forEach(effect => {
-            effect.setVisible(isRevealed);
+            // If locked, effects are generally hidden, EXCEPT hidden particle effect?
+            // But here we are iterating over 'planet.effects', which are likely the rings/etc.
+            // Hidden particle effect is handled by emitter.
+            effect.setVisible(isRevealed && !isLocked);
         });
     }
 
-    // Helper for locked particle effect
-    protected addLockedParticleEffect() {
+    // Helper for hidden particle effect
+    protected addHiddenParticleEffect() {
         if (this.planet.emitter) return;
 
         this.planet.emitter = this.scene.add.particles(0, 0, 'flare-white', {
@@ -248,11 +302,11 @@ export class PlanetVisuals {
         this.scene = scene;
     }
 
-    public createVisuals(planets: PlanetData[], onClick: (planet: PlanetData) => void) {
+    public createVisuals(planets: PlanetData[], universeId: string, onClick: (planet: PlanetData) => void) {
         planets.forEach(planet => {
             let visual: PlanetVisual;
 
-            visual = new PlanetVisual(this.scene, planet);
+            visual = new PlanetVisual(this.scene, planet, universeId);
 
             visual.create(onClick);
             this.visuals.set(planet.id, visual);

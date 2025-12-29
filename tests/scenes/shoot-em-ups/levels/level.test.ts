@@ -104,6 +104,11 @@ describe('Level', () => {
                         scene: {}
                     }))
                 }
+            },
+            game: {
+                loop: {
+                    frame: 0
+                }
             }
         };
         mockCollisionConfig = {};

@@ -144,6 +144,7 @@ vi.mock('phaser', () => {
                         arc: vi.fn(),
                         strokeCircle: vi.fn(),
                         closePath: vi.fn(),
+                        fillPath: vi.fn(),
                         setAlpha: vi.fn(),
                         setPosition: vi.fn(),
                         setScale: vi.fn()

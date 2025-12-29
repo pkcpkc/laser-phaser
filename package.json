@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "debug": "vite --mode debug",
     "build": "npm run build:atlases && npm run build:markers && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",

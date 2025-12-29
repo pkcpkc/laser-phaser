@@ -35,13 +35,22 @@ export interface ShipMarker {
     angle: number;
 }
 
-export interface LootConfig {
-    text: string;
-    dropChance?: number; // 0-1, default 1
-    lifespan?: number; // ms, default 3000
-    value?: number;
-    type?: 'gold' | 'silver' | 'gem' | 'module';
+export const LootType = {
+    SILVER: '🪙',
+    GOLD: '🌕',
+    GEM: '💎',
+    MODULE: '📦'
+} as const;
+
+export type LootType = typeof LootType[keyof typeof LootType];
+
+export interface LootItem {
+    type: LootType;
+    dropChance: number; // 0-1
 }
+
+export type LootConfig = LootItem[];
+
 
 // --- New Architecture ---
 

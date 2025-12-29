@@ -6,5 +6,5 @@ export class RedLaser extends BaseLaser {
     readonly SPEED = 5;
     readonly width = 3;
     readonly height = 3;
-    readonly reloadTime = 450; // Standard firing rate
+    readonly reloadTime = 650; // Standard firing rate
 }

@@ -7,7 +7,7 @@ export class BigRedLaser extends BaseLaser {
     readonly SPEED = 5;
     readonly width = 4;
     readonly height = 4;
-    readonly reloadTime = 600; // Slow but powerful
+    readonly reloadTime = 650; // Slow but powerful
     readonly firingDelay = { min: 500, max: 800 };
 
     override fire(

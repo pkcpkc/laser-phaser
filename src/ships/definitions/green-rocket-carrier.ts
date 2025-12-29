@@ -10,13 +10,11 @@ export const GreenRocketCarrierDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 5
+        mass: 8
     },
     gameplay: {
         health: 4,
-        speed: 2,
-        rotationSpeed: 0.08,
-        thrust: 0.1
+        rotationSpeed: 0.08
     },
     explosion: {
         frame: 'red', // Default, user can adjust

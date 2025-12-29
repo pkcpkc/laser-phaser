@@ -184,6 +184,21 @@ export class Level {
         if (this.isLevelComplete) return;
 
         // Update active runners
+        if (this.scene.game.loop.frame % 60 === 0) {
+            console.log(`Active Runners: ${this.activeRunners.length}`);
+            this.activeRunners.forEach((r, i) => {
+                // Access private properties via casting for debug
+                const runner = r as any;
+                console.log(`Runner ${i} state: ${runner.state}, Repeats: ${runner.repeatCount}/${runner.maxRepeats}`);
+                if (runner.instance) {
+                    console.log(`  Instance Complete: ${runner.instance.isComplete()}`);
+                    if (runner.instance.getShips) {
+                        console.log(`  Ships remaining: ${runner.instance.getShips().length}`);
+                    }
+                }
+            });
+        }
+
         for (const runner of this.activeRunners) {
             runner.update(time, delta);
         }

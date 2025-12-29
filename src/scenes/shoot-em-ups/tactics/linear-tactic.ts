@@ -6,6 +6,7 @@ export interface LinearTacticConfig {
     targetX?: number; // Optional target X to steer towards
     targetY?: number; // Optional target Y to steer towards
     loopLength?: number; // If set, movement loops after this distance
+    faceMovement?: boolean; // If true, ship rotates to face movement direction (default: true)
 }
 
 const FRAME_DURATION_MS = 16.66;
@@ -76,14 +77,18 @@ export class LinearTactic extends BaseTactic {
             const newY = startY + Math.sin(movementAngle) * dist;
 
             enemy.setPosition(newX, newY);
-            enemy.setRotation(movementAngle);
+
+            if (this.config.faceMovement !== false) {
+                enemy.setRotation(movementAngle);
+            }
+
             enemy.setVelocity(0, 0);
 
             // Check bounds
             const scene = enemy.scene;
             const width = scene.scale.width;
             const height = scene.scale.height;
-            const buffer = 200; // Generous buffer for linear movement
+            const buffer = 2000; // Generous buffer for linear movement
 
             if (enemy.y > height + buffer || enemy.y < -buffer || enemy.x < -buffer || enemy.x > width + buffer) {
                 enemyData.ship.destroy();

@@ -7,5 +7,5 @@ export class WhiteLaser extends BaseLaser {
     readonly recoil = 0.02;
     readonly width = 4;
     readonly height = 4;
-    readonly reloadTime = 200; // Fast firing light laser
+    readonly reloadTime = 300; // Fast firing light laser
 }

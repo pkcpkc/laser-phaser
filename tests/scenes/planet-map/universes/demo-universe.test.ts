@@ -94,6 +94,7 @@ vi.mock('phaser', () => {
                         closePath: vi.fn(),
                         moveTo: vi.fn(),
                         lineTo: vi.fn(),
+                        fillPath: vi.fn(),
                         clear: vi.fn(),
                         setVisible: vi.fn(),
                         destroy: vi.fn(),
