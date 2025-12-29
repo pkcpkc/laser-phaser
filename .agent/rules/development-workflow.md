@@ -1,3 +1,7 @@
+---
+trigger: always_on
+---
+
 # Development Workflow
 
 1. **Cleanup & Prep**
@@ -13,6 +17,10 @@
    - Fix any failing tests immediately.
    - Run build: `npm run build` to check for build errors.
 
-4. **Completion**
+4. **Problem Check**
+   - After each task, check `@current_problems` (IDE/linter diagnostics).
+   - If any problems exist, fix them before proceeding.
+
+5. **Completion**
    - Verify all checks pass (Lint, Test, Build).
-   - Update `README.md` with any relevant changes.
+   - Update README.md with any relevant changes.
