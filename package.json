@@ -13,7 +13,8 @@
     "test:check": "tsx scripts/check-tests.ts",
     "lint": "tsc --noEmit",
     "build:markers": "tsx scripts/generate-markers.ts",
-    "build:atlases": "node scripts/generate-atlases.js"
+    "build:atlases": "node scripts/generate-atlases.js",
+    "build:colors": "tsx scripts/generate-color-palette.ts"
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",

@@ -13,6 +13,8 @@ export class GreenRocket extends BaseRocket {
     readonly reloadTime = 2000;
     readonly firingDelay = { min: 200, max: 200 };
 
+    readonly damage = 10;
+
     readonly maxAmmo = 20;
 
     constructor() {

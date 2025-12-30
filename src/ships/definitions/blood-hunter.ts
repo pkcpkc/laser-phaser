@@ -10,10 +10,10 @@ export const BloodHunterDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 5
+        mass: 10
     },
     gameplay: {
-        health: 4,
+        health: 40,
         rotationSpeed: 0.08
     },
     explosion: {

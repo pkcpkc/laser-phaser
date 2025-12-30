@@ -36,7 +36,7 @@ describe('LaserEnemyHandler', () => {
     it('should handle collision between laser and enemy', () => {
         const mockLaser = { destroy: vi.fn(), active: true } as unknown as Phaser.GameObjects.GameObject;
 
-        const mockShip = { explode: vi.fn() };
+        const mockShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
         const mockEnemy = {
             active: true,
             getData: vi.fn().mockReturnValue(mockShip),
@@ -46,14 +46,14 @@ describe('LaserEnemyHandler', () => {
         const result = handler.handle(mockScene, LASER_CATEGORY, ENEMY_CATEGORY, mockLaser, mockEnemy);
 
         expect(result).toBe(true);
-        expect(mockShip.explode).toHaveBeenCalled();
+        expect(mockShip.takeDamage).toHaveBeenCalled();
         expect(mockLaser.destroy).toHaveBeenCalled();
     });
 
     it('should handle collision (swapped categories)', () => {
         const mockLaser = { destroy: vi.fn(), active: true } as unknown as Phaser.GameObjects.GameObject;
 
-        const mockShip = { explode: vi.fn() };
+        const mockShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
         const mockEnemy = {
             active: true,
             getData: vi.fn().mockReturnValue(mockShip),
@@ -63,7 +63,8 @@ describe('LaserEnemyHandler', () => {
         const result = handler.handle(mockScene, ENEMY_CATEGORY, LASER_CATEGORY, mockEnemy, mockLaser);
 
         expect(result).toBe(true);
-        expect(mockShip.explode).toHaveBeenCalled();
+        expect(result).toBe(true);
+        expect(mockShip.takeDamage).toHaveBeenCalled();
         expect(mockLaser.destroy).toHaveBeenCalled();
     });
 

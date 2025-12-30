@@ -24,10 +24,11 @@ export class ShipEnemyHandler implements CollisionHandler {
             const enemyGO = categoryA === this.enemyCategory ? gameObjectA : gameObjectB;
             const enemy = enemyGO as Phaser.Physics.Matter.Image;
 
+            // Enemy takes damage
             if (enemy.active) {
                 const ship = enemy.getData('ship') as Ship;
                 if (ship) {
-                    ship.explode();
+                    ship.takeDamage(100); // Massive ramming damage to enemy
                 } else {
                     scene.time.delayedCall(0, () => {
                         if (enemy.active) enemy.destroy();
@@ -35,7 +36,22 @@ export class ShipEnemyHandler implements CollisionHandler {
                 }
             }
 
-            this.onGameOver();
+            // Player takes damage
+            const playerGO = categoryA === this.shipCategory ? gameObjectA : gameObjectB;
+            if (playerGO && playerGO.active) {
+                const playerShip = playerGO.getData('ship') as Ship;
+                if (playerShip) {
+                    playerShip.takeDamage(50); // Ramming damage to player
+
+                    if (playerShip.currentHealth <= 0) {
+                        this.onGameOver();
+                    }
+                } else {
+                    // Should not happen for player ship, but fallback
+                    this.onGameOver();
+                }
+            }
+
             return true;
         }
 

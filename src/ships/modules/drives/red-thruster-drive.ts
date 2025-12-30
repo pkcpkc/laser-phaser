@@ -2,7 +2,7 @@ import { BaseDrive } from './base-drive';
 import { RedThrusterEffect } from '../../effects/red-thruster-effect';
 
 export class RedThrusterDrive extends BaseDrive {
-    readonly thrust = 12;
+    readonly thrust = 1.5;
     readonly name = 'Red Thruster Drive';
     readonly description = 'A powerful thruster with a fiery red flame.';
     readonly TEXTURE_KEY = 'red-thruster-drive-v1';

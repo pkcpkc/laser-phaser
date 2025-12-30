@@ -9,10 +9,10 @@ export const BigCruiserDefinition: ShipDefinition = {
     markers: allMarkers,
     physics: {
         frictionAir: 0.05,
-        mass: 10
+        mass: 20
     },
     gameplay: {
-        health: 4,
+        health: 100,
         rotationSpeed: 0.08
     },
     explosion: {

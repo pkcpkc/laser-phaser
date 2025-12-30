@@ -54,7 +54,7 @@ export default class PreloadScene extends Phaser.Scene {
         // Create the loading text initially
         // Use left origin (0, 0.5) so text doesn't shift when dot count changes
         this.loadingText = this.add.text(0, 0, 'LOADING...', {
-            fontFamily: 'Oswald, Impact, sans-serif',
+            fontFamily: 'Oswald, sans-serif',
             fontSize: '24px',
             color: '#ffffff'
         }).setOrigin(0, 0.5);

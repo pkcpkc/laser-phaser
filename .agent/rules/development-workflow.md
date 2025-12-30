@@ -14,6 +14,7 @@ trigger: always_on
 3. **Validation Loop**
    - Fix all linting errors: `npx tsc --noEmit`
    - Run tests: `npm test`
+   - When running specific test files, ALWAYS use `npx vitest run path/to/file.test.ts` (never just `vitest`) to avoid watch mode.
    - Fix any failing tests immediately.
    - Run build: `npm run build` to check for build errors.
 

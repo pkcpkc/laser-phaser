@@ -263,12 +263,12 @@ export const SmallAsteroidDefinition: ShipDefinition = {
     assetPath: '',
     markers: [asteroidDriveMarker],
     physics: {
-        frictionAir: 0,
+        frictionAir: 0.05,
         fixedRotation: false,
-        mass: 6.5
+        mass: 10
     },
     gameplay: {
-        health: 1,
+        health: 5,
         speed: 1.5,
         thrust: 15
     },

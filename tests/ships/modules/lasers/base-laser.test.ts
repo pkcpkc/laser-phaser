@@ -48,6 +48,7 @@ class TestLaser extends BaseLaser {
     readonly SPEED = 10;
     readonly width = 10;
     readonly height = 20;
+    readonly damage = 10;
 }
 
 describe('BaseLaser', () => {

@@ -4,6 +4,7 @@ export class GreenLaser extends BaseLaser {
     readonly TEXTURE_KEY = 'green-laser';
     readonly COLOR = 0x00ff00;
     readonly SPEED = 8;
+    readonly damage = 8;
     readonly recoil = 0.05;
     readonly width = 4;
     readonly height = 4;

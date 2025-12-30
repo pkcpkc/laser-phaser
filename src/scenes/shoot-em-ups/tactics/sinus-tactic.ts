@@ -38,7 +38,7 @@ export class SinusTactic extends BaseTactic {
             const elapsed = time - enemyData.spawnTime;
             if (elapsed < 0) continue;
 
-            const speed = enemyData.ship.speed || DEFAULT_SPEED;
+            const speed = enemyData.ship.maxSpeed || DEFAULT_SPEED;
 
             // We need the original start X. BaseEnemyData doesn't strictly have it but Formations usually store it.
             // Let's check if we can cast or access it.

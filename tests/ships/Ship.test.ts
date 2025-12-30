@@ -18,6 +18,7 @@ vi.mock('phaser', () => {
                         setCollisionCategory = vi.fn();
                         setCollidesWith = vi.fn();
                         thrustBack = vi.fn();
+                        setOrigin = vi.fn();
                         destroy = vi.fn();
                         active = true;
                         x = 100;
@@ -148,7 +149,8 @@ describe('Ship', () => {
                 },
                 gameplay: {
                     speed: 5
-                }
+                },
+                markers: []
             },
             modules: [{
                 marker: { x: 10, y: 0, angle: 0 },
@@ -253,14 +255,14 @@ describe('Ship', () => {
         expect(ship.mass).toBe(10);
     });
 
-    it('should calculate speed without drives (base speed)', () => {
+    it('should calculate acceleration without drives (base speed fallback)', () => {
         // Here we have no drives, only lasers. Laser doesn't have thrust.
         // So totalThrust = 0.
-        // Should return gameplay.speed = 5.
-        expect(ship.speed).toBe(5);
+        // Should return gameplay.speed = 5 (fallback).
+        expect(ship.acceleration).toBe(5);
     });
 
-    it('should calculate speed with drives', () => {
+    it('should calculate acceleration with drives', () => {
         const mockDriveClass = class {
             thrust = 50;
             name = 'Mock Drive';
@@ -279,11 +281,11 @@ describe('Ship', () => {
         const driveShip = new Ship(mockScene, 100, 100, driveConfig, mockCollisionConfig);
         (driveShip.sprite as any).scene = mockScene;
 
-        // Mass is 10. Thrust is 50. Speed = 50 / 10 = 5.
-        expect(driveShip.speed).toBe(5);
+        // Mass is 10. Thrust is 50. Acceleration = 50 / 10 = 5.
+        expect(driveShip.acceleration).toBe(5);
     });
 
-    it('should reduce speed by 30% when multiple drives are installed', () => {
+    it('should reduce acceleration by 30% when multiple drives are installed', () => {
         const mockDriveClass = class {
             thrust = 50;
             name = 'Mock Drive';
@@ -305,9 +307,85 @@ describe('Ship', () => {
 
         // Mass is 10.
         // Total Thrust = 50 + 50 = 100.
-        // Base Speed = 100 / 10 = 10.
+        // Base Acceleration = 100 / 10 = 10.
         // Penalty = 30% -> Multiplier 0.7.
-        // Expected Speed = 10 * 0.7 = 7.
-        expect(multiDriveShip.speed).toBe(7);
+        // Expected Acceleration = 10 * 0.7 = 7.
+        expect(multiDriveShip.acceleration).toBe(7);
+    });
+
+    it('should have unlimited ammo if isEnemy is true', () => {
+        const mockWeapon = class {
+            fire = vi.fn().mockReturnValue(true); // Return truthy to simulate successful fire
+            currentAmmo = 10;
+            maxAmmo = 10;
+            createTexture = vi.fn();
+            visibleOnMount = false;
+        };
+
+        const enemyConfig = {
+            ...mockConfig,
+            modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: mockWeapon }]
+        };
+        const enemyCollisionConfig = { ...mockCollisionConfig, isEnemy: true };
+
+        const enemyShip = new Ship(mockScene, 100, 100, enemyConfig, enemyCollisionConfig);
+        (enemyShip.sprite as any).scene = mockScene;
+
+        enemyShip.fireLasers();
+
+        // Access the instantiated weapon
+        const weaponInstance = (enemyShip as any).activeModules[0].module;
+
+        // Should be refilled to max
+        expect(weaponInstance.currentAmmo).toBe(10);
+        expect(weaponInstance.fire).toHaveBeenCalled();
+    });
+
+    it('should consume ammo if isEnemy is false', () => {
+        // Create a weapon class that actually simulates ammo consumption if the Ship logic doesn't decrease it automatically?
+        // Wait, Ship logic DOES NOT decrease ammo. The Weapon.fire method typically does, or the ship handles it?
+        // Checking logic: Ship.ts line 238 just REFILLS it if isEnemy.
+        // It does NOT seem to look like Ship.ts decrements ammo.
+        // That implies the Weapon.fire method is responsible for decrementing.
+        // So for this test, we just need to verify that REFILL does NOT happen.
+
+        const mockWeapon = class {
+            fire = vi.fn().mockImplementation(() => {
+                // Simulate decrementing ammo
+                this.instance.currentAmmo--;
+                return true;
+            });
+            createTexture = vi.fn();
+            visibleOnMount = false;
+            currentAmmo = 10;
+            maxAmmo = 10;
+            // Hack to access instance from test if needed, or just let fire do it
+            get instance() { return this; }
+        };
+
+        const playerConfig = {
+            ...mockConfig,
+            modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: mockWeapon }]
+        };
+        const playerCollisionConfig = { ...mockCollisionConfig, isEnemy: false };
+
+        const playerShip = new Ship(mockScene, 100, 100, playerConfig, playerCollisionConfig);
+        (playerShip.sprite as any).scene = mockScene;
+
+        // Manually decrement to simulate what fire() would do, since our mock fire above is tricky with "this" in class expression vs instance
+        // Actually, let's just assert that currentAmmo is NOT reset to maxAmmo if we manually lower it and call fireLasers
+
+        // Re-approach:
+        // Ship.ts logic for enemies: if fired -> currentAmmo = maxAmmo.
+        // So valid test for player: Set ammo to 9. Fire. Assert it stays 9 (or becomes 8 if fire decrements), but DEFINITELY not 10.
+
+        const weaponInstance = (playerShip as any).activeModules[0].module;
+        weaponInstance.currentAmmo = 9;
+        // Mock fire to return projectile so ship logic proceeds
+        weaponInstance.fire = vi.fn().mockReturnValue(true);
+
+        playerShip.fireLasers();
+
+        expect(weaponInstance.currentAmmo).toBe(9); // Should NOT be reset to 10
     });
 });

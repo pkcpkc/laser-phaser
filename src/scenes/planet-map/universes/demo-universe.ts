@@ -115,8 +115,9 @@ export class DemoUniverse extends BaseUniverse {
             name: 'Crimson',
             tint: 0x8B0000, // Dark red
             visualScale: 0.5,
+            hidden: false,
             interaction: {
-                levelId: 'blood-hunters-level',
+                levelId: 'blood-boss-level',
                 hasShipyard: true,
             },
             x: 0, y: 0

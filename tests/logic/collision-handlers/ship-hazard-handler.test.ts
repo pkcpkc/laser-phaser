@@ -35,7 +35,14 @@ describe('ShipHazardHandler', () => {
     } as unknown as Phaser.Scene;
 
     it('should handle collision between ship and enemy laser', () => {
-        const mockShipGO = {} as Phaser.GameObjects.GameObject;
+        const mockShipData = {
+            takeDamage: vi.fn(),
+            currentHealth: 0
+        };
+        const mockShipGO = {
+            active: true,
+            getData: vi.fn().mockReturnValue(mockShipData)
+        } as unknown as Phaser.GameObjects.GameObject;
         const mockEnemyLaser = {
             active: true,
             destroy: vi.fn()

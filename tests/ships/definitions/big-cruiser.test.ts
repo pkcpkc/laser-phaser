@@ -24,7 +24,7 @@ vi.mock('../../../src/ships/ship');
 describe('BigCruiser Configuration', () => {
     it('should have correct definition properties', () => {
         expect(BigCruiserDefinition.assetKey).toBe('ships');
-        expect(BigCruiserDefinition.gameplay.health).toBe(4);
+        expect(BigCruiserDefinition.gameplay.health).toBe(100);
     });
 
     it('should use correct definition in config', () => {

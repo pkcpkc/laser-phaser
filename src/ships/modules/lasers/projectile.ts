@@ -12,6 +12,7 @@ export class Projectile extends Phaser.Physics.Matter.Image {
         frame?: string | number,
         category?: number,
         collidesWith?: number,
+        public readonly damage: number = 0,
         lifespan?: number
     ) {
         super(scene.matter.world, x, y, texture, frame);

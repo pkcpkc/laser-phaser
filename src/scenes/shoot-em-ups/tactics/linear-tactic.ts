@@ -39,7 +39,7 @@ export class LinearTactic extends BaseTactic {
             // For Linear, adding velocity is usually enough if we set it once?
             // But we want to control it here.
 
-            const speed = enemyData.ship.speed || DEFAULT_SPEED;
+            const speed = enemyData.ship.maxSpeed || DEFAULT_SPEED;
 
 
             if (this.config.targetX !== undefined && this.config.targetY !== undefined) {

@@ -26,7 +26,11 @@ export class LaserEnemyHandler implements CollisionHandler {
                 // All enemies (ships and asteroids) now use Ship class
                 const ship = enemy.getData('ship') as Ship;
                 if (ship) {
-                    ship.explode();
+                    const projectile = categoryA === this.laserCategory ? gameObjectA : gameObjectB;
+                    // Try to get damage from projectile
+                    // We need to cast to Projectile or access property safely
+                    const damage = (projectile as any).damage || 10; // Fallback
+                    ship.takeDamage(damage);
                 } else {
                     // Fallback for non-ship enemies (e.g. simple asteroids if any left old style)
                     scene.time.delayedCall(0, () => {

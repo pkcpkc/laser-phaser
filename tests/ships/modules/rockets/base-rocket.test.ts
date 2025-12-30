@@ -9,6 +9,7 @@ class TestRocket extends BaseRocket {
     readonly SPEED = 5;
     readonly width = 10;
     readonly height = 20;
+    readonly damage = 10;
 
     // Helper to inspect protected state if needed, or we just rely on public behavior
     getAmmo() {

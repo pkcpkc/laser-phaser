@@ -79,7 +79,7 @@ class FormationRunner {
         const shipClass = this.config.shipClass || Ship;
         const shipConfig = this.config.shipConfig;
 
-        console.log('Spawning formation: ' + this.config.formationType.name + ' with ' + shipClass.name);
+
 
         // Instantiate Tactic first if present
         if (this.config.tacticType) {
@@ -184,20 +184,7 @@ export class Level {
         if (this.isLevelComplete) return;
 
         // Update active runners
-        if (this.scene.game.loop.frame % 60 === 0) {
-            console.log(`Active Runners: ${this.activeRunners.length}`);
-            this.activeRunners.forEach((r, i) => {
-                // Access private properties via casting for debug
-                const runner = r as any;
-                console.log(`Runner ${i} state: ${runner.state}, Repeats: ${runner.repeatCount}/${runner.maxRepeats}`);
-                if (runner.instance) {
-                    console.log(`  Instance Complete: ${runner.instance.isComplete()}`);
-                    if (runner.instance.getShips) {
-                        console.log(`  Ships remaining: ${runner.instance.getShips().length}`);
-                    }
-                }
-            });
-        }
+
 
         for (const runner of this.activeRunners) {
             runner.update(time, delta);
@@ -237,6 +224,16 @@ export class Level {
             const runner = new FormationRunner(this.scene, config, this.collisionConfig);
             this.activeRunners.push(runner);
         }
+
+
+
+        const formattedSummary = step.map(c => {
+            const shipName = c.shipConfig?.definition?.id || c.shipClass?.name || 'Unknown Ship';
+            const tacticName = c.tacticType?.name;
+            return tacticName ? `${tacticName} (${shipName})` : shipName;
+        }).join(', ');
+
+        console.log(`Starting Wave ${this.currentStepIndex + 1}: ${formattedSummary}`);
 
         this.currentStepIndex++;
     }

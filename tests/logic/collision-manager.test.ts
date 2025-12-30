@@ -93,7 +93,7 @@ describe('CollisionManager', () => {
                 gameObject: { destroy: vi.fn(), active: true }
             };
 
-            const mockShip = { explode: vi.fn() };
+            const mockShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
             const mockEnemyBody = {
                 collisionFilter: { category: 8 }, // enemyCategory
                 gameObject: {
@@ -111,16 +111,19 @@ describe('CollisionManager', () => {
             collisionCallback(event);
 
             expect(mockLaserBody.gameObject.destroy).toHaveBeenCalled();
-            expect(mockShip.explode).toHaveBeenCalled();
+            expect(mockShip.takeDamage).toHaveBeenCalled();
         });
 
         it('should trigger game over when ship collides with enemy', () => {
             const mockShipBody = {
                 collisionFilter: { category: 2 }, // shipCategory
-                gameObject: {}
+                gameObject: {
+                    active: true,
+                    getData: vi.fn().mockReturnValue({ takeDamage: vi.fn(), currentHealth: 0 })
+                }
             };
 
-            const mockEnemyShip = { explode: vi.fn() };
+            const mockEnemyShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
             const mockEnemyBody = {
                 collisionFilter: { category: 8 }, // enemyCategory
                 gameObject: {
@@ -137,14 +140,17 @@ describe('CollisionManager', () => {
 
             collisionCallback(event);
 
-            expect(mockEnemyShip.explode).toHaveBeenCalled();
+            expect(mockEnemyShip.takeDamage).toHaveBeenCalled();
             expect(mockOnGameOver).toHaveBeenCalled();
         });
 
         it('should trigger game over when ship collides with enemy laser', () => {
             const mockShipBody = {
                 collisionFilter: { category: 2 }, // shipCategory
-                gameObject: {}
+                gameObject: {
+                    active: true,
+                    getData: vi.fn().mockReturnValue({ takeDamage: vi.fn(), currentHealth: 0 })
+                }
             };
 
             const mockEnemyLaserBody = {

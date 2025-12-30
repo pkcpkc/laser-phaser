@@ -35,24 +35,32 @@ describe('ShipEnemyHandler', () => {
     } as unknown as Phaser.Scene;
 
     it('should handle collision between ship and enemy', () => {
-        const mockShipGO = {} as Phaser.GameObjects.GameObject;
+        const mockShipData = {
+            explode: vi.fn(),
+            takeDamage: vi.fn(),
+            currentHealth: 0
+        };
+        const mockShipGO = {
+            active: true,
+            getData: vi.fn().mockReturnValue(mockShipData)
+        } as unknown as Phaser.GameObjects.GameObject;
 
-        const mockShipData = { explode: vi.fn() };
+        const mockEnemyShipData = { explode: vi.fn(), takeDamage: vi.fn() };
         const mockEnemy = {
             active: true,
-            getData: vi.fn().mockReturnValue(mockShipData),
+            getData: vi.fn().mockReturnValue(mockEnemyShipData),
             destroy: vi.fn()
         } as unknown as Phaser.Physics.Matter.Image;
 
         const result = handler.handle(mockScene, SHIP_CATEGORY, ENEMY_CATEGORY, mockShipGO, mockEnemy);
 
         expect(result).toBe(true);
-        expect(mockShipData.explode).toHaveBeenCalled();
+        expect(mockShipData.takeDamage).toHaveBeenCalledWith(50);
         expect(mockOnGameOver).toHaveBeenCalled();
     });
 
     it('should fallback to destroy if enemy has no ship data', () => {
-        const mockShipGO = {} as Phaser.GameObjects.GameObject;
+        const mockShipGO = { active: true, getData: vi.fn() } as unknown as Phaser.GameObjects.GameObject;
 
         const mockEnemy = {
             active: true,

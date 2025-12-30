@@ -7,7 +7,7 @@ import { DustTrailEffect } from '../../effects/dust-trail-effect';
  * Has thrust for movement calculations.
  */
 export class DustDrive extends BaseDrive {
-    readonly thrust = 10;
+    readonly thrust = 1;
     readonly name = 'Dust Trail';
     readonly description = 'Produces a trail of dust particles.';
     readonly TEXTURE_KEY = 'dust-drive-v1';

@@ -229,7 +229,7 @@ export class PlayerController {
                     this.returnToUpright();
                 } else {
                     // Acceleration Phase - point toward target
-                    const maxSpeed = this.ship.speed * TAP_SPEED_MULTIPLIER;
+                    const maxSpeed = this.ship.maxSpeed * TAP_SPEED_MULTIPLIER;
                     if (this.currentSpeed < maxSpeed) {
                         this.currentSpeed += ACCELERATION;
                         if (this.currentSpeed > maxSpeed) this.currentSpeed = maxSpeed;

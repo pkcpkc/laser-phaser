@@ -21,6 +21,7 @@ interface ActiveModule {
 
 export class Ship {
     readonly sprite: Phaser.Physics.Matter.Image;
+    public currentHealth: number = 0;
     private activeModules: ActiveModule[] = [];
     private moduleSprites: Map<ActiveModule, Phaser.GameObjects.Image> = new Map();
     private effect?: ShipEffect;
@@ -39,6 +40,8 @@ export class Ship {
         this.sprite = scene.matter.add.image(x, y, config.definition.assetKey, config.definition.frame);
         this.sprite.setData('ship', this);
 
+        this.currentHealth = config.definition.gameplay.health;
+
         const phys = config.definition.physics;
         // Apply Physics Config
         this.sprite.setAngle(phys.initialAngle || 0);
@@ -56,6 +59,19 @@ export class Ship {
         // Apply Collision Config
         this.sprite.setCollisionCategory(collisionConfig.category);
 
+        // Origin Handling
+        const originMarker = config.definition.markers.find(m => m.type === 'origin');
+        if (originMarker) {
+            // Normalize coordinates to 0-1 range relative to texture dimensions
+            this.sprite.setOrigin(
+                originMarker.x / this.sprite.width,
+                originMarker.y / this.sprite.height
+            );
+        } else {
+            // Default to center if no origin marker specified
+            this.sprite.setOrigin(0.5, 0.5);
+        }
+
         // Spawn protection: enemy ships start with no collision until they've entered the screen
         // This prevents instant death from ships that spawn mid-screen due to timing/looping
         if (collisionConfig.isEnemy && y < 0) {
@@ -71,11 +87,12 @@ export class Ship {
         this.activeModules = [];
         if (config.modules) {
             this.activeModules = config.modules.map(m => {
-                // Determine relative position based on sprite center
-                // Markers are usually absolute pixels on the original image? 
-                // Previous code assumed marker x/y are pixels on the image.
-                const moduleX = m.marker.x - (this.sprite.width * 0.5);
-                const moduleY = m.marker.y - (this.sprite.height * 0.5);
+                // Determine relative position based on sprite origin (pivot)
+                const originX = originMarker ? originMarker.x : (this.sprite.width * 0.5);
+                const originY = originMarker ? originMarker.y : (this.sprite.height * 0.5);
+
+                const moduleX = m.marker.x - originX;
+                const moduleY = m.marker.y - originY;
                 const moduleAngle = m.marker.angle * (Math.PI / 180);
 
                 const moduleData = {
@@ -293,6 +310,24 @@ export class Ship {
     private isExploding = false;
     private isDestroyed = false;
 
+    takeDamage(amount: number) {
+        if (this.isDestroyed || !this.sprite.active) return;
+
+        this.currentHealth -= amount;
+
+        if (this.currentHealth <= 0) {
+            this.explode();
+        } else {
+            // Visual feedback can come here (flash, shake)
+            this.sprite.setTint(0xff0000);
+            this.sprite.scene.time.delayedCall(100, () => {
+                if (this.sprite && this.sprite.active) {
+                    this.sprite.clearTint();
+                }
+            });
+        }
+    }
+
     explode() {
         if (!this.sprite.active || this.isExploding) return;
         this.isExploding = true;
@@ -376,7 +411,7 @@ export class Ship {
         return this.config.definition.physics.mass || 1;
     }
 
-    get speed(): number {
+    get acceleration(): number {
         let totalThrust = 0;
         let driveCount = 0;
 
@@ -387,19 +422,25 @@ export class Ship {
             }
         }
 
-        // Speed = (Sum(Drive.thrust)) / Ship.mass
+        // Acceleration = (Sum(Drive.thrust)) / Ship.mass
         // If no drives, fallback to defined speed or 0
         if (totalThrust > 0) {
-            let speed = totalThrust / this.mass;
+            let acc = totalThrust / this.mass;
 
-            // If multiple drives are installed, reduce total speed by 30%
+            // If multiple drives are installed, reduce total by 30%
             if (driveCount > 1) {
-                speed *= 0.7;
+                acc *= 0.7;
             }
 
-            return speed;
+            return acc;
         }
 
         return this.config.definition.gameplay.speed || 0;
+    }
+
+    get maxSpeed(): number {
+        // Max Speed = Acceleration / FrictionAir (physics-accurate terminal velocity)
+        const frictionAir = this.config.definition.physics.frictionAir || 0.01; // Default low friction
+        return this.acceleration / frictionAir;
     }
 }

@@ -14,12 +14,12 @@ export const MediumAsteroidDefinition: ShipDefinition = {
     assetPath: '',
     markers: [mediumMarker],
     physics: {
-        frictionAir: 0,
+        frictionAir: 0.05,
         fixedRotation: false,
-        mass: 8.5
+        mass: 13
     },
     gameplay: {
-        health: 2,
+        health: 15,
         speed: 1.2,
         thrust: 12
     },

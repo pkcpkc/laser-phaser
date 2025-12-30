@@ -6,6 +6,7 @@ export namespace MarkerConfig {
         armor: 0x000000FF,       // Black
         rocket: 0xFFFFFFFF,      // White
         orientation: 0xFF0000FF, // Red - used for orientation markers
+        origin: 0x0000FFFF,      // Blue - used for origin/center point
     } as const;
 
     export type Type = keyof typeof colors;

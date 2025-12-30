@@ -30,7 +30,7 @@ describe('LinearTactic', () => {
                         }
                     }
                 },
-                speed: 100  // Ship.speed property used by tactics
+                maxSpeed: 100  // Ship.maxSpeed property used by tactics
             },
             startX: 100,
             startY: 0,

@@ -115,7 +115,7 @@ export default class BaseScene extends Phaser.Scene {
 
 
         // Fire Button
-        this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '40px', padding: { top: 10, bottom: 10 } })
+        this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontFamily: 'Oswald, sans-serif', fontSize: '40px', padding: { top: 10, bottom: 10 } })
             .setOrigin(0.5)
             .setInteractive();
 

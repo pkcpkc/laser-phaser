@@ -5,10 +5,11 @@ export class BigRedLaser extends BaseLaser {
     readonly TEXTURE_KEY = 'big-red-laser';
     readonly COLOR = 0xff0000;
     readonly SPEED = 5;
+    readonly damage = 40;
     readonly width = 4;
     readonly height = 4;
-    readonly reloadTime = 650; // Slow but powerful
-    readonly firingDelay = { min: 500, max: 800 };
+    readonly reloadTime = 300; // Slow but powerful
+    readonly firingDelay = { min: 500, max: 900 };
 
     override fire(
         scene: Phaser.Scene,

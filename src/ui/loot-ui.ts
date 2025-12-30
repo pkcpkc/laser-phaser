@@ -26,8 +26,8 @@ export class LootUI {
 
         // Styling
         const xPos = width - 35;
-        const iconStyle = { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '32px' };
-        const countStyle = { fontFamily: 'Oswald, Impact, sans-serif', fontSize: '20px', color: '#ffffff', stroke: '#000000', strokeThickness: 3 };
+        const iconStyle = { fontFamily: 'Oswald, sans-serif', fontSize: '32px' };
+        const countStyle = { fontFamily: 'Oswald, sans-serif', fontSize: '20px', color: '#ffffff', stroke: '#000000', strokeThickness: 3 };
 
         const startY = 30;
         const spacing = 45;

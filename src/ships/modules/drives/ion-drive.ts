@@ -2,7 +2,7 @@ import { BaseDrive } from './base-drive';
 import { IonEffect } from '../../effects/ion-effect';
 
 export class IonDrive extends BaseDrive {
-    readonly thrust = 15;
+    readonly thrust = 2;
     readonly name = 'Ion Drive';
     readonly description = 'Standard Ion Drive. Reliable and efficient.';
     readonly TEXTURE_KEY = 'ion-drive-v10'; // Bump version

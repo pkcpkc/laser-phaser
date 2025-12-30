@@ -10,10 +10,10 @@ export const BloodFighterDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 7
+        mass: 14
     },
     gameplay: {
-        health: 4,
+        health: 30,
         rotationSpeed: 0.08
     },
     explosion: {

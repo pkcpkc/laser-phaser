@@ -21,9 +21,16 @@ export async function processFile(sourcePath: string) {
         for (let x = 0; x < png.width; x++) {
             const idx = (png.width * y + x) << 2;
 
+
             const type = MarkerConfig.getTypeIdx(idx, png);
 
             if (type && type !== 'orientation') {
+                // Origin markers define the center point (pivot) and don't need rotation
+                if (type === 'origin') {
+                    markers.push({ type, x, y, angle: 0 });
+                    continue;
+                }
+
                 // Look for orientation pixel (red) in 3x3 area
                 let angle: number | null = null;
 

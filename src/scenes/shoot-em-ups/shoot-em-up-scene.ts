@@ -41,7 +41,8 @@ export abstract class ShootEmUpScene extends BaseScene {
             laserCategory: categories.enemyLaserCategory,
             laserCollidesWith: categories.shipCategory,
             lootCategory: categories.lootCategory,
-            lootCollidesWith: categories.shipCategory
+            lootCollidesWith: categories.shipCategory,
+            isEnemy: true
         };
 
         this.level = new Level(

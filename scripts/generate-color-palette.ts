@@ -11,7 +11,7 @@ const TEXT_OFFSET_X = 10; // Distance between color block and text
 const FONT_HEIGHT = 5;
 const SCALE = 3;
 const CHAR_SPACING = 2 * SCALE;
-const OUTPUT_PATH = 'module-colors.png';
+const OUTPUT_PATH = 'module-color-palette.png';
 
 // --- Font Data (4x5 default, variable width supported) ---
 const FONT: Record<string, number[]> = {
@@ -106,7 +106,9 @@ function drawText(png: PNG, text: string, x: number, y: number) {
 
 // --- Main Execution ---
 
-function main() {
+// --- Main Execution ---
+
+export function generatePalette() {
     const colors = MarkerConfig.colors;
     const keys = Object.keys(colors) as Array<keyof typeof colors>;
 
@@ -143,4 +145,8 @@ function main() {
     console.log(`Successfully generated ${OUTPUT_PATH}`);
 }
 
-main();
+// Only run if called directly
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    generatePalette();
+}

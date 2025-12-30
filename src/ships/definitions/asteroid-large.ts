@@ -14,12 +14,12 @@ export const LargeAsteroidDefinition: ShipDefinition = {
     assetPath: '',
     markers: [largeMarker],
     physics: {
-        frictionAir: 0,
+        frictionAir: 0.05,
         fixedRotation: false,
-        mass: 12
+        mass: 20
     },
     gameplay: {
-        health: 3,
+        health: 30,
         speed: 0.8,
         thrust: 8
     },

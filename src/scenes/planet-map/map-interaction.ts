@@ -134,7 +134,7 @@ export class MapInteractionManager {
         // Base settings
         const startAngle = -Math.PI / 2;
         const fontSizeStr = '18px';
-        const fontFamilyStr = 'Oswald, Impact, "Arial Narrow Bold", sans-serif';
+        const fontFamilyStr = 'Oswald, sans-serif';
         const lineHeight = 18;
         const spacing = 4; // Increased spacing slightly for better readability
 

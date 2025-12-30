@@ -12,14 +12,14 @@ export class GameManager {
         const { width, height } = this.scene.scale;
 
         this.statusText = this.scene.add.text(width * 0.5, height * 0.4, '', {
-            fontFamily: 'Oswald, Impact, sans-serif',
+            fontFamily: 'Oswald, sans-serif',
             fontSize: '64px',
             color: '#00dd00',
             fontStyle: 'bold'
         }).setOrigin(0.5).setVisible(false).setDepth(100);
 
         this.restartText = this.scene.add.text(width * 0.5, height * 0.4 + 60, 'Press FIRE', {
-            fontFamily: 'Oswald, Impact, sans-serif',
+            fontFamily: 'Oswald, sans-serif',
             fontSize: '32px',
             color: '#ffffff'
         }).setOrigin(0.5).setVisible(false).setDepth(100);

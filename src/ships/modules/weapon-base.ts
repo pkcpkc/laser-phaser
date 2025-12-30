@@ -12,6 +12,7 @@ export abstract class WeaponBase {
     abstract readonly TEXTURE_KEY: string;
     abstract readonly COLOR: number;
     abstract readonly SPEED: number;
+    abstract readonly damage: number;
     abstract readonly width: number;
     abstract readonly height: number;
 
@@ -63,7 +64,8 @@ export abstract class WeaponBase {
             this.TEXTURE_KEY,
             undefined,
             category,
-            collidesWith
+            collidesWith,
+            this.damage
         );
 
         projectile.setRotation(angle);
