@@ -1,5 +1,5 @@
 import type { LevelConfig, FormationConfig } from './level';
-import { DiamondFormation, type DiamondFormationConfig } from '../formations/index';
+import { DiamondFormation, type DiamondFormationConfig } from '../formations/diamond-formation';
 // New imports
 import { LineFormation } from '../formations/line-formation';
 import { SinusTactic } from '../tactics/sinus-tactic';

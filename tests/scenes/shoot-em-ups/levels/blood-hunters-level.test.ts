@@ -15,7 +15,7 @@ vi.mock('phaser', () => {
 });
 
 import { BloodHuntersLevel } from '../../../../src/scenes/shoot-em-ups/levels/blood-hunters-level.ts';
-import { DiamondFormation } from '../../../../src/scenes/shoot-em-ups/formations/index.ts';
+import { DiamondFormation } from '../../../../src/scenes/shoot-em-ups/formations/diamond-formation';
 import { LineFormation } from '../../../../src/scenes/shoot-em-ups/formations/line-formation.ts';
 import { BloodHunterRedLaserConfig } from '../../../../src/ships/configurations/blood-hunter-red-laser';
 import { BloodBomberBloodRocketConfig } from '../../../../src/ships/configurations/blood-bomber-blood-rocket';

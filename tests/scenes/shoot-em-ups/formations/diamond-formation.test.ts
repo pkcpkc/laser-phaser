@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DiamondFormation } from '../../../../src/scenes/shoot-em-ups/formations/index';
+import { DiamondFormation } from '../../../../src/scenes/shoot-em-ups/formations/diamond-formation';
 import { Ship } from '../../../../src/ships/ship';
 
 // Mock Phaser
@@ -166,7 +166,7 @@ describe('DiamondFormation', () => {
         expect(enemies).toHaveLength(6);
 
         // Should have 2 rows
-        const yPositions = enemies.map(e => e.startY);
+        const yPositions = enemies.map((e: any) => e.startY);
         const uniqueYPositions = [...new Set(yPositions)];
         expect(uniqueYPositions).toHaveLength(2);
 
@@ -188,7 +188,7 @@ describe('DiamondFormation', () => {
 
         // Let's verify row counts implicitly by grouping
         const enemiesByY = new Map<number, number>();
-        enemies.forEach(e => {
+        enemies.forEach((e: any) => {
             const y = e.startY ?? 0;
             const count = enemiesByY.get(y) || 0;
             enemiesByY.set(y, count + 1);

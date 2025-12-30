@@ -55,3 +55,9 @@
 - **Test File Naming**:
   - Test files must follow the naming of their source file, with `.test.ts` appended.
   - Example: `base-laser.ts` → `base-laser.test.ts`
+
+## 7. Structure & Imports
+- **No Barrel Files**:
+  - Do not create `index.ts` files that re-export other modules.
+  - Use explicit imports pointing to the specific file.
+  - Reason: Prevents circular dependency issues and improves navigation.

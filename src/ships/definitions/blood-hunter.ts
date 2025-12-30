@@ -13,7 +13,7 @@ export const BloodHunterDefinition: ShipDefinition = {
         mass: 10
     },
     gameplay: {
-        health: 40,
+        health: 3,
         rotationSpeed: 0.08
     },
     explosion: {

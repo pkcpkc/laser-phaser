@@ -1,6 +1,6 @@
 import type { LevelConfig } from './level';
 import type { ShipConfig } from '../../../ships/types';
-import { ExplicitFormation } from '../formations/index';
+import { ExplicitFormation } from '../formations/explicit-formation';
 import { LinearTactic } from '../tactics/linear-tactic';
 
 // Dynamically import all ship configurations from the configurations folder

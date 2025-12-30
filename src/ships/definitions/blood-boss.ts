@@ -13,7 +13,7 @@ export const BloodBossDefinition: ShipDefinition = {
         mass: 23 // Heavy boss
     },
     gameplay: {
-        health: 250, // Boss health
+        health: 100, // Boss health
         rotationSpeed: 0.03 // Slow rotation
     },
     explosion: {

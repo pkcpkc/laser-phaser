@@ -8,7 +8,7 @@ describe('Blood Boss Definition', () => {
     });
 
     it('should have correct gameplay config', () => {
-        expect(BloodBossDefinition.gameplay.health).toBe(250);
+        expect(BloodBossDefinition.gameplay.health).toBe(100);
         expect(BloodBossDefinition.gameplay.rotationSpeed).toBe(0.03);
     });
 

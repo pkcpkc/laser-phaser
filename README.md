@@ -1,6 +1,6 @@
 # Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a> <a href="./LICENSE"><img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge" alt="License: CC BY-NC 4.0"></a>
 
-![Laser Phaser Logo](./docs/assets/laser-phaser-logo.png)
+![Laser Phaser Logo](./docs/assets/images/laser-phaser-logo.png)
 
 ## Credits
 Concept and design by **Leopold** and **Thaddeus**.  
@@ -34,6 +34,7 @@ Markers are special pixels defined directly in the ship's source image (`res/shi
 | **Thruster** | `#FFA500` | `255, 165, 0` | Positioning for engine trails. |
 | **Laser** | `#00FF00` | `0, 255, 0` | Attachment point for laser cannons. |
 | **Rocket** | `#FFFFFF` | `255, 255, 255` | Attachment point for rocket launchers. |
+| **Origin** | `#0000FF` | `0, 0, 255` | Center point definition/Pivot. |
 | **Armor** | `#000000` | `0, 0, 0` | (Future Use) Armor plate attachment. |
 
 ### Setting Orientation
@@ -61,6 +62,21 @@ Universes can be switched via URL query parameter (`?universeId=blood-hunters`) 
 *   **Planet Map**: Navigate between planets in a living universe with orbital mechanics, unlockable locations, and visual effects.
 *   **Shipyard**: (In Development) Trade and customize your ship with different configurations and components.
 *   **Tower Defense**: (In Development) Defend strategic locations across the galaxy.
+
+### Planet Intro
+
+Upon arriving at a new planet, players are greeted with an immersive **Planet Intro Overlay**:
+*   **Cinema-style presentation**: The planet and its orbiting visuals are seamlessly "borrowed" from the map and centered.
+*   **Typewriter Text**: Lore and mission briefings are typed out character-by-character for dramatic effect.
+*   **Seamless Transitions**: Visuals dynamically sync with the map position before and after the intro sequence.
+
+### Combat & Damage
+
+Ships now feature a robust **Hitpoints & Damage System**:
+*   **Health Tracking**: All ships (players and enemies) have defined hitpoints (HP).
+*   **Damage Types**: Different weapons deal varying amounts of damage.
+*   **Destruction**: Ships explode into debris when their HP reaches zero.
+*   **Visual Feedback**: (Planned) Damage indicators and hull degradation.
 
 ### Controls
 

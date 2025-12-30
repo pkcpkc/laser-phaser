@@ -1,5 +1,22 @@
 
 import { describe, it, expect, vi } from 'vitest';
+
+// Mock Phaser
+vi.mock('phaser', () => {
+    return {
+        default: {
+            Scene: class { },
+            GameObjects: {
+                Image: class { }
+            },
+            Physics: {
+                Matter: {
+                    Image: class { }
+                }
+            }
+        }
+    };
+});
 import { isWeapon, isDrive, type ShipModule, type WeaponModule } from '../../../src/ships/modules/module-types';
 import type { Drive } from '../../../src/ships/modules/drives/types';
 
