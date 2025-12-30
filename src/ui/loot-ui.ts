@@ -87,6 +87,18 @@ export class LootUI {
         if (this.mountText) this.mountText.setPosition(xPos, startY + spacing * 3 + countOffset);
     }
 
+    public setVisible(visible: boolean): void {
+        this.silverIcon?.setVisible(visible);
+        this.goldIcon?.setVisible(visible);
+        this.gemIcon?.setVisible(visible);
+        this.mountIcon?.setVisible(visible);
+
+        this.silverText?.setVisible(visible);
+        this.goldText?.setVisible(visible);
+        this.gemText?.setVisible(visible);
+        this.mountText?.setVisible(visible);
+    }
+
     public destroy(): void {
         this.silverIcon?.destroy();
         this.goldIcon?.destroy();

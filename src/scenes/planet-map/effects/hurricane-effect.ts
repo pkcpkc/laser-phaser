@@ -147,9 +147,11 @@ export class HurricaneEffect implements IPlanetEffect {
     private readonly forward = new Phaser.Math.Vector3();
 
 
+    private isVisible: boolean = true;
+
     private onUpdate() {
-        // Skip update entirely if planet is hidden
-        if (this.planet.hidden ?? true) {
+        // Skip update entirely if planet is hidden or effect is manually hidden
+        if ((this.planet.hidden ?? true) || !this.isVisible) {
             return;
         }
 
@@ -284,6 +286,7 @@ export class HurricaneEffect implements IPlanetEffect {
     }
 
     public setVisible(visible: boolean) {
+        this.isVisible = visible;
         this.armEmitter?.setVisible(visible);
         this.eyewallEmitter?.setVisible(visible);
         if (this.eyeEmitter) {
@@ -291,6 +294,12 @@ export class HurricaneEffect implements IPlanetEffect {
             if (visible && this.eyeEmitter.start) this.eyeEmitter.start();
             else if (!visible && this.eyeEmitter.stop) this.eyeEmitter.stop();
         }
+    }
+
+    public clearParticles() {
+        this.armEmitter?.killAll();
+        this.eyewallEmitter?.killAll();
+        this.eyeEmitter?.killAll();
     }
 
     public setDepth(depth: number) {

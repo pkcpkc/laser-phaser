@@ -27,7 +27,7 @@ export class GameManager {
 
     public handleGameOver() {
         this.isGameOver = true;
-        this.showStatus('GAME OVER', '#00dd00');
+        this.showStatus('RETRY', '#00dd00');
     }
 
     public handleVictory(color: string) {
@@ -73,5 +73,8 @@ export class GameManager {
     public handleResize(width: number, height: number) {
         this.statusText.setPosition(width * 0.5, height * 0.4);
         this.restartText.setPosition(width * 0.5, height * 0.4 + 60);
+    }
+    public setRestartMessage(text: string) {
+        this.restartText.setText(text);
     }
 }

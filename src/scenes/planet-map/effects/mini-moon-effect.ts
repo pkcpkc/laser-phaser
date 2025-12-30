@@ -146,14 +146,22 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         // Depth sorting
         // Front: 1.2 (Above Planet at 1.0)
         // Back: 0.5 (Behind Planet at 1.0 and Overlay at 0.9)
-        this.miniMoon.setDepth(pos.isFront ? 1.2 : 0.5);
-        this.trail.setDepth(pos.isFront ? 1.15 : 0.45);
+        const baseDepth = pos.isFront ? 1.2 : 0.5;
+        this.miniMoon.setDepth(this.depthOffset + baseDepth);
+        this.trail.setDepth(this.depthOffset + (pos.isFront ? 1.15 : 0.45));
 
         // Alpha / Brightness - Dim when behind
         const baseAlpha = pos.isFront ? 1.0 : 0.6;
         this.miniMoon.setAlpha(baseAlpha);
 
         // ---- TRAIL LOGIC ----
+        // If hidden/not visible, don't update trail points to avoid "ghost" building
+        if (!this.miniMoon.visible) {
+            this.trailPoints = [];
+            this.trail.clear();
+            return;
+        }
+
         this.trailPoints.unshift({ x: pos.x, y: pos.y, alpha: baseAlpha });
         if (this.trailPoints.length > this.TRAIL_LENGTH) {
             this.trailPoints.pop();
@@ -177,6 +185,16 @@ export class MiniMoonEffect extends BaseOrbitEffect {
                 this.trail.strokePath();
             }
         }
+    }
+
+    private depthOffset: number = 0;
+    public setDepth(depth: number) {
+        this.depthOffset = depth;
+    }
+
+    public clearParticles() {
+        this.trailPoints = [];
+        this.trail.clear();
     }
 
     public setVisible(visible: boolean) {

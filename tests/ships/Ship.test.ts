@@ -31,6 +31,8 @@ vi.mock('phaser', () => {
                         setBounce = vi.fn();
                         setSensor = vi.fn();
                         on = vi.fn();
+                        setTint = vi.fn();
+                        clearTint = vi.fn();
                         body = { velocity: { x: 0, y: 0 } };
                     },
                     Sprite: class { // Added Sprite
@@ -148,7 +150,8 @@ describe('Ship', () => {
                     someConfig: true
                 },
                 gameplay: {
-                    speed: 5
+                    speed: 5,
+                    health: 100
                 },
                 markers: []
             },
@@ -387,5 +390,49 @@ describe('Ship', () => {
         playerShip.fireLasers();
 
         expect(weaponInstance.currentAmmo).toBe(9); // Should NOT be reset to 10
+    });
+
+    describe('Damage', () => {
+        it('should initialize with correct health', () => {
+            expect(ship.currentHealth).toBe(100);
+        });
+
+        it('should take damage', () => {
+            ship.takeDamage(20);
+            expect(ship.currentHealth).toBe(80);
+        });
+
+        it('should show visual feedback on damage', () => {
+            ship.takeDamage(10);
+            expect(ship.sprite.setTint).toHaveBeenCalledWith(0xff0000);
+            // delayedCall is mocked to run immediately (or we need to check the mock implementation)
+            // in ship.test.ts: delayedCall checks if callback exists and runs it.
+            expect(ship.sprite.clearTint).toHaveBeenCalled();
+        });
+
+        it('should explode when health reaches 0', () => {
+            const explodeSpy = vi.spyOn(ship, 'explode');
+            ship.takeDamage(100);
+            expect(ship.currentHealth).toBe(0);
+            expect(explodeSpy).toHaveBeenCalled();
+        });
+
+        it('should explode when health drops below 0', () => {
+            const explodeSpy = vi.spyOn(ship, 'explode');
+            ship.takeDamage(150);
+            expect(ship.currentHealth).toBe(-50);
+            expect(explodeSpy).toHaveBeenCalled();
+        });
+
+        it('should not take damage if destroyed', () => {
+            // Destroy ship
+            ship.destroy();
+            // Reset mocks to ensure we are capturing fresh calls if any (optional)
+
+            // Try to take damage
+            ship.takeDamage(10);
+            // Health shouldn't change from initial 100 because it returns early
+            expect(ship.currentHealth).toBe(100);
+        });
     });
 });

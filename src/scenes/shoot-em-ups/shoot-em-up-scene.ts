@@ -1,6 +1,7 @@
 import BaseScene from '../base-scene';
 import { Level, type LevelConfig } from './levels/level';
 import { GameStatus } from '../../logic/game-status';
+import { Loot } from '../../ships/loot';
 
 export abstract class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
@@ -102,10 +103,19 @@ export abstract class ShootEmUpScene extends BaseScene {
 
     protected onGameOverInput() {
         if (this.isTransitioning) return;
-        this.isTransitioning = true;
 
         // Find if we are in victory or game over state
         const isVictory = this.gameManager.isVictoryState();
+
+        if (isVictory) {
+            // Check if there is any loot remaining
+            const lootRemaining = this.children.list.some(child => child instanceof Loot && child.active);
+            if (lootRemaining) {
+                return;
+            }
+        }
+
+        this.isTransitioning = true;
         this.finishLevel(isVictory);
     }
 
@@ -113,6 +123,16 @@ export abstract class ShootEmUpScene extends BaseScene {
         super.update(time, delta);
 
         if (!this.gameManager.isGameActive()) {
+            // Even if game is over/victory, we might want to update some things like loot animations?
+            // But specifically for victory loot check:
+            if (this.gameManager.isVictoryState()) {
+                const lootRemaining = this.children.list.some(child => child instanceof Loot && child.active);
+                if (lootRemaining) {
+                    this.gameManager.setRestartMessage('COLLECT ALL LOOT');
+                } else {
+                    this.gameManager.setRestartMessage('PRESS FIRE');
+                }
+            }
             return;
         }
 

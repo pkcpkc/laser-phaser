@@ -252,6 +252,10 @@ export class MapInteractionManager {
         this.planetNameContainer.setVisible(false);
     }
 
+    public isVisible(): boolean {
+        return this.interactionContainer.visible;
+    }
+
     private launchLevel(levelId: string, planet: PlanetData) {
         const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
 

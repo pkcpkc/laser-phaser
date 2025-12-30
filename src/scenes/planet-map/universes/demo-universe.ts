@@ -43,7 +43,8 @@ export class DemoUniverse extends BaseUniverse {
                 levelId: 'ship-demo-level',
                 warpUniverseId: 'blood-hunters-universe' // Warp to Blood Hunter Universe
             },
-            centralPlanet: true
+            centralPlanet: true,
+            introText: "Welcome to Astra. This central main hub is your gateway to the Blood Hunters universe. Check your systems and prepare for departure.",
         });
         astra.effects = [
             new HurricaneEffect(scene, astra, { type: 'hurricane', color: 0xffffff }),
@@ -116,6 +117,7 @@ export class DemoUniverse extends BaseUniverse {
             tint: 0x8B0000, // Dark red
             visualScale: 0.5,
             hidden: false,
+            introText: "WARNING: High Energy Readings. The Crimson sector is home to the Blood Boss. Proceed with extreme caution.",
             interaction: {
                 levelId: 'blood-boss-level',
                 hasShipyard: true,

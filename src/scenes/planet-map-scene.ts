@@ -8,6 +8,7 @@ import { type PlanetData } from './planet-map/planet-data';
 import { GameStatus } from '../logic/game-status';
 import { LootUI } from '../ui/loot-ui';
 import { setupDebugKey } from '../logic/debug-utils';
+import { PlanetIntroOverlay } from './planet-map/planet-intro-overlay';
 
 export default class PlanetMapScene extends Phaser.Scene {
     private universe!: BaseUniverse;
@@ -23,6 +24,7 @@ export default class PlanetMapScene extends Phaser.Scene {
 
     // Loot UI
     private lootUI!: LootUI;
+    private introOverlay!: PlanetIntroOverlay;
 
 
     constructor() {
@@ -112,11 +114,13 @@ export default class PlanetMapScene extends Phaser.Scene {
             }
         }
 
-        this.moveToPlanet(this.currentPlanetId, true);
-
         // Create Loot UI
         this.lootUI = new LootUI(this);
         this.lootUI.create(100);
+
+        this.introOverlay = new PlanetIntroOverlay(this);
+
+        this.moveToPlanet(this.currentPlanetId, true);
 
         console.log('PlanetMapScene: setting up resize handler');
         // Handle Resize
@@ -233,15 +237,41 @@ export default class PlanetMapScene extends Phaser.Scene {
             }
         });
     }
-
     private arriveAtPlanet(planet: PlanetData) {
         this.currentPlanetId = planet.id;
 
-        if (planet.hidden || planet.hidden === undefined) {
+        const isHidden = planet.hidden || planet.hidden === undefined;
+        if (isHidden) {
             this.revealPlanet(planet);
+            return; // revealPlanet handles the rest
         }
 
-        this.interactions.showInteractionUI(planet);
+        const introStarted = this.checkAndShowIntro(planet);
+        if (!introStarted) {
+            this.interactions.showInteractionUI(planet);
+        }
+    }
+
+    private checkAndShowIntro(planet: PlanetData) {
+        const gameStatus = GameStatus.getInstance();
+
+        // Show if:
+        // 1. Has intro text
+        // 2. Not seen yet
+        if (planet.introText && !gameStatus.hasSeenIntro(planet.id)) {
+            // Pause interactions? The overlay covers everything so clicks are blocked.
+            // We might want to hide loot UI or others?
+            if (this.lootUI) this.lootUI.setVisible(false);
+            this.interactions.hide();
+
+            this.introOverlay.show(planet, () => {
+                gameStatus.markIntroSeen(planet.id);
+                if (this.lootUI) this.lootUI.setVisible(true);
+                this.interactions.showInteractionUI(planet);
+            });
+            return true;
+        }
+        return false;
     }
 
     private revealPlanet(planet: PlanetData) {
@@ -256,6 +286,13 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         // Reveal the planet visual
         this.visuals.updateVisibility([planet]);
+
+        // Check for intro upon reveal
+        const introStarted = this.checkAndShowIntro(planet);
+
+        if (!introStarted) {
+            this.interactions.showInteractionUI(planet);
+        }
     }
 
     private moveToPlanet(planetId: string, instant: boolean = false) {
@@ -269,8 +306,12 @@ export default class PlanetMapScene extends Phaser.Scene {
 
         if (instant) {
             this.playerShip.setPosition(shipX, shipY);
-            // Also show UI if instant move (e.g. initial load or resize)
-            this.interactions.showInteractionUI(planet);
+            // Check for intro trigger on instant move (e.g. initial start)
+            const introStarted = this.checkAndShowIntro(planet);
+
+            if (!introStarted) {
+                this.interactions.showInteractionUI(planet);
+            }
         }
     }
 

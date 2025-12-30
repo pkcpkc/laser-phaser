@@ -33,7 +33,8 @@ export class BloodHuntersUniverse extends BaseUniverse {
             y: cy,
             centralPlanet: true,
             requiredVictories: 0,
-            interaction: { levelId: 'intro-asteroid-level' }
+            interaction: { levelId: 'intro-asteroid-level' },
+            introText: "I jolt awake to the screaming of alarms. I'm drifting helpless in the gravity well of THE BELT.\n\nI need to blast a path or dodge these rocks to survive.\n\nStrange alien signals are piercing the static... and they don't sound friendly. But right now, the asteroids are the only thing that matters!"
         });
         belt.effects = [
             new AsteroidBeltEffect(scene, belt, {
@@ -98,7 +99,7 @@ export class BloodHuntersUniverse extends BaseUniverse {
             y: cy,
             requiredVictories: 3,
             interaction: {
-                levelId: 'blood-hunters-level',
+                levelId: 'blood-boss-level',
                 warpUniverseId: 'demo-universe'
             }
         });

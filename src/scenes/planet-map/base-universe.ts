@@ -56,16 +56,21 @@ export abstract class BaseUniverse {
         const cx = width / 2;
         const cy = height / 2;
 
-        // Recalculate limits based on new size
         const PLANET_RADIUS = 40;
         const BORDER_PADDING = 20;
         const EARTH_GAP = 20;
 
         const innerLimit = PLANET_RADIUS + EARTH_GAP + PLANET_RADIUS;
-        const minDim = Math.min(width, height);
-        const outerLimit = (minDim / 2) - (PLANET_RADIUS + BORDER_PADDING);
-        const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
-        const bandWidth = effectiveOuterLimit - innerLimit;
+
+        // Calculate independent limits for X and Y
+        const outerLimitX = (width / 2) - (PLANET_RADIUS + BORDER_PADDING);
+        const outerLimitY = (height / 2) - (PLANET_RADIUS + BORDER_PADDING);
+
+        const effectiveOuterLimitX = Math.max(innerLimit + 10, outerLimitX);
+        const effectiveOuterLimitY = Math.max(innerLimit + 10, outerLimitY);
+
+        const bandWidthX = effectiveOuterLimitX - innerLimit;
+        const bandWidthY = effectiveOuterLimitY - innerLimit;
 
         this.planets.forEach(p => {
             if (p.centralPlanet) {
@@ -75,10 +80,11 @@ export abstract class BaseUniverse {
                 // Default to middle of band if undefined
                 const rFactor = p.orbitRadius ?? 0.5;
 
-                const radius = innerLimit + (rFactor * bandWidth);
+                const radiusX = innerLimit + (rFactor * bandWidthX);
+                const radiusY = innerLimit + (rFactor * bandWidthY);
 
-                const px = cx + Math.cos(angle) * radius;
-                const py = cy + Math.sin(angle) * radius;
+                const px = cx + Math.cos(angle) * radiusX;
+                const py = cy + Math.sin(angle) * radiusY;
                 this.setPlanetPosition(p, px, py);
             }
         });
@@ -98,12 +104,12 @@ export abstract class BaseUniverse {
         // Inner limit: Earth Radius + Gap + Planet Radius
         const innerLimit = PLANET_RADIUS + EARTH_GAP + PLANET_RADIUS;
 
-        // Outer limit: Min Screen Dimension / 2 - (Planet Radius + Border Padding)
-        const minDim = Math.min(width, height);
-        const outerLimit = (minDim / 2) - (PLANET_RADIUS + BORDER_PADDING);
+        // Independent limits
+        const outerLimitX = (width / 2) - (PLANET_RADIUS + BORDER_PADDING);
+        const outerLimitY = (height / 2) - (PLANET_RADIUS + BORDER_PADDING);
 
-        // Sanity check: if screen is too small, clamp outerLimit to innerLimit + tiny offset
-        const effectiveOuterLimit = Math.max(innerLimit + 10, outerLimit);
+        const effectiveOuterLimitX = Math.max(innerLimit + 10, outerLimitX);
+        const effectiveOuterLimitY = Math.max(innerLimit + 10, outerLimitY);
 
         const satellites = this.planets.filter(p => !p.centralPlanet);
 
@@ -139,9 +145,14 @@ export abstract class BaseUniverse {
             } else {
                 // Generate new random position
                 const angle = startAngle + (satelliteIndex * angleStep);
-                const bandWidth = effectiveOuterLimit - innerLimit;
-                const rawRadius = Phaser.Math.FloatBetween(innerLimit, effectiveOuterLimit);
-                const factor = (rawRadius - innerLimit) / bandWidth;
+
+                // For random generation, use average bandwidth or just X for scaling logic to keep it simple,
+                // but usually we want to randomly pick a "factor" (orbitRadius) that applies to both axes.
+                // Reusing factor logic:
+                // Just for generation, pick a radius factor based on available space (using X as reference helps normalization)
+                // But simplified: just pick a factor 0..1
+
+                const factor = Phaser.Math.FloatBetween(0, 1);
 
                 p.orbitAngle = angle;
                 p.orbitRadius = factor;
@@ -155,10 +166,14 @@ export abstract class BaseUniverse {
 
             satelliteIndex++;
 
-            const bandWidth = effectiveOuterLimit - innerLimit;
-            const actualRadius = innerLimit + (p.orbitRadius * bandWidth);
-            const px = cx + Math.cos(p.orbitAngle) * actualRadius;
-            const py = cy + Math.sin(p.orbitAngle) * actualRadius;
+            const bandWidthX = effectiveOuterLimitX - innerLimit;
+            const bandWidthY = effectiveOuterLimitY - innerLimit;
+
+            const radiusX = innerLimit + (p.orbitRadius * bandWidthX);
+            const radiusY = innerLimit + (p.orbitRadius * bandWidthY);
+
+            const px = cx + Math.cos(p.orbitAngle) * radiusX;
+            const py = cy + Math.sin(p.orbitAngle) * radiusY;
 
             this.setPlanetPosition(p, px, py);
         });

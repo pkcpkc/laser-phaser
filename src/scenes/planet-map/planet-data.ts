@@ -13,6 +13,7 @@ export interface PlanetData {
     // Configuration Objects
     effects?: IPlanetEffect[];
     requiredVictories?: number;
+    introText?: string;
 
     interaction?: {
         levelId?: string;

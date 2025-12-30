@@ -18,6 +18,7 @@ export class GameStatus {
     };
 
     private revealedPlanets: Set<string> = new Set();
+    private seenIntroPlanetIds: Set<string> = new Set();
 
     // Key format: "universeId:planetId"
     private planetPositions: Map<string, PlanetPosition> = new Map();
@@ -44,6 +45,7 @@ export class GameStatus {
         //     const data = JSON.parse(dataStr);
         //     this.loot = data.loot || {};
         //     this.revealedPlanets = new Set(data.revealedPlanets || []);
+        //     this.seenIntroPlanetIds = new Set(data.seenIntroPlanetIds || []);
         //     this.planetPositions = new Map(data.planetPositions || []);
         //     this.victories = data.victories || {};
         // }
@@ -80,6 +82,16 @@ export class GameStatus {
         this.save();
     }
 
+    // Intro Tracking
+    public hasSeenIntro(planetId: string): boolean {
+        return this.seenIntroPlanetIds.has(planetId);
+    }
+
+    public markIntroSeen(planetId: string) {
+        this.seenIntroPlanetIds.add(planetId);
+        this.save();
+    }
+
     // Planet Position Management
     public getPlanetPosition(universeId: string, planetId: string): PlanetPosition | undefined {
         return this.planetPositions.get(`${universeId}:${planetId}`);
@@ -111,6 +123,7 @@ export class GameStatus {
             [LootType.SILVER]: 0
         };
         this.revealedPlanets.clear();
+        this.seenIntroPlanetIds.clear();
         this.planetPositions.clear();
         this.victories = {};
         this.save();

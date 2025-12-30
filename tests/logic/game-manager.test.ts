@@ -42,7 +42,7 @@ describe('GameManager', () => {
             scale: { width: 800, height: 600 },
             add: {
                 text: vi.fn((_x, _y, text) => {
-                    if (text === '' || text === 'GAME OVER' || text === 'VICTORY') return mockGameOverText;
+                    if (text === '' || text === 'GAME OVER' || text === 'RETRY' || text === 'VICTORY') return mockGameOverText;
                     if (text === 'Press FIRE') return mockRestartText;
                     return mockGameOverText; // default to game over text
                 }),
@@ -69,6 +69,7 @@ describe('GameManager', () => {
     it('should handle game over correcty', () => {
         gameManager.handleGameOver();
         expect(gameManager.isGameActive()).toBe(false);
+        expect(mockGameOverText.setText).toHaveBeenCalledWith('RETRY');
         expect(mockGameOverText.setVisible).toHaveBeenCalledWith(true);
         expect(mockRestartText.setVisible).toHaveBeenCalledWith(true);
     });
