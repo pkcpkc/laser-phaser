@@ -57,6 +57,6 @@ describe('ShipyardScene', () => {
         scene.create();
         const callback = mockGameObject.on.mock.calls[0][1];
         callback();
-        expect(mockScenePlugin.start).toHaveBeenCalledWith('PlanetMapScene');
+        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene');
     });
 });

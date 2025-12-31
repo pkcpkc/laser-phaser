@@ -42,7 +42,11 @@ export default class PreloadScene extends Phaser.Scene {
         // From BaseScene
         this.load.atlas('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
         this.load.image('nebula', 'assets/images/nebula.png');
+        this.load.image('nebula', 'assets/images/nebula.png');
         this.load.image('blood_nebula', 'assets/images/blood_nebula.png');
+
+        // Load Data
+        this.load.text('storylines', 'assets/data/storylines.md');
     }
 
     create() {
@@ -161,15 +165,15 @@ export default class PreloadScene extends Phaser.Scene {
     private startGame() {
         this.scale.off('resize', this.resize, this); // Clean up listener
 
-        // Check for universeId in URL parameters (for debugging)
+        // Check for galaxyId in URL parameters (for debugging)
         const params = new URLSearchParams(window.location.search);
-        const universeId = params.get('universeId');
+        const galaxyId = params.get('galaxyId');
 
-        if (universeId) {
-            console.log(`Starting with universe: ${universeId}`);
-            this.scene.start('PlanetMapScene', { universeId });
+        if (galaxyId) {
+            console.log(`Starting with galaxy: ${galaxyId}`);
+            this.scene.start('GalaxyScene', { galaxyId });
         } else {
-            this.scene.start('PlanetMapScene');
+            this.scene.start('GalaxyScene');
         }
     }
 

@@ -89,7 +89,7 @@ describe('BloodBossLevel', () => {
                 spyClass,
                 {},
                 {},
-                formationConfig.shipConfig
+                formationConfig.shipConfigs
             );
 
             formationWithSpy.spawn();

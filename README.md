@@ -1,6 +1,8 @@
-# Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a> <a href="./LICENSE"><img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge" alt="License: CC BY-NC 4.0"></a>
+# Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a>
 
 ![Laser Phaser Logo](./docs/assets/images/laser-phaser-logo.png)
+
+<a href="./LICENSE"><img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge" alt="License: CC BY-NC 4.0"></a>
 
 ## Credits
 Concept and design by **Leopold** and **Thaddeus**.  
@@ -47,19 +49,19 @@ To define the rotation (angle) of a marker (e.g., a side-firing cannon), place a
 
 ## Features
 
-### Universes
+### Galaxies
 
-The game features multiple interconnected universes, each with unique planets, backgrounds, and challenges:
+The game features multiple interconnected galaxies, each with unique planets, backgrounds, and challenges:
 
-*   **Demo Universe**: The starting universe featuring diverse planet types and training missions.
-*   **Blood Hunters Universe**: An advanced universe unlocked through universe warping, featuring unique aesthetics and challenging gameplay.
+*   **Demo Galaxy**: The starting galaxy featuring diverse planet types and training missions.
+*   **Blood Hunters Galaxy**: An advanced galaxy unlocked through galaxy warping, featuring unique aesthetics and challenging gameplay.
 
-Universes can be switched via URL query parameter (`?universeId=blood-hunters`) for debugging or accessed through in-game progression and warp mechanics.
+Galaxies can be switched via URL query parameter (`?galaxyId=demo-galaxy` or `?galaxyId=blood-hunters-galaxy`) for debugging or accessed through in-game progression and warp mechanics.
 
 ### Game Modes
 
 *   **Shoot 'Em Up**: Classic side-scrolling shooter gameplay inspired by 80s arcade classics. Features wave-based combat, multiple weapon types, and dynamic enemy formations.
-*   **Planet Map**: Navigate between planets in a living universe with orbital mechanics, unlockable locations, and visual effects.
+*   **Planet Map**: Navigate between planets in a living galaxy with orbital mechanics, unlockable locations, and visual effects.
 *   **Shipyard**: (In Development) Trade and customize your ship with different configurations and components.
 *   **Tower Defense**: (In Development) Defend strategic locations across the galaxy.
 
@@ -69,6 +71,22 @@ Upon arriving at a new planet, players are greeted with an immersive **Planet In
 *   **Cinema-style presentation**: The planet and its orbiting visuals are seamlessly "borrowed" from the map and centered.
 *   **Typewriter Text**: Lore and mission briefings are typed out character-by-character for dramatic effect.
 *   **Seamless Transitions**: Visuals dynamically sync with the map position before and after the intro sequence.
+
+### Storyline Management
+Planet intro texts are managed in `public/assets/data/storylines.md`. This file allows you to define intro texts for each planet, grouped by galaxy.
+
+**Format:**
+```markdown
+## [galaxy-id]
+### [planet-id]
+Text content...
+```
+Example:
+```markdown
+## demo-galaxy
+### astra
+Welcome to Astra...
+```
 
 ### Combat & Damage
 
@@ -143,9 +161,9 @@ We use a custom asset pipeline to optimize game performance and development work
 
 ```mermaid
 graph TD
-    PlanetMapScene --> |Navigates to| ShootEmUpScene
-    PlanetMapScene --> |Navigates to| ShipyardScene
-    PlanetMapScene --> |Warps to| PlanetMapScene
+    GalaxyScene --> |Navigates to| ShootEmUpScene
+    GalaxyScene --> |Navigates to| ShipyardScene
+    GalaxyScene --> |Warps to| GalaxyScene
     
     subgraph ShootEmUp Architecture
         ShootEmUpScene --> |Contains| Levels
@@ -156,24 +174,24 @@ graph TD
         ShipConfig --> |Uses| Drives
         ShipConfig --> |Uses| Lasers
         ShipConfig --> |Uses| Rockets
-        ShootEmUpScene --> |Warps to| NextUniverse
+        ShootEmUpScene --> |Warps to next Galaxy| NextGalaxy[Galaxy]
     end
 
-    subgraph PlanetMap Architecture
-        PlanetMapScene --> |Loads| UniverseFactory
-        UniverseFactory --> |Creates| Universe
-        Universe --> |Contains| PlanetDatas
-        PlanetMapScene --> |Uses| PlanetVisuals
-        PlanetMapScene --> |Uses| MapInteractionManager
-        PlanetMapScene --> |Uses| GameStatus(Persistence)
-        PlanetMapScene --> |Uses| LootUI
+    subgraph Galaxy Architecture
+        GalaxyScene --> |Loads| GalaxyFactory
+        GalaxyFactory --> |Creates| Galaxy
+        Galaxy --> |Contains| PlanetDatas
+        GalaxyScene --> |Uses| PlanetVisuals
+        GalaxyScene --> |Uses| GalaxyInteractionManager
+        GalaxyScene --> |Uses| GameStatus(Persistence)
+        GalaxyScene --> |Uses| LootUI
         PlanetVisuals --> |Uses| PlanetEffects
     end
 ```
 
 ### Key Components
 
-*   **Universe System**: A modular architecture where each universe (Demo Universe, Blood Hunters Universe) is a self-contained configuration defining its own planets, backgrounds, and progression. Universes can be switched via URL query parameters (`?universeId=blood-hunters-level`) or through in-game warp mechanics.
+*   **Galaxy System**: A modular architecture where each galaxy (Demo Galaxy, Blood Hunters Galaxy) is a self-contained configuration defining its own planets, backgrounds, and progression. Galaxies can be switched via URL query parameters (`?galaxyId=demo-galaxy` or `?galaxyId=blood-hunters-galaxy`) or through in-game warp mechanics.
 *   **GameStatus**: Persistent game state manager that tracks global loot (silver, gold, gems, modules), unlocked planets, and player progress across sessions using localStorage.
 *   **LootUI**: Reusable UI component for displaying and managing the player's collected loot across different scenes.
 *   **Planet Effects**: A rich visual system with multiple effect types including satellites, ghost shades, mini moons, glimmering snow, hurricanes, spikes, and ring effects (gas/solid).
@@ -188,7 +206,7 @@ graph TD
 The project follows a domain-driven structure for scenes and content:
 
 *   `src/scenes/`: Scene logic (Planet Map, Base Scene, etc.)
-    *   `planet-map/`: Visuals and logic for the navigation map.
+    *   `galaxies/`: Visuals and logic for the navigation map.
     *   `shoot-em-ups/`: Active gameplay levels and formations.
     *   `shipyards/`: Meta-game interfaces.
 *   `src/ships/`: Ship definitions, configurations, and module logic.

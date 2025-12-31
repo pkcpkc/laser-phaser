@@ -67,39 +67,39 @@ describe('GameStatus', () => {
     });
 
     describe('Victory Management', () => {
-        it('should return 0 victories for a new universe', () => {
-            expect(gameStatus.getVictories('test-universe')).toBe(0);
+        it('should return 0 victories for a new galaxy', () => {
+            expect(gameStatus.getVictories('test-galaxy')).toBe(0);
         });
 
         it('should increment victories when addVictory is called', () => {
-            gameStatus.addVictory('test-universe');
-            expect(gameStatus.getVictories('test-universe')).toBe(1);
+            gameStatus.addVictory('test-galaxy');
+            expect(gameStatus.getVictories('test-galaxy')).toBe(1);
         });
 
         it('should increment victories multiple times', () => {
-            gameStatus.addVictory('test-universe');
-            gameStatus.addVictory('test-universe');
-            gameStatus.addVictory('test-universe');
-            expect(gameStatus.getVictories('test-universe')).toBe(3);
+            gameStatus.addVictory('test-galaxy');
+            gameStatus.addVictory('test-galaxy');
+            gameStatus.addVictory('test-galaxy');
+            expect(gameStatus.getVictories('test-galaxy')).toBe(3);
         });
 
-        it('should track victories separately per universe', () => {
-            gameStatus.addVictory('universe-a');
-            gameStatus.addVictory('universe-a');
-            gameStatus.addVictory('universe-b');
+        it('should track victories separately per galaxy', () => {
+            gameStatus.addVictory('galaxy-a');
+            gameStatus.addVictory('galaxy-a');
+            gameStatus.addVictory('galaxy-b');
 
-            expect(gameStatus.getVictories('universe-a')).toBe(2);
-            expect(gameStatus.getVictories('universe-b')).toBe(1);
-            expect(gameStatus.getVictories('universe-c')).toBe(0);
+            expect(gameStatus.getVictories('galaxy-a')).toBe(2);
+            expect(gameStatus.getVictories('galaxy-b')).toBe(1);
+            expect(gameStatus.getVictories('galaxy-c')).toBe(0);
         });
 
         it('should reset victories when reset is called', () => {
-            gameStatus.addVictory('test-universe');
-            gameStatus.addVictory('test-universe');
-            expect(gameStatus.getVictories('test-universe')).toBe(2);
+            gameStatus.addVictory('test-galaxy');
+            gameStatus.addVictory('test-galaxy');
+            expect(gameStatus.getVictories('test-galaxy')).toBe(2);
 
             gameStatus.reset();
-            expect(gameStatus.getVictories('test-universe')).toBe(0);
+            expect(gameStatus.getVictories('test-galaxy')).toBe(0);
         });
     });
 
@@ -146,25 +146,25 @@ describe('GameStatus', () => {
 
     describe('Planet Position Management', () => {
         it('should return undefined for unknown planet positions', () => {
-            expect(gameStatus.getPlanetPosition('universe-x', 'planet-y')).toBeUndefined();
+            expect(gameStatus.getPlanetPosition('galaxy-x', 'planet-y')).toBeUndefined();
         });
 
         it('should store and retrieve planet positions', () => {
             const position = { orbitAngle: 45, orbitRadius: 100 };
-            gameStatus.setPlanetPosition('universe-a', 'planet-b', position);
+            gameStatus.setPlanetPosition('galaxy-a', 'planet-b', position);
 
-            expect(gameStatus.getPlanetPosition('universe-a', 'planet-b')).toEqual(position);
+            expect(gameStatus.getPlanetPosition('galaxy-a', 'planet-b')).toEqual(position);
         });
 
-        it('should store positions with compound key (universeId:planetId)', () => {
+        it('should store positions with compound key (galaxyId:planetId)', () => {
             const posA = { orbitAngle: 30, orbitRadius: 50 };
             const posB = { orbitAngle: 60, orbitRadius: 150 };
 
-            gameStatus.setPlanetPosition('universe-1', 'planet-x', posA);
-            gameStatus.setPlanetPosition('universe-2', 'planet-x', posB);
+            gameStatus.setPlanetPosition('galaxy-1', 'planet-x', posA);
+            gameStatus.setPlanetPosition('galaxy-2', 'planet-x', posB);
 
-            expect(gameStatus.getPlanetPosition('universe-1', 'planet-x')).toEqual(posA);
-            expect(gameStatus.getPlanetPosition('universe-2', 'planet-x')).toEqual(posB);
+            expect(gameStatus.getPlanetPosition('galaxy-1', 'planet-x')).toEqual(posA);
+            expect(gameStatus.getPlanetPosition('galaxy-2', 'planet-x')).toEqual(posB);
         });
     });
 });

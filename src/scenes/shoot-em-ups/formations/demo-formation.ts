@@ -29,9 +29,9 @@ export class FixedFormation extends BaseFormation {
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
         config?: Partial<FixedFormationConfig>,
-        shipConfig?: ShipConfig
+        shipConfigs?: ShipConfig[]
     ) {
-        super(scene, shipClass, collisionConfig, shipConfig);
+        super(scene, shipClass, collisionConfig, shipConfigs);
         this.config = {
             positions: config?.positions ?? [],
             shootingChance: config?.shootingChance ?? 0.5,
@@ -48,8 +48,12 @@ export class FixedFormation extends BaseFormation {
     spawn(): void {
         const { positions } = this.config;
 
-        for (const pos of positions) {
-            const ship = new this.shipClass(this.scene, pos.x, pos.y, this.shipConfig!, this.collisionConfig);
+        positions.forEach((pos, index) => {
+            // Cycle through configs
+            const configIndex = index % this.shipConfigs.length;
+            const shipConfig = this.shipConfigs[configIndex];
+
+            const ship = new this.shipClass(this.scene, pos.x, pos.y, shipConfig, this.collisionConfig);
             const enemy = ship.sprite;
             enemy.setRotation(Math.PI / 2); // Face down
 
@@ -61,7 +65,7 @@ export class FixedFormation extends BaseFormation {
             });
 
             this.scheduleShootingBehavior(ship, enemy, this.config);
-        }
+        });
     }
 
     update(time: number, _delta: number): void {

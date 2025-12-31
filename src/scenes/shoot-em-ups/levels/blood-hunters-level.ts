@@ -63,7 +63,7 @@ const createDiamondConfig = (
             angle: angle
         },
         formationType: DiamondFormation,
-        shipConfig: BloodFighterBigRedLaserConfig,
+        shipConfigs: [BloodFighterBigRedLaserConfig],
         count: 1,
         interval: 3000,
         startDelay: startDelay,
@@ -79,7 +79,7 @@ const createSinusConfig = (): FormationConfig => ({
         frequency: 0.002
     },
     formationType: LineFormation,
-    shipConfig: BloodHunterRedLaserConfig,
+    shipConfigs: [BloodHunterRedLaserConfig],
     count: 1,
     interval: 2000,
     config: {
@@ -100,7 +100,7 @@ const createBomberConfig = (): FormationConfig => {
             angle: angle
         },
         formationType: DiamondFormation,
-        shipConfig: BloodBomberBloodRocketConfig,
+        shipConfigs: [BloodBomberBloodRocketConfig],
         count: 1,
         interval: 4000,
         config: {

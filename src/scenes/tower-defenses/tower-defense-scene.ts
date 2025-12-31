@@ -23,7 +23,7 @@ export default class TowerDefenseScene extends Phaser.Scene {
         }).setOrigin(0.5).setInteractive();
 
         backButton.on('pointerdown', () => {
-            this.scene.start('PlanetMapScene');
+            this.scene.start('GalaxyScene');
         });
     }
 }

@@ -23,20 +23,36 @@ export abstract class BaseFormation implements IFormation {
     protected scene: Phaser.Scene;
     protected enemies: BaseEnemyData[] = [];
     protected shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
-    protected shipConfig?: ShipConfig;
     protected collisionConfig: ShipCollisionConfig;
+    protected shipConfigs: ShipConfig[];
     protected timers: Phaser.Time.TimerEvent[] = [];
 
     constructor(
         scene: Phaser.Scene,
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
-        shipConfig?: ShipConfig
+        shipConfigs?: ShipConfig[]
     ) {
         this.scene = scene;
         this.shipClass = shipClass;
         this.collisionConfig = collisionConfig;
-        this.shipConfig = shipConfig;
+        this.shipConfigs = shipConfigs || [];
+
+        // Load textures for all configs
+        if (this.shipConfigs.length > 0) {
+            this.loadTextures(this.shipConfigs);
+        }
+    }
+
+    /**
+     * Ensure textures exist for the ship definitions
+     */
+    protected loadTextures(configs: ShipConfig[]): void {
+        for (const config of configs) {
+            if (config.definition.createTextures) {
+                config.definition.createTextures(this.scene);
+            }
+        }
     }
 
     /**

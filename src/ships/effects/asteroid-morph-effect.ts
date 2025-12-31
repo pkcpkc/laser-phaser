@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import type { ShipEffect } from './types';
-import { generateAsteroidVertices } from '../definitions/asteroid-small';
+import { AsteroidTexture } from '../textures/asteroid-texture';
 
 export class AsteroidMorphEffect implements ShipEffect {
     private scene: Phaser.Scene;
@@ -72,8 +72,8 @@ export class AsteroidMorphEffect implements ShipEffect {
         this.nextSurface.setMask(mask);
 
         // 4. Initial Vertices
-        this.vertices = generateAsteroidVertices(radius, 12);
-        this.targetVertices = generateAsteroidVertices(radius, 12);
+        this.vertices = AsteroidTexture.generateVertices(radius, 12);
+        this.targetVertices = AsteroidTexture.generateVertices(radius, 12);
         this.morphStartTime = scene.time.now;
 
         this.updateListener = () => this.update();
@@ -156,7 +156,7 @@ export class AsteroidMorphEffect implements ShipEffect {
         if (progress >= 1) {
             // New Target
             this.vertices = this.targetVertices; // Snap to target
-            this.targetVertices = generateAsteroidVertices(this.radius, 12);
+            this.targetVertices = AsteroidTexture.generateVertices(this.radius, 12);
             this.morphStartTime = now;
             progress = 0;
         }

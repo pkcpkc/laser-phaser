@@ -5,7 +5,7 @@ import type { IFormation } from '../formations/types';
 import type { ITactic } from '../tactics/types';
 
 export interface IFormationConstructor {
-    new(scene: Phaser.Scene, shipClass: ShipConstructor, collisionConfig: ShipCollisionConfig, config?: Record<string, unknown>, shipConfig?: ShipConfig): IFormation;
+    new(scene: Phaser.Scene, shipClass: ShipConstructor, collisionConfig: ShipCollisionConfig, config?: Record<string, unknown>, shipConfigs?: ShipConfig[]): IFormation;
 }
 
 export interface ITacticConstructor {
@@ -22,7 +22,7 @@ export interface FormationConfig {
     // Formation configuration
     formationType: IFormationConstructor;
     shipClass?: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
-    shipConfig?: ShipConfig;
+    shipConfigs?: ShipConfig[]; // Changed from single to array
     config?: Record<string, unknown>; // Specific config for the formation
 
     count?: number;
@@ -77,7 +77,7 @@ class FormationRunner {
     private spawn() {
         this.state = RUNNER_STATES.RUNNING;
         const shipClass = this.config.shipClass || Ship;
-        const shipConfig = this.config.shipConfig;
+        const shipConfigs = this.config.shipConfigs;
 
 
 
@@ -92,7 +92,7 @@ class FormationRunner {
             shipClass,
             this.collisionConfig,
             this.config.config ?? {},
-            shipConfig
+            shipConfigs
         );
         this.instance.spawn();
 
@@ -228,7 +228,7 @@ export class Level {
 
 
         const formattedSummary = step.map(c => {
-            const shipName = c.shipConfig?.definition?.id || c.shipClass?.name || 'Unknown Ship';
+            const shipName = c.shipConfigs?.[0]?.definition?.id || c.shipClass?.name || 'Unknown Ship';
             const tacticName = c.tacticType?.name;
             return tacticName ? `${tacticName} (${shipName})` : shipName;
         }).join(', ');

@@ -3,7 +3,7 @@ import { ShipDemoLevel } from './levels/ship-demo-level';
 
 export default class ShipDemoScene extends ShootEmUpScene {
     constructor() {
-        // Use the key 'ShipDemoScene' which we will reference in map-interaction
+        // Use the key 'ShipDemoScene' which we will reference in galaxy-interaction
         super('ShipDemoScene');
         // Reuse the nebula background
         this.backgroundTexture = 'blood_nebula';

@@ -20,10 +20,10 @@ export class GameStatus {
     private revealedPlanets: Set<string> = new Set();
     private seenIntroPlanetIds: Set<string> = new Set();
 
-    // Key format: "universeId:planetId"
+    // Key format: "galaxyId:planetId"
     private planetPositions: Map<string, PlanetPosition> = new Map();
 
-    // Key format: "universeId" -> number of victories
+    // Key format: "galaxyId" -> number of victories
     private victories: Record<string, number> = {};
 
     private constructor() {
@@ -93,25 +93,25 @@ export class GameStatus {
     }
 
     // Planet Position Management
-    public getPlanetPosition(universeId: string, planetId: string): PlanetPosition | undefined {
-        return this.planetPositions.get(`${universeId}:${planetId}`);
+    public getPlanetPosition(galaxyId: string, planetId: string): PlanetPosition | undefined {
+        return this.planetPositions.get(`${galaxyId}:${planetId}`);
     }
 
-    public setPlanetPosition(universeId: string, planetId: string, position: PlanetPosition) {
-        this.planetPositions.set(`${universeId}:${planetId}`, position);
+    public setPlanetPosition(galaxyId: string, planetId: string, position: PlanetPosition) {
+        this.planetPositions.set(`${galaxyId}:${planetId}`, position);
         this.save();
     }
 
     // Victory Management
-    public getVictories(universeId: string): number {
-        return this.victories[universeId] || 0;
+    public getVictories(galaxyId: string): number {
+        return this.victories[galaxyId] || 0;
     }
 
-    public addVictory(universeId: string) {
-        if (!this.victories[universeId]) {
-            this.victories[universeId] = 0;
+    public addVictory(galaxyId: string) {
+        if (!this.victories[galaxyId]) {
+            this.victories[galaxyId] = 0;
         }
-        this.victories[universeId]++;
+        this.victories[galaxyId]++;
         this.save();
     }
 

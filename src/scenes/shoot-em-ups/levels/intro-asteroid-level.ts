@@ -14,7 +14,7 @@ export const IntroAsteroidLevel: LevelConfig = {
             {
                 tacticType: LinearTactic,
                 tacticConfig: { angle: Math.PI / 2 },
-                formationType: AsteroidFieldFormation as any,
+                formationType: AsteroidFieldFormation,
                 count: 1,
                 config: {
                     count: 4,
@@ -30,7 +30,7 @@ export const IntroAsteroidLevel: LevelConfig = {
             {
                 tacticType: LinearTactic,
                 tacticConfig: { angle: Math.PI / 2 },
-                formationType: AsteroidFieldFormation as any,
+                formationType: AsteroidFieldFormation,
                 count: 1,
                 startDelay: 500,
                 config: {
@@ -47,7 +47,7 @@ export const IntroAsteroidLevel: LevelConfig = {
             {
                 tacticType: LinearTactic,
                 tacticConfig: { angle: Math.PI / 2 },
-                formationType: AsteroidFieldFormation as any,
+                formationType: AsteroidFieldFormation,
                 count: 1,
                 config: {
                     count: 8,

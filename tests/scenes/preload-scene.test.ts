@@ -35,6 +35,7 @@ describe('PreloadScene', () => {
         mockLoad = {
             image: vi.fn(),
             atlas: vi.fn(),
+            text: vi.fn(),
             on: vi.fn(), // For load event listeners
         };
 
@@ -110,6 +111,7 @@ describe('PreloadScene', () => {
         expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
         expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/images/nebula.png');
         expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/images/blood_nebula.png');
+        expect(mockLoad.text).toHaveBeenCalledWith('storylines', 'assets/data/storylines.md');
     });
 
     it('should generate flares and setup loading text on create', () => {
@@ -140,7 +142,7 @@ describe('PreloadScene', () => {
 
         // Verify game started automatically
         expect(mockScale.off).toHaveBeenCalled();
-        expect(mockScenePlugin.start).toHaveBeenCalledWith('PlanetMapScene');
+        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene');
     });
 
     it('should calculate layout correctly', () => {

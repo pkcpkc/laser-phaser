@@ -6,7 +6,8 @@ import { Loot } from '../../ships/loot';
 export abstract class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
     protected returnPlanetId?: string;
-    protected warpUniverseId?: string;
+
+    protected warpGalaxyId?: string;
     protected planetColor?: string;
     protected levelId?: string;
 
@@ -14,18 +15,18 @@ export abstract class ShootEmUpScene extends BaseScene {
         super(key);
     }
 
-    init(data: { returnPlanetId?: string, warpUniverseId?: string, planetColor?: string, levelId?: string, universeId?: string }) {
+    init(data: { returnPlanetId?: string, warpGalaxyId?: string, planetColor?: string, levelId?: string, galaxyId?: string }) {
         this.isTransitioning = false;
         this.returnPlanetId = data?.returnPlanetId;
-        this.warpUniverseId = data?.warpUniverseId;
+        this.warpGalaxyId = data?.warpGalaxyId;
         this.planetColor = data?.planetColor;
         this.levelId = data?.levelId;
-        // If we are playing a level in a universe, we need to know WHICH universe to credit the victory to.
+        // If we are playing a level in a galaxy, we need to know WHICH galaxy to credit the victory to.
         // We can either pass it in data or assume it's the current one if not passed?
-        // But ShootEmUpScene doesn't HAVE a 'current universe' concept unless passed.
-        // I will add universeId to the class properties.
-        if (data?.universeId) {
-            this.registry.set('activeUniverseId', data.universeId);
+        // But ShootEmUpScene doesn't HAVE a 'current galaxy' concept unless passed.
+        // I will add galaxyId to the class properties.
+        if (data?.galaxyId) {
+            this.registry.set('activeGalaxyId', data.galaxyId);
         }
     }
 
@@ -67,23 +68,27 @@ export abstract class ShootEmUpScene extends BaseScene {
             this.ship.destroy();
         }
 
-        const sceneData: { planetId?: string, victory?: boolean, universeId?: string } = {
+        const sceneData: { planetId?: string, victory?: boolean, galaxyId?: string } = {
             planetId: this.returnPlanetId,
             victory: victory,
-            universeId: this.registry.get('activeUniverseId')
+            galaxyId: this.registry.get('activeGalaxyId')
         };
 
         // Record the victory in GameStatus
-        if (victory && sceneData.universeId) {
-            GameStatus.getInstance().addVictory(sceneData.universeId);
+        if (victory && sceneData.galaxyId) {
+            GameStatus.getInstance().addVictory(sceneData.galaxyId);
+            // Also mark intro as seen so it won't show again after completing the level
+            if (this.returnPlanetId) {
+                GameStatus.getInstance().markIntroSeen(this.returnPlanetId);
+            }
         }
 
-        // If victory, check for universe warp - override universeId if warping
-        if (victory && this.warpUniverseId) {
-            sceneData.universeId = this.warpUniverseId;
+        // If victory, check for galaxy warp - override galaxyId if warping
+        if (victory && this.warpGalaxyId) {
+            sceneData.galaxyId = this.warpGalaxyId;
         }
 
-        this.scene.start('PlanetMapScene', sceneData);
+        this.scene.start('GalaxyScene', sceneData);
     }
 
     protected handleVictory() {

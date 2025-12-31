@@ -1,5 +1,5 @@
 import type { ShipDefinition, ShipMarker } from '../types';
-import { createAsteroidTexture } from './asteroid-small';
+import { AsteroidTexture } from '../textures/asteroid-texture';
 
 const largeMarker: ShipMarker = {
     type: 'drive',
@@ -30,16 +30,23 @@ export const LargeAsteroidDefinition: ShipDefinition = {
         speed: { min: 10, max: 35 },
         color: 0x2C2C2C, // Dark Granite
         particleCount: 40
+    },
+    createTextures: (scene: Phaser.Scene) => {
+        // Base Texture
+        for (let i = 0; i < 5; i++) {
+            AsteroidTexture.create(scene, `asteroid-large-texture-${i}`, 32, { // Reduced radius 40 -> 32
+                fill: 0x2C2C2C,      // Dark Granite
+                stroke: 0x252525,
+                fissure: 0x151515,   // Deep Dark
+                highlight: 0x454545  // Grey Highlight
+            });
+        }
+
+        // Surface Texture
+        for (let i = 0; i < 5; i++) {
+            AsteroidTexture.generateSurface(scene, `asteroid-large-surface-${i}`, 90, {
+                fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
+            });
+        }
     }
 };
-
-export function generateLargeAsteroidTexture(scene: Phaser.Scene): void {
-    for (let i = 0; i < 5; i++) {
-        createAsteroidTexture(scene, `asteroid-large-texture-${i}`, 32, { // Reduced radius 40 -> 32
-            fill: 0x2C2C2C,      // Dark Granite
-            stroke: 0x252525,
-            fissure: 0x151515,   // Deep Dark
-            highlight: 0x454545  // Grey Highlight
-        });
-    }
-}

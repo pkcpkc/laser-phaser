@@ -1,15 +1,11 @@
 import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
-import { generateSmallAsteroidTexture, generateAsteroidSurfaceTexture } from '../../../ships/definitions/asteroid-small';
-import { generateMediumAsteroidTexture } from '../../../ships/definitions/asteroid-medium';
-import { generateLargeAsteroidTexture } from '../../../ships/definitions/asteroid-large';
+import { BaseFormation } from './base-formation';
 import { SmallAsteroidDustConfig } from '../../../ships/configurations/asteroid-small-dust';
 import { MediumAsteroidDustConfig } from '../../../ships/configurations/asteroid-medium-dust';
 import { LargeAsteroidDustConfig } from '../../../ships/configurations/asteroid-large-dust';
 import { AsteroidMorphEffect } from '../../../ships/effects/asteroid-morph-effect';
-
-import type { BaseEnemyData } from './base-formation';
 
 interface AsteroidFieldConfig {
     count?: number;
@@ -34,47 +30,23 @@ const ASTEROID_RADII = {
     'asteroid-large': 40
 };
 
-export class AsteroidFieldFormation {
-    private scene: Phaser.Scene;
-    private ships: BaseEnemyData[] = [];
-    private collisionConfig: ShipCollisionConfig;
+export class AsteroidFieldFormation extends BaseFormation {
     private config: Required<AsteroidFieldConfig>;
-    private texturesGenerated: boolean = false;
 
     constructor(
         scene: Phaser.Scene,
-        _shipClass: unknown,
+        _shipClass: unknown, // Unused but kept for signature compatibility if needed, or we can just ignore it as we use specific configs
         collisionConfig: ShipCollisionConfig,
         config?: AsteroidFieldConfig
     ) {
-        this.scene = scene;
-        this.collisionConfig = collisionConfig;
+        // Pass generic Ship class and asteroid configs for texture loading
+        super(
+            scene,
+            Ship as any,
+            collisionConfig,
+            [SmallAsteroidDustConfig, MediumAsteroidDustConfig, LargeAsteroidDustConfig]
+        );
         this.config = { ...DEFAULT_CONFIG, ...config };
-    }
-
-    private generateTextures(): void {
-        if (this.texturesGenerated) return;
-        generateSmallAsteroidTexture(this.scene);
-        generateMediumAsteroidTexture(this.scene);
-        generateLargeAsteroidTexture(this.scene);
-
-        // Generate Surface Textures for Morphing (5 variants each)
-        for (let i = 0; i < 5; i++) {
-            // Small (Radius 15 -> Size ~40)
-            generateAsteroidSurfaceTexture(this.scene, `asteroid-small-surface-${i}`, 40, {
-                fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
-            });
-            // Medium (Radius 25 -> Size ~60)
-            generateAsteroidSurfaceTexture(this.scene, `asteroid-medium-surface-${i}`, 60, {
-                fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
-            });
-            // Large (Radius 40 -> Size ~90)
-            generateAsteroidSurfaceTexture(this.scene, `asteroid-large-surface-${i}`, 90, {
-                fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
-            });
-        }
-
-        this.texturesGenerated = true;
     }
 
     private pickRandomConfig(): ShipConfig {
@@ -95,8 +67,6 @@ export class AsteroidFieldFormation {
     }
 
     spawn(): void {
-        this.generateTextures();
-
         const { width } = this.scene.scale;
         const spawnMargin = (1 - this.config.spawnWidth) / 2;
 
@@ -126,12 +96,7 @@ export class AsteroidFieldFormation {
                 this.collisionConfig
             );
 
-            // 3. Apply random low speed rotation - REMOVED per user request
-            // const sign = Math.random() < 0.5 ? 1 : -1;
-            // const rotationSpeed = sign * (0.005 + Math.random() * 0.02); 
-            // ship.sprite.setAngularVelocity(rotationSpeed);
-
-            // 4. Add Vertex Morph Effect
+            // 3. Add Vertex Morph Effect
             // Base surface key prefix
             const surfaceKeyPrefix = `${baseConfig.definition.id}-surface`;
 
@@ -140,7 +105,7 @@ export class AsteroidFieldFormation {
 
             ship.setEffect(new AsteroidMorphEffect(this.scene, ship.sprite, surfaceKeyPrefix, r, 5));
 
-            this.ships.push({
+            this.enemies.push({
                 ship,
                 spawnTime: this.scene.time.now,
                 startX: x,
@@ -148,13 +113,13 @@ export class AsteroidFieldFormation {
             });
         }
 
-        console.log(`AsteroidFieldFormation spawned ${this.ships.length} asteroids`);
+        console.log(`AsteroidFieldFormation spawned ${this.enemies.length} asteroids`);
     }
 
     update(_time: number, _delta?: number): void {
         const { height } = this.scene.scale;
 
-        this.ships = this.ships.filter(data => {
+        this.enemies = this.enemies.filter(data => {
             try {
                 if (!data.ship.sprite || !data.ship.sprite.active) {
                     return false;
@@ -170,24 +135,5 @@ export class AsteroidFieldFormation {
                 return false;
             }
         });
-    }
-
-    isComplete(): boolean {
-        return this.ships.length === 0;
-    }
-
-    getEnemies(): BaseEnemyData[] {
-        return this.ships;
-    }
-
-    getShips(): BaseEnemyData[] {
-        return this.ships;
-    }
-
-    destroy(): void {
-        this.ships.forEach(data => {
-            data.ship.destroy();
-        });
-        this.ships = [];
     }
 }

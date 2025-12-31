@@ -50,9 +50,9 @@ export class DiamondFormation extends BaseFormation {
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
         config?: DiamondFormationConfig,
-        shipConfig?: ShipConfig
+        shipConfigs?: ShipConfig[]
     ) {
-        super(scene, shipClass, collisionConfig, shipConfig);
+        super(scene, shipClass, collisionConfig, shipConfigs);
 
         this.config = {
             spacing: 80,
@@ -74,16 +74,14 @@ export class DiamondFormation extends BaseFormation {
         const startCenterX = width * this.config.startWidthPercentage;
 
         // Alignment Rotation
-        // If the formation is travelling at an angle, the shape might need to be rotated?
-        // Previously we calculated rotation based on travel target.
-        // Now Tactic handles travel. The formation alignment is static relative to "Head".
-        // Use config.rotation if provided.
         const rotationAngle = this.config.rotation;
 
         const rows = this.config.formationGrid.map((count, index) => ({
             count: count,
             depth: index * this.config.verticalSpacing
         }));
+
+        let totalSpawned = 0;
 
         for (const row of rows) {
             for (let i = 0; i < row.count; i++) {
@@ -100,7 +98,12 @@ export class DiamondFormation extends BaseFormation {
                 const x = startCenterX + rotatedX;
                 const y = SPAWN_Y + rotatedY;
 
-                const ship = new this.shipClass(this.scene, x, y, this.shipConfig!, this.collisionConfig);
+                // Cycle through ship configs
+                const configIndex = totalSpawned % this.shipConfigs.length;
+                const shipConfig = this.shipConfigs[configIndex];
+
+                const ship = new this.shipClass(this.scene, x, y, shipConfig, this.collisionConfig);
+                totalSpawned++;
                 const enemy = ship.sprite;
                 enemy.setData('ship', ship);
 

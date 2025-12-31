@@ -41,9 +41,9 @@ export class SinusFormation extends BaseFormation {
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
         config?: Partial<FormationConfig>,
-        shipConfig?: ShipConfig
+        shipConfigs?: ShipConfig[]
     ) {
-        super(scene, shipClass, collisionConfig, shipConfig);
+        super(scene, shipClass, collisionConfig, shipConfigs);
 
         // Default configuration
         this.config = {
@@ -83,7 +83,10 @@ export class SinusFormation extends BaseFormation {
             const yOffset = (i % 2 === 0) ? 0 : this.config.verticalOffset;
             const y = startY + yOffset;
 
-            const ship = new this.shipClass(this.scene, x, y, this.shipConfig!, this.collisionConfig);
+            // Pick random ship config
+            const shipConfig = Phaser.Utils.Array.GetRandom(this.shipConfigs);
+
+            const ship = new this.shipClass(this.scene, x, y, shipConfig, this.collisionConfig);
             const enemy = ship.sprite;
             enemy.setData('ship', ship);
 

@@ -14,15 +14,10 @@ export interface ShipGameplayConfig {
     rotationSpeed?: number;
 }
 
-export interface MountPoint {
+export interface ModulePoint {
     x: number;
     y: number;
     angle?: number; // relative angle in radians, 0 is forward
-}
-
-// Deprecated: Old way of assigning primary laser
-export interface ShipMountConfig {
-    primary: new () => Laser;
 }
 
 export type { ExplosionConfig } from './effects/explosion';
@@ -68,6 +63,8 @@ export interface ShipDefinition {
     // All possible markers on this hull
     markers: ShipMarker[];
     frame?: string;
+    // Optional: Procedurally create textures for this ship
+    createTextures?: (scene: Phaser.Scene) => void;
 }
 
 /**

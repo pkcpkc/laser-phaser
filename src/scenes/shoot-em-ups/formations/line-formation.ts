@@ -35,9 +35,9 @@ export class LineFormation extends BaseFormation {
         shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         collisionConfig: ShipCollisionConfig,
         config?: Partial<LineFormationConfig>,
-        shipConfig?: ShipConfig
+        shipConfigs?: ShipConfig[]
     ) {
-        super(scene, shipClass, collisionConfig, shipConfig);
+        super(scene, shipClass, collisionConfig, shipConfigs);
 
         this.config = {
             enemyCount: { min: 3, max: 6 },
@@ -64,7 +64,11 @@ export class LineFormation extends BaseFormation {
             const yOffset = (i % 2 === 0) ? 0 : this.config.verticalOffset;
             const y = startY + yOffset;
 
-            const ship = new this.shipClass(this.scene, x, y, this.shipConfig!, this.collisionConfig);
+            // Cycle through ship configs
+            const configIndex = i % this.shipConfigs.length;
+            const shipConfig = this.shipConfigs[configIndex];
+
+            const ship = new this.shipClass(this.scene, x, y, shipConfig, this.collisionConfig);
             const enemy = ship.sprite;
 
             // Critical: Store the initial state on the generic data object so Tactics can use it if they want

@@ -17,40 +17,39 @@ class SingleShipFormation {
         private shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
         private collisionConfig: ShipCollisionConfig,
         _config: any,
-        private shipConfig?: ShipConfig
+        private shipConfigs?: ShipConfig[]
     ) { }
 
     spawn() {
-        if (this.shipConfig) {
+        if (this.shipConfigs && this.shipConfigs.length > 0) {
             console.log('BloodBossLevel: Spawning boss!');
             // Spawn off-screen at random X, tactic will move it in
             const startX = Phaser.Math.Between(0, this.scene.scale.width);
             const startY = -200;
-            this.ship = new this.shipClass(this.scene, startX, startY, this.shipConfig, this.collisionConfig);
+            this.ship = new this.shipClass(this.scene, startX, startY, this.shipConfigs[0], this.collisionConfig);
             console.log(`BloodBossLevel: Boss spawned at ${startX}, ${startY}`);
         }
     }
 
-    update(_time: number, _delta: number) {
-        if (this.ship && this.ship.sprite && this.ship.sprite.active) {
-            // Ship logic handled by tactic
-        }
-    }
-
     getShips() {
-        if (this.ship && this.ship.sprite && this.ship.sprite.active) {
-            return [{ ship: this.ship, spawnTime: 0 }];
+        if (this.ship) {
+            return [{ ship: this.ship, spawnTime: this.scene.time.now }];
         }
         return [];
     }
 
-    isComplete() {
+    isComplete(): boolean {
         return !this.ship || !this.ship.sprite.active;
+    }
+
+    update(_time: number, _delta: number): void {
+        // Tactic handles all movement; no formation-specific logic needed
     }
 
     destroy() {
         if (this.ship) {
             this.ship.destroy();
+            this.ship = null;
         }
     }
 }
@@ -64,7 +63,7 @@ const createBloodBossFormation = (): FormationConfig => {
             movementRadiusFraction: 0.5
         },
         formationType: SingleShipFormation as any as IFormationConstructor,
-        shipConfig: BloodBossConfig,
+        shipConfigs: [BloodBossConfig],
         count: 1, // 1 Boss
         startDelay: 1000
     };
