@@ -37,7 +37,7 @@ export const SmallAsteroidDefinition: ShipDefinition = {
     createTextures: (scene: Phaser.Scene) => {
         // Base Texture (Variants)
         for (let i = 0; i < 5; i++) {
-            AsteroidTexture.create(scene, `asteroid-small-texture-${i}`, 12, { // Reduced radius 15 -> 12
+            AsteroidTexture.create(scene, `asteroid-small-texture-${i}`, 15, { // Aligned radius to 15
                 fill: 0x2C2C2C,      // Dark Granite
                 stroke: 0x252525,
                 fissure: 0x151515,   // Near Black

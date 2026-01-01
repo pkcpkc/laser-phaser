@@ -55,10 +55,10 @@ export class AsteroidMorphEffect implements ShipEffect {
         const startKey = `${surfaceTexturePrefix}-${startIdx}`;
 
         this.surface = scene.add.image(sprite.x, sprite.y, startKey);
-        this.surface.setDepth(sprite.depth);
+        this.surface.setDepth(sprite.depth + 1);
 
         this.nextSurface = scene.add.image(sprite.x, sprite.y, startKey);
-        this.nextSurface.setDepth(sprite.depth + 1); // On top
+        this.nextSurface.setDepth(sprite.depth + 1.1); // On top
         this.nextSurface.setAlpha(0); // Invisible initially
 
         // 2. Create Graphics for Mask
@@ -163,6 +163,7 @@ export class AsteroidMorphEffect implements ShipEffect {
 
         // Draw Mask Shape
         this.graphics.clear();
+        this.graphics.fillStyle(0xffffff, 1);
         this.graphics.beginPath();
 
         const cos = Math.cos(effectiveRotation);

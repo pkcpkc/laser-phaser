@@ -39,6 +39,7 @@ describe('LinearTactic', () => {
 
         mockFormation = {
             getShips: vi.fn().mockReturnValue([mockEnemy]),
+            update: vi.fn(),
             isComplete: vi.fn().mockReturnValue(false)
         };
     });

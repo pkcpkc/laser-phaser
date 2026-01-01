@@ -83,6 +83,7 @@ describe('BloodBossTactic', () => {
 
         mockFormation = {
             getShips: () => [{ ship: mockShip, spawnTime: 0 }],
+            update: vi.fn(),
             isComplete: () => false
         };
 

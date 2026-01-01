@@ -58,6 +58,7 @@ export abstract class BaseTactic implements ITactic {
         this.formations = this.formations.filter(f => !f.isComplete());
 
         for (const formation of this.formations) {
+            formation.update(time, delta);
             this.updateFormation(formation, time, delta);
         }
     }
