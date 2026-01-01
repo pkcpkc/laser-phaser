@@ -68,12 +68,47 @@ class MockFormation {
     }
 }
 
+// Mock Tactic class
+class MockTactic {
+    static instances: MockTactic[] = [];
+    static lastSpawnedFormation: MockFormation | null = null;
+
+    initialize = vi.fn((_scene, formationType, _formationConfig, shipClass, shipConfigs, collisionConfig) => {
+        this.initData = { formationType, shipClass, shipConfigs, collisionConfig };
+    });
+
+    spawn = vi.fn(() => {
+        const formation = new this.initData.formationType(
+            {}, // scene mock
+            this.initData.shipClass,
+            this.initData.collisionConfig,
+            {},
+            this.initData.shipConfigs
+        );
+        MockTactic.lastSpawnedFormation = formation;
+        formation.spawn();
+    });
+
+    update = vi.fn();
+    destroy = vi.fn();
+    isComplete = vi.fn().mockReturnValue(false);
+    addFormation = vi.fn();
+
+    private initData: any;
+
+    constructor() {
+        MockTactic.instances.push(this);
+    }
+}
+
 describe('Level', () => {
     let mockScene: any;
     let mockCollisionConfig: any;
 
     beforeEach(() => {
         MockFormation.instances = [];
+        MockTactic.instances = [];
+        MockTactic.lastSpawnedFormation = null;
         vi.useFakeTimers();
         mockScene = {
             time: {
@@ -81,34 +116,6 @@ describe('Level', () => {
                     setTimeout(callback, delay);
                     return { remove: vi.fn() };
                 })
-            },
-            add: {
-                existing: vi.fn()
-            },
-            physics: {
-                add: {
-                    existing: vi.fn()
-                }
-            },
-            matter: {
-                add: {
-                    image: vi.fn(() => ({
-                        setAngle: vi.fn(),
-                        setFixedRotation: vi.fn(),
-                        setFrictionAir: vi.fn(),
-                        setMass: vi.fn(),
-                        setSleepThreshold: vi.fn(),
-                        setCollisionCategory: vi.fn(),
-                        setCollidesWith: vi.fn(),
-                        destroy: vi.fn(),
-                        scene: {}
-                    }))
-                }
-            },
-            game: {
-                loop: {
-                    frame: 0
-                }
             }
         };
         mockCollisionConfig = {};
@@ -126,42 +133,40 @@ describe('Level', () => {
         const config: LevelConfig = {
             name: 'Test Level',
             formations: [
-                [{ formationType: MockFormationType1 }],
-                [{ formationType: MockFormationType2 }]
+                [{ formationType: MockFormationType1, tacticType: MockTactic as any }],
+                [{ formationType: MockFormationType2, tacticType: MockTactic as any }]
             ]
         };
 
         const level = new Level(mockScene, config, mockCollisionConfig);
         level.start();
 
-        // First formation should spawn immediately
+        // First tactic should spawn immediately
+        expect(MockTactic.instances.length).toBe(1);
+        const tactic1 = MockTactic.instances[0];
+        expect(tactic1.initialize).toHaveBeenCalled();
+        expect(tactic1.spawn).toHaveBeenCalled();
+
         expect(MockFormation.instances.length).toBe(1);
         const formation1 = MockFormation.instances[0];
         expect(formation1).toBeInstanceOf(MockFormationType1);
-        expect(formation1.spawn).toHaveBeenCalled();
-
-        // Second formation should NOT spawn yet
-        // Since we check instances array, we know exactly what's there
 
         // Update level
         level.update(0, 0);
-        expect(formation1.update).toHaveBeenCalled();
+        expect(tactic1.update).toHaveBeenCalled();
 
         // Complete first formation
-        formation1.isComplete.mockReturnValue(true);
-        level.update(0, 0); // Detect completion and cleanup
+        tactic1.isComplete.mockReturnValue(true);
+        level.update(0, 0);
 
-        expect(formation1.destroy).toHaveBeenCalled();
+        expect(tactic1.destroy).toHaveBeenCalled();
 
-        // Next update or immediately?
-        // Logic: activeRunners filter runs, if empty, spawnNextStep.
-        // It happens in same update loop if filters run and then check empty.
-        // Let's check if second formation is spawned.
-
+        // Second wave should spawn
+        expect(MockTactic.instances.length).toBe(2);
+        const tactic2 = MockTactic.instances[1];
+        expect(tactic2.spawn).toHaveBeenCalled();
         expect(MockFormation.instances.length).toBe(2);
-        const formation2 = MockFormation.instances[1];
-        expect(formation2).toBeInstanceOf(MockFormationType2);
-        expect(formation2.spawn).toHaveBeenCalled();
+        expect(MockFormation.instances[1]).toBeInstanceOf(MockFormationType2);
     });
 
     it('should spawn formations in parallel', () => {
@@ -172,8 +177,8 @@ describe('Level', () => {
             name: 'Test Level',
             formations: [
                 [
-                    { formationType: MockFormationType1 },
-                    { formationType: MockFormationType2 }
+                    { formationType: MockFormationType1, tacticType: MockTactic as any },
+                    { formationType: MockFormationType2, tacticType: MockTactic as any }
                 ]
             ]
         };
@@ -181,19 +186,18 @@ describe('Level', () => {
         const level = new Level(mockScene, config, mockCollisionConfig);
         level.start();
 
+        expect(MockTactic.instances.length).toBe(2);
         expect(MockFormation.instances.length).toBe(2);
-        expect(MockFormation.instances[0]).toBeInstanceOf(MockFormationType1);
-        expect(MockFormation.instances[1]).toBeInstanceOf(MockFormationType2);
 
-        const instance1 = MockFormation.instances[0];
-        const instance2 = MockFormation.instances[1];
+        const tactic1 = MockTactic.instances[0];
+        const tactic2 = MockTactic.instances[1];
 
-        expect(instance1.spawn).toHaveBeenCalled();
-        expect(instance2.spawn).toHaveBeenCalled();
+        expect(tactic1.spawn).toHaveBeenCalled();
+        expect(tactic2.spawn).toHaveBeenCalled();
 
         level.update(0, 0);
-        expect(instance1.update).toHaveBeenCalled();
-        expect(instance2.update).toHaveBeenCalled();
+        expect(tactic1.update).toHaveBeenCalled();
+        expect(tactic2.update).toHaveBeenCalled();
     });
 
     it('should handle startDelay', () => {
@@ -204,6 +208,7 @@ describe('Level', () => {
             formations: [
                 [{
                     formationType: MockFormationType1,
+                    tacticType: MockTactic as any,
                     startDelay: 1000
                 }]
             ]
@@ -212,18 +217,14 @@ describe('Level', () => {
         const level = new Level(mockScene, config, mockCollisionConfig);
         level.start();
 
-        // Should NOT have spawned yet (instances created but spawn called later? No, runner created but spawn delayed?)
-        // Wait, FormationRunner constructor calls delayedCall if startDelay > 0.
-        // And spawn() creates the instance.
-        // So NO instance should be created yet.
-
-        expect(MockFormation.instances.length).toBe(0);
+        expect(MockTactic.instances.length).toBe(0);
 
         // Fast forward time
         vi.advanceTimersByTime(1000);
 
+        expect(MockTactic.instances.length).toBe(1);
+        expect(MockTactic.instances[0].spawn).toHaveBeenCalled();
         expect(MockFormation.instances.length).toBe(1);
-        expect(MockFormation.instances[0].spawn).toHaveBeenCalled();
     });
 
     it('should handle interval repeating', () => {
@@ -234,6 +235,7 @@ describe('Level', () => {
             formations: [
                 [{
                     formationType: MockFormationType1,
+                    tacticType: MockTactic as any,
                     count: 2,
                     interval: 500
                 }]
@@ -244,34 +246,35 @@ describe('Level', () => {
         level.start();
 
         // First spawn
+        expect(MockTactic.instances.length).toBe(1);
+        const tactic1 = MockTactic.instances[0];
+        expect(tactic1.spawn).toHaveBeenCalled();
         expect(MockFormation.instances.length).toBe(1);
-        const instance1 = MockFormation.instances[0];
-        expect(instance1.spawn).toHaveBeenCalled();
 
         // Complete first spawn
-        instance1.isComplete.mockReturnValue(true);
+        tactic1.isComplete.mockReturnValue(true);
         level.update(0, 0);
-        expect(instance1.destroy).toHaveBeenCalled();
+        expect(tactic1.destroy).toHaveBeenCalled();
 
         // Should be waiting for interval. No new instance yet.
-        expect(MockFormation.instances.length).toBe(1);
+        expect(MockTactic.instances.length).toBe(1);
 
         // Advance time
         vi.advanceTimersByTime(500);
 
         // Second spawn
+        expect(MockTactic.instances.length).toBe(2);
+        const tactic2 = MockTactic.instances[1];
+        expect(tactic2.spawn).toHaveBeenCalled();
         expect(MockFormation.instances.length).toBe(2);
-        const instance2 = MockFormation.instances[1];
-        expect(instance2).toBeInstanceOf(MockFormationType1);
-        expect(instance2.spawn).toHaveBeenCalled();
 
         // Complete second spawn
-        instance2.isComplete.mockReturnValue(true);
+        tactic2.isComplete.mockReturnValue(true);
         level.update(0, 0);
-        expect(instance2.destroy).toHaveBeenCalled();
+        expect(tactic2.destroy).toHaveBeenCalled();
 
-        // No more spawns should happen (count 2)
+        // No more spawns
         vi.advanceTimersByTime(1000);
-        expect(MockFormation.instances.length).toBe(2);
+        expect(MockTactic.instances.length).toBe(2);
     });
 });

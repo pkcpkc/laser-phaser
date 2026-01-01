@@ -2,7 +2,7 @@
 
 This document provides technical details for developers working on **Laser Phaser**.
 
-> Everything in the universe—from galaxies and star systems to planet visuals and effects—is **procedurally created**. The only exceptions are the **ships**, which are hand-drawn by the kids (Leopold & Thaddeus) and then "pimped" for the digital realm by [**nano banana**](https://gemini.google/overview/image-generation/).
+> Everything in the universe—from galaxies and star systems to planet visuals and effects—is **procedurally created**. The only exceptions are the **ships**, which are hand-drawn by the kids (Leopold & Thaddeus) and then "pimped" for the digital realm by [**Nano Banana**](https://gemini.google/overview/image-generation/).
 
 ## 1. Tech Stack
 
@@ -14,15 +14,7 @@ This document provides technical details for developers working on **Laser Phase
 *   **Language**: [TypeScript](https://www.typescriptlang.org/) - For type-safe, maintainable code.
 *   **Build Tool**: [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling for lightning-fast development servers and optimized builds.
 
-### Asset Pipeline & Tooling
-*   **[Nano Banana](https://gemini.google/overview/image-generation/)**: The creative engine behind pimping hand-drawn ship assets for the digital realm.
-*   **Meta SAM 2**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation during asset preparation.
-*   **Texture Atlases**: Automatically generated from `public/assets` folders using `free-tex-packer-core`. 
-*   **Custom Build Scripts**: Written in TypeScript/JavaScript, executed via `tsx` or `node`:
-    *   `scripts/generate-markers.ts`: Extracts marker data from ship PNGs.
-    *   `scripts/generate-atlases.js`: Orchestrates texture packing.
-    *   `scripts/generate-color-palette.ts`: Analyzes assets for UI color matching.
-*   **Image Processing**: Uses `pngjs` for low-level pixel analysis during marker and palette generation.
+
 
 ## 2. Testing Stack
 
@@ -70,9 +62,9 @@ graph TD
 
     subgraph "Shoot 'Em Up Logic"
         ShootEmUpScene --> |"Executes"| Level
-        Level --> |"Spawns"| FormationRunner
-        FormationRunner --> |"Instantiates"| Formation
-        FormationRunner --> |"Instantiates"| Tactic
+        Level --> |"Spawns"| TacticRunner
+        TacticRunner --> |"Instantiates"| Tactic
+        Tactic --> |"Instantiates"| Formation
         Tactic --> |"Drives"| Formation
         Formation --> |"Positions"| Ships
         Ships --> |"Explode into"| Loot
@@ -98,14 +90,21 @@ graph TD
 *   **Player Controller**: Bridges the gap between player input (mouse, touch, keyboard) and ship physics, implementing snappy movement and auto-firing logic.
 *   **GameStatus**: The persistent source of truth for gems, modules, unlocked planets, and victories, synced with `localStorage`.
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
-*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`), enabling complex and wave-based combat encounters.
+*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `TacticRunner` manages the lifecycle of a `Tactic`, which in turn instantiates and drives one or more `Formations`.
 
-## 4. Asset Pipeline
+## 4. Asset Pipeline & Tooling
 
-We use a custom asset pipeline to optimize game performance and development workflow:
+We use a custom asset pipeline and various tools to optimize game performance and help with asset creation:
 
-*   **Texture Atlases**: Automatically generated from `public/assets` folders.
+*   **[Nano Banana](https://gemini.google/overview/image-generation/)**: The creative engine behind pimping hand-drawn ship assets for the digital realm.
+*   **Meta SAM 2**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation during asset preparation.
+*   **Texture Atlases**: Automatically generated from `public/assets` folders using `free-tex-packer-core`.
 *   **Marker Generation**: Ship attachment points (markers) are extracted from ship PNGs to define where thrusters, lasers, and rockets attached.
+*   **Custom Build Scripts**: Written in TypeScript/JavaScript, executed via `tsx` or `node`:
+    *   `scripts/generate-markers.ts`: Extracts marker data from ship PNGs.
+    *   `scripts/generate-atlases.js`: Orchestrates texture packing.
+    *   `scripts/generate-color-palette.ts`: Analyzes assets for UI color matching.
+*   **Image Processing**: Uses `pngjs` for low-level pixel analysis during marker and palette generation.
 
 ## 5. Storyline Management
 
@@ -132,6 +131,10 @@ Markers are special pixels defined directly in the ship's source image (`res/shi
 ### Setting Orientation
 
 To define the rotation (angle) of a marker, place a **Red Pixel** (`#FF0000`) adjacent to the marker pixel. The generator calculates the angle from the vector `(Marker -> Red Pixel)`.
+
+### Color Palette Analysis
+
+![Module Color Palette](./module-color-palette.png)
 
 ## 7. Getting Started
 

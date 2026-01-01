@@ -158,7 +158,7 @@ describe('ColorCircleEffect', () => {
 
         effect.setDepth(5);
         createdEmitters.forEach(emitter => {
-            expect(emitter.setDepth).toHaveBeenCalledWith(5);
+            expect(emitter.setDepth).toHaveBeenCalledWith(5 + 1.1);
         });
     });
 

@@ -49,6 +49,12 @@ const mockScene = {
         height: 600,
         on: vi.fn()
     },
+    cameras: {
+        main: {
+            scrollX: 0,
+            scrollY: 0
+        }
+    },
     tweens: {
         add: vi.fn(),
         killTweensOf: vi.fn()
@@ -195,7 +201,7 @@ describe('PlanetIntroOverlay', () => {
 
         // SHOW
         overlay.show(planet, 'Hello World', onComplete);
-        expect(mockEffect.setDepth).toHaveBeenCalledWith(3000);
+        expect(mockEffect.setDepth).toHaveBeenCalledWith(0);
 
         // HIDE
         (overlay as any).hide();

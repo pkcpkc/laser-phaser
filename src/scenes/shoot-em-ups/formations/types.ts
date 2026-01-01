@@ -1,4 +1,10 @@
 import type { BaseEnemyData } from './base-formation';
+import type { ShipCollisionConfig } from '../../../ships/ship';
+import type { ShipConfig } from '../../../ships/types';
+
+export interface IFormationConstructor {
+    new(scene: Phaser.Scene, shipClass: any, collisionConfig: ShipCollisionConfig, config?: Record<string, unknown>, shipConfigs?: ShipConfig[]): IFormation;
+}
 
 export interface IFormation {
     /**

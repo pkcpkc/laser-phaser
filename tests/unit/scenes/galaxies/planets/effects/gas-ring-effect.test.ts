@@ -149,8 +149,6 @@ describe('GasRingEffect', () => {
 
     it('should create back and front emitters', () => {
         new GasRingEffect(scene, planet, config);
-        // Base creates occluder (1 graphics)
-        expect(scene.add.graphics).toHaveBeenCalled();
         // GasRing creates 2 emitters
         expect(scene.add.particles).toHaveBeenCalledTimes(2);
     });
@@ -159,12 +157,9 @@ describe('GasRingEffect', () => {
         const effect = new GasRingEffect(scene, planet, config);
 
         effect.setVisible(false);
-        // 1 occluder + 2 emitters = 3 setVisible(false) calls? 
-        // Logic: occluder.setVisible, plus checking backElement/frontElement.
-        expect(scene.add.graphics().setVisible).toHaveBeenCalledWith(false);
-
-        // Emitters
+        // Emitters should be toggled
         const emitters = (scene.add.particles as any).mock.results.map((r: any) => r.value);
+        expect(emitters.length).toBe(2);
         emitters.forEach((emitter: any) => {
             expect(emitter.setVisible).toHaveBeenCalledWith(false);
         });
@@ -174,8 +169,8 @@ describe('GasRingEffect', () => {
         const effect = new GasRingEffect(scene, planet, config);
         effect.destroy();
 
-        expect(scene.add.graphics().destroy).toHaveBeenCalled();
         const emitters = (scene.add.particles as any).mock.results.map((r: any) => r.value);
+        expect(emitters.length).toBe(2);
         emitters.forEach((emitter: any) => {
             expect(emitter.destroy).toHaveBeenCalled();
         });

@@ -10,6 +10,18 @@
 
 What started as sketches on paper has been brought to life through the incredible power of **Agentic Coding**. Using [**Google Antigravity**](https://antigravity.google/) and [**Phaser.io**](https://phaser.io/), we've turned those childhood dreams into a high-octane reality. (With a little help from **Paul** to keep the engines running! 😉)
 
+## 🎨 From Sketch to Starship
+
+Experience the transition from hand-drawn imagination to high-tech digital assets. Here are some of the best original sketches by Leopold and Thaddeus, side-by-side with their AI-enhanced versions:
+
+| Original Sketch | AI-Pimped Ship |
+| :---: | :---: |
+| ![Big Cruiser](./artwork/big-cruiser.jpeg) | ![Big Cruiser Generated](./artwork/generated/big-cruiser.jpeg) |
+| ![Blood Boss](./artwork/blood-boss.jpeg) | ![Blood Boss Generated](./artwork/generated/blood-boss.jpeg) |
+| ![Blood Fighter](./artwork/blood-fighter.jpeg) | ![Blood Fighter Generated](./artwork/generated/blood-fighter.jpeg) |
+| ![Blood Hunter](./artwork/blood-hunter.jpeg) | ![Blood Hunter Generated](./artwork/generated/blood-hunter.jpeg) |
+| ![Green Alien](./artwork/green-alien.jpeg) | ![Green Alien Generated](./artwork/generated/green-alien.png) |
+
 ## 🕹️ A Love Letter to the 80s
 
 If you grew up with the pulse-pounding action of 80s arcade shooters, you'll feel right at home. **Laser Phaser** is a deep homage to the legends that defined a generation:
