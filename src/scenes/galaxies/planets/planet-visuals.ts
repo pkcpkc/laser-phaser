@@ -9,12 +9,23 @@ export class PlanetVisual {
     private moonFrames = ['🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔'];
     private frameIdx = 0;
     private lockIcon?: Phaser.GameObjects.Text;
+    private readonly PLANET_DEPTH = 50;
 
 
     constructor(scene: Phaser.Scene, planet: PlanetData, galaxyId: string) {
         this.scene = scene;
         this.planet = planet;
         this.galaxyId = galaxyId;
+    }
+
+    private get effectiveBaseDepth(): number {
+        // If hijacked by intro overlay, we are in a container where planet is at depth 1
+        // (Back effects 0, Planet 1, Front effects 2+)
+        if (this.planet.isHijacked) {
+            return 1;
+        }
+        // Normal galaxy map depth
+        return this.PLANET_DEPTH;
     }
 
     private isLocked(): boolean {
@@ -56,7 +67,10 @@ export class PlanetVisual {
         // Assign incremental depths to effects to respect array order
         if (this.planet.effects) {
             this.planet.effects.forEach((effect, index) => {
-                const baseDepth = 2 + (index * 2);
+                // Effects start at PLANET_DEPTH - 1. 
+                // component depth logic (Back: base, Front: base + 2) means:
+                // First effect: Back @ 49, Front @ 51. Planet is @ 50. Correct.
+                const baseDepth = this.PLANET_DEPTH - 1 + (index * 2);
                 if (effect.setDepth) {
                     effect.setDepth(baseDepth);
                 }
@@ -72,8 +86,8 @@ export class PlanetVisual {
         }
 
         // Adjust planet depth
-        visualObject.setDepth(1);
-        overlay.setDepth(1);
+        visualObject.setDepth(this.PLANET_DEPTH);
+        overlay.setDepth(this.PLANET_DEPTH);
 
         // Add Lock Icon if locked
         if (isLocked) {
@@ -109,8 +123,8 @@ export class PlanetVisual {
             color: '#000000' // Black
         }).setOrigin(0.5, 0.5); // Center
 
-        // Should be on top of planet (1) and potential effects
-        this.lockIcon.setDepth(10);
+        // Should be on top of planet (PLANET_DEPTH) and potential effects
+        this.lockIcon.setDepth(this.PLANET_DEPTH + 10);
         this.lockIcon.setAngle(0); // Explicitly no tilt
         this.lockIcon.setTint(0x000000); // Ensure it is black (overriding emoji colors)
 
@@ -119,17 +133,27 @@ export class PlanetVisual {
     }
 
     private applyTintWithDesaturation(obj: Phaser.GameObjects.Text) {
-        // First desaturate to grayscale, then color through matrix
-        if (obj.postFX) {
-            obj.postFX.clear();
-        }
-
         // Clear any Phaser tint first
         obj.clearTint();
 
-        const colorMatrix = obj.postFX.addColorMatrix();
-        // Desaturate to grayscale first
-        colorMatrix.saturate(-1);
+        // Reuse or create desaturation matrix
+        let desatMatrix = obj.getData('desatFX') as Phaser.FX.ColorMatrix;
+        if (!desatMatrix) {
+            desatMatrix = obj.postFX.addColorMatrix();
+            obj.setData('desatFX', desatMatrix);
+        }
+        // Always desaturate (saturate sets the matrix values, effectively resetting and applying desaturation)
+        desatMatrix.saturate(-1);
+
+        // Reuse or create tint matrix
+        let tintMatrix = obj.getData('tintFX') as Phaser.FX.ColorMatrix;
+        if (!tintMatrix) {
+            tintMatrix = obj.postFX.addColorMatrix();
+            obj.setData('tintFX', tintMatrix);
+        }
+
+        // Reset tint matrix to identity before optionally applying new tint
+        tintMatrix.reset();
 
         // Apply color through matrix multiplication if tint defined, BUT ONLY if unlocked/revealed
         const isRevealed = !(this.planet.hidden ?? true);
@@ -138,8 +162,7 @@ export class PlanetVisual {
             const g = ((this.planet.tint >> 8) & 0xFF) / 255;
             const b = (this.planet.tint & 0xFF) / 255;
 
-            // Create a second color matrix to apply the tint
-            const tintMatrix = obj.postFX.addColorMatrix();
+            // Apply the tint
             tintMatrix.multiply([
                 r, 0, 0, 0, 0,
                 0, g, 0, 0, 0,
@@ -203,6 +226,9 @@ export class PlanetVisual {
     }
 
     public animate(): void {
+        // Safety check: Object must exist and be part of a scene
+        if (!this.planet.gameObject || !this.planet.gameObject.scene) return;
+
         // Removed forced lock frame logic
 
         this.frameIdx = (this.frameIdx + 1) % this.moonFrames.length;
@@ -219,6 +245,10 @@ export class PlanetVisual {
     private updateVisualFrame(newFrame: string) {
         if (!this.planet.gameObject) return;
         const textObj = this.planet.gameObject as Phaser.GameObjects.Text;
+
+        // Extra safety check before touching textures
+        if (!textObj.scene) return;
+
         if (!this.planet.overlayGameObject) {
             textObj.setText(newFrame);
             return;
@@ -231,8 +261,8 @@ export class PlanetVisual {
 
         // Set target frame and make it fully opaque BEHIND the source
         targetObj.setText(newFrame);
-        targetObj.setDepth(0.9); // Behind the source
-        sourceObj.setDepth(1);   // Source stays on top during fade
+        targetObj.setDepth(this.effectiveBaseDepth - 0.1); // Slightly behind the source
+        sourceObj.setDepth(this.effectiveBaseDepth);   // Source stays on top during fade
 
         // IMPORTANT: Keep target invisible initially to prevent flash during postFX application
         targetObj.setAlpha(0);
@@ -290,7 +320,7 @@ export class PlanetVisual {
         if (this.planet.gameObject) {
             this.planet.emitter.startFollow(this.planet.gameObject, 0, -7);
         }
-        this.planet.emitter.setDepth(1);
+        this.planet.emitter.setDepth(this.effectiveBaseDepth + 1);
     }
 }
 

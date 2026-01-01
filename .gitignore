@@ -28,3 +28,4 @@ src/ships/markers-generated
 
 # Tests
 tests/temp/
+tests/reports/

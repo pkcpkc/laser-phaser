@@ -27,6 +27,11 @@ trigger: always_on
    - After each task, check `@current_problems` (IDE/linter diagnostics).
    - If any problems exist, fix them before proceeding.
 
-6. **Completion**
+6. **Debugging**
+   - Check `@terminal:node` for runtime logs and error messages.
+   - Use console output to understand application state and flow.
+   - Correlate terminal logs with IDE diagnostics for full context.
+
+7. **Completion**
    - Verify all checks pass (Lint, Test, Build).
    - Update README.md with any relevant changes.

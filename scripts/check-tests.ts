@@ -3,7 +3,7 @@ import path from 'path';
 import { glob } from 'glob';
 
 const SRC_DIR = 'src';
-const TESTS_DIR = 'tests';
+const TESTS_DIR = 'tests/unit';
 
 async function checkTests() {
     console.log('🔍 Checking test coverage...');

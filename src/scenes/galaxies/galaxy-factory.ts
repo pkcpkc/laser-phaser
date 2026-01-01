@@ -1,5 +1,5 @@
 
-import { BaseGalaxy } from './base-galaxy';
+import { Galaxy } from './galaxy';
 import type { GalaxyConfig } from './galaxy-config';
 import { BloodHuntersGalaxyConfig } from './blood-hunters-galaxy';
 
@@ -10,23 +10,23 @@ export class GalaxyFactory {
         this.registry.set(config.id, config);
     }
 
-    public static create(id: string): BaseGalaxy {
+    public static create(id: string): Galaxy {
         const config = this.registry.get(id);
 
         if (!config) {
             console.warn(`Galaxy ID '${id}' not registered. Defaulting to BloodHuntersGalaxy.`);
-            return new BaseGalaxy(BloodHuntersGalaxyConfig);
+            return new Galaxy(BloodHuntersGalaxyConfig);
         }
 
-        return new BaseGalaxy(config);
+        return new Galaxy(config);
     }
 
     // Static initializer to load all galaxies
     public static initialize() {
         // Look in the current directory for files exporting GalaxyConfig objects
-        // Exclude galaxy-factory, galaxy-config, galaxy-scene, planet-data, BaseGalaxy etc.
+        // Exclude galaxy-factory, galaxy-config, galaxy-scene, planet-data, Galaxy etc.
         // Better to target specific pattern or exclude known files.
-        const modules = import.meta.glob(['./*.ts', '!./galaxy-factory.ts', '!./galaxy-config.ts', '!./base-galaxy.ts', '!./galaxy-interaction.ts', '!./galaxy-scene.ts'], { eager: true });
+        const modules = import.meta.glob(['./*.ts', '!./galaxy-factory.ts', '!./galaxy-config.ts', '!./galaxy.ts', '!./galaxy-interaction.ts', '!./galaxy-scene.ts'], { eager: true });
 
         for (const path in modules) {
             const module = modules[path] as any;

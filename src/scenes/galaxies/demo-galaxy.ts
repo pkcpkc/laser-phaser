@@ -4,9 +4,9 @@ import type { GalaxyConfig } from './galaxy-config';
 export const DemoGalaxyConfig: GalaxyConfig = {
     id: 'demo-galaxy',
     name: 'Demo Galaxy',
-    // backgroundTexture defaults to 'nebula' if not specified in BaseGalaxy, 
-    // but here we can rely on BaseGalaxy default or specify it if we want.
-    // The original class did not set backgroundTexture, so it used default 'nebula' from BaseGalaxy.
+    // backgroundTexture defaults to 'nebula' if not specified in Galaxy, 
+    // but here we can rely on Galaxy default or specify it if we want.
+    // The original class did not set backgroundTexture, so it used default 'nebula' from Galaxy.
     planets: [
         {
             id: 'astra',
@@ -17,7 +17,8 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             centralPlanet: true,
             interaction: {
                 levelId: 'ship-demo-level',
-                warpGalaxyId: 'blood-hunters-galaxy' // Warp to Blood Hunter Galaxy
+                warpGalaxyId: 'blood-hunters-galaxy', // Warp to Blood Hunter Galaxy
+                showAlways: true
             },
             effects: [
                 { type: 'hurricane', color: 0xffffff },
@@ -87,6 +88,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             interaction: {
                 levelId: 'blood-boss-level',
                 hasShipyard: true,
+                showAlways: true
             },
             effects: [
                 { type: 'mini-moon', tint: 0xFFAAAA, tilt: -60 }, // Light red
@@ -101,7 +103,8 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             visualScale: 0.5,
             interaction: {
                 levelId: 'blood-hunters-level',
-                hasShipyard: true
+                hasShipyard: true,
+                showAlways: true
             },
             effects: [
                 {

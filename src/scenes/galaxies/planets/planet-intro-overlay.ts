@@ -30,6 +30,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
 
     private borrowedEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
     private originalEmitterDepth?: number;
+    private originalEffectDepths: Map<IPlanetEffect, number> = new Map();
 
     constructor(scene: Phaser.Scene) {
         super(scene, 0, 0);
@@ -42,9 +43,8 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             .setInteractive();
         this.add(this.background);
 
-        // 2. Planet Container
+        // 2. Planet Container (Holds Text, Planet, Effects)
         this.planetContainer = scene.add.container(0, 0);
-        // Note: Manual sorting handled in updateSorting
         this.add(this.planetContainer);
 
         // 3. Typewriter Text
@@ -58,7 +58,9 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             wordWrap: { width: presetWidth },
             fixedWidth: presetWidth // Predefined centered box width
         }).setOrigin(0.5, 0).setScrollFactor(0); // FIX: Lock to camera
-        this.add(this.textContainer);
+
+        // Add text to the common container for sorting!
+        this.planetContainer.add(this.textContainer);
 
         // 4. Prompt Text
         this.promptText = scene.add.text(width / 2, height - 80, 'Press FIRE', {
@@ -70,7 +72,6 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         this.add(this.promptText);
 
         // Initially hidden, High Depth
-        this.setVisible(false);
         this.setVisible(false);
         this.setDepth(2000);
         this.setScrollFactor(0); // FIX: Lock container to camera
@@ -85,8 +86,11 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         this.on('destroy', () => {
             this.scene.events.off('postupdate', this.updateSorting, this);
             this.scene.scale.off('resize', this.handleResize, this);
+            if (this.timerEvent) this.timerEvent.remove();
         });
     }
+
+
 
     private updateSorting() {
         if (this.visible && this.borrowedPlanet) {
@@ -95,25 +99,61 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
     }
 
     public show(planet: PlanetData, text: string, onComplete: () => void) {
-        this.onComplete = onComplete;
-        this.fullText = text;
+
+        // Reset state first
+        this.fullText = "";  // Clear first to ensure no old content
         this.currentText = "";
         this.charIndex = 0;
         this.isTyping = true;
+        this.onComplete = onComplete;
 
-        this.setVisible(true);
-        this.setAlpha(1); // Keep container fully visible
-        this.setVisible(true);
-        this.setAlpha(1); // Keep container fully visible
-        this.background.setAlpha(0); // Only background fades in
-        this.textContainer.setAlpha(1); // FIX: Reset alpha after hide() faded it out
+        // Kill any existing tweens that might interfere
+        this.scene.tweens.killTweensOf(this.textContainer);
+        this.scene.tweens.killTweensOf(this.promptText);
+        this.scene.tweens.killTweensOf(this.background);
+        if (this.borrowedPlanet) {
+            this.scene.tweens.killTweensOf(this.borrowedPlanet);
+        }
 
-        this.borrowPlanetVisuals(planet);
+        // DESTROY and RECREATE textContainer to clear any cached Phaser canvas texture
+        const { width } = this.scene.scale;
+        const presetWidth = Math.min(600, width * 0.8);
+        this.textContainer.destroy();
+        this.textContainer = this.scene.add.text(width / 2, 0, '', {
+            fontFamily: 'Oswald, sans-serif',
+            fontSize: '22px',
+            color: '#ffffff',
+            align: 'left',
+            lineSpacing: 8,
+            wordWrap: { width: presetWidth },
+            fixedWidth: presetWidth
+        }).setOrigin(0.5, 0).setScrollFactor(0);
+        this.textContainer.setVisible(false);
+        this.textContainer.setAlpha(0);
 
-        this.textContainer.setText("");
+        // Add to planetContainer for sorting
+        this.planetContainer.add(this.textContainer);
+
+        // Ensure prompt is top level (in Overlay)
         this.promptText.setVisible(false);
         this.promptText.setAlpha(0);
 
+        // NOW set the actual text we want to type
+        this.fullText = text;
+
+        // Keep overlay invisible initially
+        this.setVisible(false);
+        this.background.setAlpha(0);
+        this.background.setInteractive(); // Re-enable interaction
+
+        // Setup borrowPlanetVisuals BEFORE showing overlay
+        this.borrowPlanetVisuals(planet);
+
+        // Delay showing by one frame to ensure Phaser has processed all text clearing
+        this.scene.time.delayedCall(0, () => {
+            this.setVisible(true);
+            this.setAlpha(1);
+        });
         // Input
         this.scene.input.keyboard?.on('keydown-SPACE', this.handleInput, this);
         this.scene.input.on('pointerdown', this.handleInput, this);
@@ -121,6 +161,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
 
     private borrowPlanetVisuals(planet: PlanetData) {
         this.borrowedPlanet = planet;
+        this.borrowedPlanet.isHijacked = true;
         this.activeVisuals = []; // Reset active visuals
 
         // Save Original Data
@@ -131,79 +172,91 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         this.originalState.transforms.clear();
 
         const { width, height } = this.scene.scale;
+        const camera = this.scene.cameras.main;
 
-        // Target Positions
+        // Target Positions (Screen Space)
         const targetX = width / 2;
-        const targetY = (height * 0.25) - 115;
+        const targetY = (height * 0.25) - 110;
 
-        // Start Positions (Current Map Position)
-        const startX = planet.x;
-        const startY = planet.y;
+        // Start Positions (Screen Space)
+        const startX = planet.x - camera.scrollX;
+        const startY = planet.y - camera.scrollY;
 
-        // 1. Setup Data for dynamic effects (Start at Original)
+        // 1. Setup Data for dynamic effects (Convert to Screen Space)
+        // This ensures effects that read planet.x/y (like Asteroids) render relative to the container (0,0) correctly
         planet.x = startX;
         planet.y = startY;
         planet.hidden = false;
 
-        // 2. Identify Visuals to Move (Planet, Overlay, etc.)
+        // 2. Identify Visuals to Move
         if (planet.gameObject) {
-            this.hijackObject(planet.gameObject, startX, startY, 1);
+            this.hijackObject(planet.gameObject, startX, startY, 1, false, this.planetContainer);
             this.activeVisuals.push(planet.gameObject as any);
         }
         if (planet.overlayGameObject) {
-            this.hijackObject(planet.overlayGameObject, startX, startY, 1);
+            this.hijackObject(planet.overlayGameObject, startX, startY, 1.1, false, this.planetContainer);
             this.activeVisuals.push(planet.overlayGameObject as any);
         }
 
         // 3. Handle Effects
         if (planet.effects) {
             planet.effects.forEach(effect => {
-                // If it's a GameObject (e.g. some effects extending Container/Image), hijack it
-                if (effect instanceof Phaser.GameObjects.GameObject) {
-                    this.hijackObject(effect, startX, startY);
-                    this.activeVisuals.push(effect as any);
-                } else {
-                    // It is a Managed Effect (IPlanetEffect, e.g. Hurricane)
-                    const e = effect as any;
+                const e = effect as any;
 
-                    // 1. Elevate Depth (so it shows above black overlay)
-                    if (e.setDepth) {
-                        e.setDepth(3000);
-                        this.borrowedEffects.push(e);
-                    }
+                // Hijack underlying elements first to save their original world depths
+                if (e.getVisualElements) {
+                    const elements = e.getVisualElements();
+                    elements.forEach((obj: Phaser.GameObjects.GameObject) => {
+                        // Hijack into container.
+                        // Do NOT add to activeVisuals because they update themselves via effect.update()
+                        this.hijackObject(obj, startX, startY, undefined, true, this.planetContainer);
+                    });
+                } else if (e.graphics) {
+                    this.hijackObject(e.graphics, startX, startY, undefined, true, this.planetContainer);
+                }
 
-                    // 3. Handle Asteroids (Special case: they are GameObjects but managed by effect)
-                    if (e.asteroids && Array.isArray(e.asteroids)) {
-                        e.asteroids.forEach((a: any) => {
-                            if (a.sprite) {
-                                // Asteroids update themselves based on planet.x/y, so we don't sync them manually
-                                this.hijackObject(a.sprite, 0, 0, undefined, true);
-                            }
-                        });
+                // Standardize depth base (Back=0, Planet=1, Front=2+) after hijacking
+                if (e.setDepth) {
+                    if (e.getDepth) {
+                        this.originalEffectDepths.set(e, e.getDepth());
                     }
+                    e.setDepth(0); // Base depth 0 relative to container (Planet is 1, Front effects 2+)
+                    this.borrowedEffects.push(e);
                 }
             });
         }
 
-        // Handle Emitter
+        // Handle Emitter (Cloud animation for hidden planets)
         if (planet.emitter) {
             this.borrowedEmitter = planet.emitter;
             this.originalEmitterDepth = planet.emitter.depth;
-            planet.emitter.setDepth(2001);
+
+            // Hijack the emitter into the container
+            this.hijackObject(planet.emitter as any, startX, startY, 11, false, this.planetContainer);
+            this.activeVisuals.push(planet.emitter as any);
+
             planet.emitter.setVisible(true);
         }
 
-        // Start Text Layout (TextBox)
-        const planetScale = planet.visualScale || 1.0;
-        const effectiveRadius = 30 * planetScale;
-        const textStartY = targetY + effectiveRadius + 15;
+        // Handle Lock Icon
+        const lockIcon = (planet as any).lockIcon as Phaser.GameObjects.Text;
+        if (lockIcon) {
+            // Hijack the lock icon into the container
+            this.hijackObject(lockIcon, startX, startY, 12, false, this.planetContainer);
+            this.activeVisuals.push(lockIcon as any);
+        }
 
-        this.textContainer.setPosition(targetX, textStartY);
+        // Start Text Layout
+        const effectiveRadius = 30 * (planet.visualScale || 1.0);
+        const textStartY = targetY + effectiveRadius + 30;
+
+        this.textContainer.setPosition(width / 2, textStartY);
         this.textContainer.setText("");
+        this.textContainer.setVisible(false);
 
-        // Create Name Label (in a container)
+        // Create Name Label
         const nameContainer = this.scene.add.container(startX, startY);
-        nameContainer.setDepth(10); // Above planet
+        nameContainer.setDepth(10);
         this.planetContainer.add(nameContainer);
         this.activeVisuals.push(nameContainer);
 
@@ -222,9 +275,6 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         });
 
         // 2. Move Planet Data AND Sync Visuals
-        // Single source of truth: We tween 'planet' (Data).
-        // 'onUpdate' forces all visuals to look at 'planet.x/y'.
-        // Effects (Asteroids) also look at 'planet.x/y' in their loops.
         this.scene.tweens.add({
             targets: planet,
             x: targetX,
@@ -232,9 +282,11 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             duration: duration,
             ease: ease,
             onUpdate: () => {
+                // Sync manually tracked visuals (Planet Sprite, Name Label)
                 this.activeVisuals.forEach(obj => {
                     obj.setPosition(planet.x, planet.y);
                 });
+                // Note: Asteroids/Rings update themselves in their own update() loop reading planet.x/y
             },
             onComplete: () => {
                 this.startTyping();
@@ -242,25 +294,28 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         });
     }
 
-    private hijackObject(obj: Phaser.GameObjects.GameObject, x: number, y: number, depth?: number, keepPositionLogic?: boolean) {
+    private hijackObject(obj: Phaser.GameObjects.GameObject, x: number, y: number, depth?: number, keepPositionLogic?: boolean, targetContainer?: Phaser.GameObjects.Container) {
         if (obj.parentContainer) {
             this.originalState.parents.set(obj, obj.parentContainer);
         } else {
             this.originalState.parents.set(obj, this.scene);
         }
 
-        const sprite = obj as Phaser.GameObjects.Image | Phaser.GameObjects.Container;
+        const sprite = obj as any;
         this.originalState.transforms.set(obj, {
             x: sprite.x,
             y: sprite.y,
-            scale: sprite.scale,
-            depth: sprite.depth,
-
-            alpha: sprite.alpha,
-            visible: sprite.visible
+            scale: sprite.scale || 1,
+            depth: sprite.depth || 0,
+            alpha: sprite.alpha ?? 1,
+            visible: sprite.visible ?? true
         });
 
-        this.planetContainer.add(obj);
+        if (targetContainer) {
+            targetContainer.add(obj);
+        } else {
+            this.planetContainer.add(obj);
+        }
 
         if (!keepPositionLogic) {
             sprite.setPosition(x, y);
@@ -291,16 +346,18 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         if (this.borrowedEffects.length > 0) {
             this.borrowedEffects.forEach(effect => {
                 if (effect.setDepth) {
-                    effect.setDepth(2); // Restore to standard map layer depth
+                    const originalDepth = this.originalEffectDepths.get(effect) ?? 2;
+                    effect.setDepth(originalDepth);
                 }
             });
             this.borrowedEffects = [];
+            this.originalEffectDepths.clear();
         }
 
         this.originalState.parents.forEach((parent, obj) => {
             const saved = this.originalState.transforms.get(obj);
             if (saved) {
-                const sprite = obj as Phaser.GameObjects.Image;
+                const sprite = obj as any;
                 sprite.setPosition(saved.x, saved.y);
                 sprite.setScale(saved.scale);
                 sprite.setDepth(saved.depth);
@@ -317,6 +374,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
 
         this.originalState.parents.clear();
         this.originalState.transforms.clear();
+        if (this.borrowedPlanet) this.borrowedPlanet.isHijacked = false;
         this.borrowedPlanet = undefined;
         this.borrowedEmitter = undefined;
     }
@@ -418,9 +476,20 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
 
     private startTyping() {
         if (this.timerEvent) this.timerEvent.remove();
+
+        // Show text container now that typing is starting (was hidden to prevent flash)
+        this.textContainer.setVisible(true);
+        this.textContainer.setAlpha(1);
+
         this.timerEvent = this.scene.time.addEvent({
             delay: 50, loop: true,
             callback: () => {
+                // Safety check: Ensure scene and textContainer still exist
+                if (!this.scene || !this.textContainer || !this.textContainer.scene) {
+                    if (this.timerEvent) this.timerEvent.remove();
+                    return;
+                }
+
                 if (this.charIndex < this.fullText.length) {
                     this.currentText += this.fullText[this.charIndex];
                     this.textContainer.setText(this.currentText);
@@ -428,21 +497,19 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
                 } else { this.finishTyping(); }
             }
         });
+
+        // Ensure timer is cleaned up on destroy
+        this.once('destroy', () => {
+            if (this.timerEvent) this.timerEvent.remove();
+        });
     }
 
     private forceFinishTyping() {
         if (this.timerEvent) this.timerEvent.remove();
+        this.textContainer.setVisible(true); // Ensure visible when skipping
+        this.textContainer.setAlpha(1);
         this.textContainer.setText(this.fullText);
-        console.log('Intro Text Finished:', {
-            text: this.fullText,
-            x: this.textContainer.x,
-            y: this.textContainer.y,
-            visible: this.textContainer.visible,
-            alpha: this.textContainer.alpha,
-            scrollFactorX: this.textContainer.scrollFactorX,
-            depth: this.textContainer.depth,
-            overlayVisible: this.visible
-        });
+        console.log(`Intro Text displayed for planet: ${this.borrowedPlanet?.id}`);
         this.finishTyping();
     }
 
@@ -488,6 +555,8 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             },
             onComplete: () => {
                 // 4. Final Cleanup - Only now hide the container and restore
+                this.textContainer.setText(""); // Clear text for next show
+                this.textContainer.setVisible(false);
                 this.setVisible(false);
                 this.restorePlanetVisuals();
                 this.planetContainer.removeAll(true);

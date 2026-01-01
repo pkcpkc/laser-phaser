@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { WarpStarfield } from '../../backgrounds/warp-starfield';
 import { PlanetVisuals } from './planets/planet-visuals';
 import { GalaxyInteractionManager } from './galaxy-interaction';
-import { BaseGalaxy } from './base-galaxy';
+import { Galaxy } from './galaxy';
 import { GalaxyFactory } from './galaxy-factory';
 import { type PlanetData } from './planets/planet-data';
 import { GameStatus } from '../../logic/game-status';
@@ -12,7 +12,7 @@ import { PlanetIntroOverlay } from './planets/planet-intro-overlay';
 import { StorylineManager } from '../../logic/storyline-manager';
 
 export default class GalaxyScene extends Phaser.Scene {
-    private galaxy!: BaseGalaxy;
+    private galaxy!: Galaxy;
     private visuals: PlanetVisuals;
     private interactions!: GalaxyInteractionManager;
 
@@ -61,7 +61,10 @@ export default class GalaxyScene extends Phaser.Scene {
 
         // Initialize Storyline Manager
         if (this.cache.text.exists('storylines')) {
-            StorylineManager.getInstance().init(this.cache.text.get('storylines'));
+            const manager = StorylineManager.getInstance();
+            if (!manager.initialized) {
+                manager.init(this.cache.text.get('storylines'));
+            }
         } else {
             console.warn('Storylines data not found in cache.');
         }
@@ -76,6 +79,7 @@ export default class GalaxyScene extends Phaser.Scene {
 
         // Pass galaxy ID to interactions
         this.interactions.setGalaxyId(this.galaxy.id);
+        this.interactions.setStorylineCallback((planet) => this.showStoryline(planet));
 
         console.log('GalaxyScene: creating background');
         // Background
@@ -174,7 +178,7 @@ export default class GalaxyScene extends Phaser.Scene {
             .setScale(0.4)
             .setAngle(-90)
             .setOrigin(0.5)
-            .setDepth(10);
+            .setDepth(1000);
         console.log('createPlayerShip: Created at 0,0');
     }
 
@@ -285,6 +289,19 @@ export default class GalaxyScene extends Phaser.Scene {
             return true;
         }
         return false;
+    }
+
+    private showStoryline(planet: PlanetData) {
+        const introText = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id);
+        if (!introText) return;
+
+        if (this.lootUI) this.lootUI.setVisible(false);
+        this.interactions.hide();
+
+        this.introOverlay.show(planet, introText, () => {
+            if (this.lootUI) this.lootUI.setVisible(true);
+            this.interactions.showInteractionUI(planet);
+        });
     }
 
     private revealPlanet(planet: PlanetData) {

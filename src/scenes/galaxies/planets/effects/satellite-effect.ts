@@ -202,13 +202,14 @@ export class SatelliteEffect extends BaseOrbitEffect {
             }
 
             // Set trail depth (slightly behind the satellite)
-            sat.trail.setDepth(depth - 0.1);
-
             // Position satellite
             sat.image.setPosition(pos.x, pos.y);
 
-            // Set depth based on position
-            sat.image.setDepth(depth);
+            // Front objects: baseDepth + 2
+            // Back objects: baseDepth
+            const targetDepth = pos.isFront ? this.baseDepth + 2 : this.baseDepth;
+            sat.image.setDepth(targetDepth);
+            if (sat.trail) sat.trail.setDepth(targetDepth - 0.05);
 
             // Scale satellites slightly based on depth for subtle 3D effect
             // Satellite effect legacy scale logic
@@ -224,6 +225,19 @@ export class SatelliteEffect extends BaseOrbitEffect {
 
     public setDepth(depth: number) {
         this.baseDepth = depth;
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        const elements: Phaser.GameObjects.GameObject[] = [];
+        this.satellites.forEach(sat => {
+            elements.push(sat.trail); // Trail first (usually behind)
+            elements.push(sat.image);
+        });
+        return elements;
     }
 
     public setVisible(visible: boolean) {

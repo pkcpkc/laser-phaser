@@ -12,10 +12,12 @@ I jolt awake to the screaming of alarms. I'm drifting helpless in the gravity we
 
 I need to blast a path or dodge these rocks to survive.
 
-Strange alien signals are piercing the static... and they don't sound friendly. But right now, the asteroids are the only thing that matters!
+Strange alien signals are piercing the static... and they don't sound friendly.
+
+But right now, the asteroids are the only thing that matters!
 
 ### vortex
-Warning! Incoming transmission... rejected. The Blood Hunters don't negotiate.
+I try to hail the approaching ships... transmission rejected. The Blood Hunters don't negotiate.
 
 These evil scavengers are only interested in one thing: looting my ship.
 
@@ -33,5 +35,28 @@ I hope the next sector is more peaceful, but to get there, I have to go through 
 ## demo-galaxy
 
 ### astra
+DEMO: Ship showcase level. All ship configurations are displayed in a horizontal row, oscillating and firing continuously. Central planet with hurricane effects. Features warp gate to Blood Hunters Galaxy.
+
+### aurelia
+DEMO: Visual-only planet. No level assigned. Showcases solid ring effect with 30° tilt and rotation enabled. Dark golden tint, 0.8 scale.
+
+### veridia
+DEMO: Hidden planet. No level. Showcases purple rectangle cluster effect with yellow lights (4 clusters, 55 rectangles) plus yellow satellite ring (10 satellites).
+
+### nox
+DEMO: Blood Hunters level. Purple planet with 1.5 scale exhibiting toxic green gas ring effect. Features Diamond and Line formations with Fighters, Bombers, and Sinus tactics.
 
 ### crimson
+DEMO: Blood Boss level with Shipyard. Small red planet (0.5 scale) with 3 mini-moons at different tilts (-60°, 0°, 60°). Boss uses movement radius and fire duration tactics.
+
+### ignis
+DEMO: Blood Hunters level with Shipyard. Dark red, small scale (0.5). Showcases solar flare effect with 2s frequency and speed 20.
+
+### pulsar
+DEMO: Hidden planet. No level. Dark grey (0.6 scale) with pulsing red ghost-shade effect.
+
+### frost
+DEMO: Hidden planet. Blood Hunters level. Grey (0.9 scale) with glimmering white snow effect.
+
+### umbra
+DEMO: Hidden planet. No level. Dark grey (0.6 scale) with non-pulsing white ghost-shade effect.

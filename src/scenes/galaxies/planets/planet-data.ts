@@ -18,6 +18,7 @@ export interface PlanetData {
         levelId?: string;
         hasShipyard?: boolean;
         warpGalaxyId?: string;
+        showAlways?: boolean;
     };
 
     // Central planet flag - if true, this planet is positioned at the center and doesn't orbit
@@ -27,6 +28,7 @@ export interface PlanetData {
     gameObject?: Phaser.GameObjects.Text | Phaser.GameObjects.Image;
     overlayGameObject?: Phaser.GameObjects.Text;
     usingOverlay?: boolean;
+    isHijacked?: boolean; // True when grabbed by IntroOverlay
     emitter?: Phaser.GameObjects.Particles.ParticleEmitter; // Locked particle effect
 
     // Positioning persistence

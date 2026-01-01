@@ -12,17 +12,16 @@ export interface SolarFlareConfig {
 class SolarFlare {
     public isActive: boolean = true;
     private scene: Phaser.Scene;
-    // private planet: PlanetData;
+    private container: Phaser.GameObjects.Container;
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
     private timer: Phaser.Time.TimerEvent;
     private angleDeg: number;
     private startTime: number;
     private duration: number;
 
-    constructor(scene: Phaser.Scene, _planet: PlanetData, startX: number, startY: number, angleDeg: number) {
+    constructor(scene: Phaser.Scene, container: Phaser.GameObjects.Container, startX: number, startY: number, angleDeg: number) {
         this.scene = scene;
-        this.scene = scene;
-        // this.planet = planet; // Unused, keeping reference in case needed later or removing if strict
+        this.container = container;
         this.angleDeg = angleDeg;
         this.startTime = scene.time.now;
 
@@ -46,6 +45,7 @@ class SolarFlare {
             rotate: { min: -180, max: 180 }
         });
         this.emitters.push(coreEmitter);
+        this.container.add(coreEmitter);
 
         // Sparks - High speed, shooting far out (Keep these somewhat active for contrast)
         const sparkEmitter = this.scene.add.particles(0, 0, 'flare-white', {
@@ -64,6 +64,7 @@ class SolarFlare {
             rotate: { min: 0, max: 360 }
         });
         this.emitters.push(sparkEmitter);
+        this.container.add(sparkEmitter);
 
         // Prominence Stream - The "tongues" licking upwards
         const streamEmitter = this.scene.add.particles(0, 0, 'flare-white', {
@@ -81,8 +82,7 @@ class SolarFlare {
             emitting: true
         });
         this.emitters.push(streamEmitter);
-
-        this.emitters.forEach(e => e.setDepth(0.9));
+        this.container.add(streamEmitter);
 
         // Update loop for this flare
         this.timer = this.scene.time.addEvent({
@@ -134,6 +134,13 @@ class SolarFlare {
     public get remainingTime(): number {
         return this.duration - (this.scene.time.now - this.startTime);
     }
+
+    public setDepth(depth: number) {
+        this.emitters.forEach(e => e.setDepth(depth));
+    }
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        return this.emitters;
+    }
 }
 
 export class SolarFlareEffect implements IPlanetEffect {
@@ -145,17 +152,48 @@ export class SolarFlareEffect implements IPlanetEffect {
     private flares: SolarFlare[] = [];
     private isVisible: boolean = true;
     private updateEvent?: Phaser.Time.TimerEvent;
+    private container!: Phaser.GameObjects.Container;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: SolarFlareConfig) {
         this.scene = scene;
         this.planet = planet;
         this.config = config;
+
+        // Create a container to hold all flares
+        this.container = this.scene.add.container(this.planet.x, this.planet.y);
+
         this.create();
 
         // Initial visibility based on planet hidden state
         if (this.planet.hidden ?? true) {
             this.setVisible(false);
         }
+    }
+
+    private baseDepth: number = 0;
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+        // Planet is usually baseDepth + 1. 
+        // We want flares ON TOP of planet.
+        const flareDepth = 1.1; // Relative to container or baseDepth + 1.1
+
+        if (this.container) {
+            this.container.setDepth(depth + 1.1);
+        }
+
+        // Update children (flares) relative depth if they are not in a container,
+        // but since we have a container we set the container depth.
+        this.flares.forEach(f => f.setDepth(flareDepth));
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        // Return the main container
+        return [this.container];
     }
 
     private create() {
@@ -205,15 +243,32 @@ export class SolarFlareEffect implements IPlanetEffect {
         const scale = this.planet.visualScale ?? 1;
         const radius = 1.1 * scale;
 
-        const startX = this.planet.gameObject.x + Math.cos(angleRad) * radius;
-        const startY = this.planet.gameObject.y + Math.sin(angleRad) * radius;
+        const localX = Math.cos(angleRad) * radius;
+        const localY = Math.sin(angleRad) * radius;
 
-        const flare = new SolarFlare(this.scene, this.planet, startX, startY, angleDeg);
+        // Pass container instead of scene for adding emitters?
+        // SolarFlare constructor expects Scene.
+        // We can pass container as well.
+        const flare = new SolarFlare(this.scene, this.container, localX, localY, angleDeg);
+
+        // Set depth (relative to container 0)
+        // Planet in overlay is depth 1. So 1.1 is good.
+        // If not in overlay, container base depth handles global Z.
+        flare.setDepth(1.1);
+
         this.flares.push(flare);
+    }
+
+    public update(_time: number, _delta: number) {
+        if (!this.isVisible || !this.container) return;
+
+        // Sync container with planet position (especially for intro transition)
+        this.container.setPosition(this.planet.x, this.planet.y);
     }
 
     public setVisible(visible: boolean) {
         this.isVisible = visible;
+        this.container.setVisible(visible); // Handle container
         if (!visible) {
             this.flares.forEach(f => f.destroy());
             this.flares = [];
@@ -224,5 +279,6 @@ export class SolarFlareEffect implements IPlanetEffect {
         if (this.updateEvent) this.updateEvent.remove();
         this.flares.forEach(f => f.destroy());
         this.flares = [];
+        this.container.destroy();
     }
 }

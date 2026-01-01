@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
 import type { PlanetData } from './planets/planet-data';
+import { StorylineManager } from '../../logic/storyline-manager';
+import { GameStatus } from '../../logic/game-status';
 
 export class GalaxyInteractionManager {
     private scene: Phaser.Scene;
     private interactionContainer!: Phaser.GameObjects.Container;
     private planetNameContainer!: Phaser.GameObjects.Container;
     private galaxyId?: string;
+    private onShowStoryline?: (planet: PlanetData) => void;
 
     constructor(scene: Phaser.Scene) {
         this.scene = scene;
@@ -14,6 +17,10 @@ export class GalaxyInteractionManager {
 
     public setGalaxyId(id: string) {
         this.galaxyId = id;
+    }
+
+    public setStorylineCallback(callback: (planet: PlanetData) => void) {
+        this.onShowStoryline = callback;
     }
 
     private createInteractionUI() {
@@ -73,11 +80,22 @@ export class GalaxyInteractionManager {
             })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.launchLevel(levelId, planet));
+                .on('pointerdown', () => {
+                    this.launchLevel(levelId, planet);
+                });
             icons.push(playBtn);
         }
 
-        if (planet.interaction?.hasShipyard) {
+        // Determine if "locked" icons should show
+        // Show if: no levelId (nothing to defeat) OR showAlways OR planet is defeated
+        const hasLevel = !!planet.interaction?.levelId;
+        const showAlways = planet.interaction?.showAlways ?? false;
+        const isDefeated = this.galaxyId
+            ? GameStatus.getInstance().isPlanetDefeated(this.galaxyId, planet.id)
+            : false;
+        const showLockedIcons = !hasLevel || showAlways || isDefeated;
+
+        if (planet.interaction?.hasShipyard && showLockedIcons) {
             const shipyardBtn = this.scene.add.text(0, 0, '🛠️', {
                 fontSize: '24px',
                 padding: { x: 5, y: 5 },
@@ -89,7 +107,7 @@ export class GalaxyInteractionManager {
             icons.push(shipyardBtn);
         }
 
-        if (planet.interaction?.warpGalaxyId) {
+        if (planet.interaction?.warpGalaxyId && showLockedIcons) {
             const warpBtn = this.scene.add.text(0, 0, '🌀', {
                 fontSize: '24px',
                 padding: { x: 5, y: 5 },
@@ -97,8 +115,25 @@ export class GalaxyInteractionManager {
             })
                 .setOrigin(0.5)
                 .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.scene.scene.start('GalaxyScene', { galaxyId: planet.interaction?.warpGalaxyId }));
+                .on('pointerdown', () => this.scene.scene.start('WormholeScene', { galaxyId: planet.interaction?.warpGalaxyId }));
             icons.push(warpBtn);
+        }
+
+        // Storyline re-read icon - show if planet has intro text
+        if (this.galaxyId && StorylineManager.getInstance().getIntroText(this.galaxyId, planet.id)) {
+            const storyBtn = this.scene.add.text(0, 0, '📃', {
+                fontSize: '24px',
+                padding: { x: 5, y: 5 },
+                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
+            })
+                .setOrigin(0.5)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    if (this.onShowStoryline) {
+                        this.onShowStoryline(planet);
+                    }
+                });
+            icons.push(storyBtn);
         }
 
         // Horizontal Layout

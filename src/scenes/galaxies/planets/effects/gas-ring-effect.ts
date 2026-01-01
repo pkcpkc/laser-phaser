@@ -107,11 +107,11 @@ export class GasRingEffect extends BaseRingEffect {
         };
 
         const backEmitter = createEmitter(false);
-        backEmitter.setDepth(0);
+        backEmitter.setDepth(this.baseDepth);
         this.backElement = backEmitter;
 
         const frontEmitter = createEmitter(true);
-        frontEmitter.setDepth(10); // Ensure it's on top of planet (usually depth 1)
+        frontEmitter.setDepth(this.baseDepth + 2);
         this.frontElement = frontEmitter;
 
         if (this.planet.hidden ?? true) {

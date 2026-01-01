@@ -109,6 +109,16 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         ]);
     }
 
+    private baseDepth: number = 0;
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
     public onUpdate() {
         // Make sure planet still has valid position
         if (!this.planet.gameObject) return;
@@ -148,8 +158,8 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         // Front: 1.2 (Above Planet at 1.0)
         // Back: 0.5 (Behind Planet at 1.0 and Overlay at 0.9)
         const baseDepth = pos.isFront ? 1.2 : 0.5;
-        this.miniMoon.setDepth(this.depthOffset + baseDepth);
-        this.trail.setDepth(this.depthOffset + (pos.isFront ? 1.15 : 0.45));
+        this.miniMoon.setDepth(this.baseDepth + baseDepth);
+        this.trail.setDepth(this.baseDepth + (pos.isFront ? 1.15 : 0.45));
 
         // Alpha / Brightness - Dim when behind
         const baseAlpha = pos.isFront ? 1.0 : 0.6;
@@ -188,9 +198,11 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         }
     }
 
-    private depthOffset: number = 0;
-    public setDepth(depth: number) {
-        this.depthOffset = depth;
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        // Return both the moon text and the trail graphics
+        // Order matters for local sorting if needed, but container sort handles depth property.
+        // Usually Trail is behind Moon.
+        return [this.trail, this.miniMoon];
     }
 
     public clearParticles() {

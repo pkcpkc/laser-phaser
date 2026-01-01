@@ -41,7 +41,7 @@ const generateFormations = () => {
 
         return {
             formationType: ExplicitFormation,
-            shipConfig,
+            shipConfigs: [shipConfig],
             count: 1,
             config: {
                 positions: [{ x, y: startY }],

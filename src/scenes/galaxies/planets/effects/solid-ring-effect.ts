@@ -119,8 +119,8 @@ export class SolidRingEffect extends BaseRingEffect {
         const backContainer = this.scene.add.container(this.planet.x, this.planet.y);
         const frontContainer = this.scene.add.container(this.planet.x, this.planet.y);
 
-        backContainer.setDepth(0);
-        frontContainer.setDepth(2);
+        backContainer.setDepth(this.baseDepth);
+        frontContainer.setDepth(this.baseDepth + 2);
 
         this.backElement = backContainer;
         this.frontElement = frontContainer;

@@ -26,6 +26,7 @@ export class GhostShadeEffect implements IPlanetEffect {
 
     // Animation state
     private time: number = 0;
+    private baseDepth: number = 0;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: GhostShadeConfig) {
         this.scene = scene;
@@ -43,10 +44,27 @@ export class GhostShadeEffect implements IPlanetEffect {
         }
     }
 
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+        // Planet is usually at baseDepth + 1
+        // We want just above the planet: baseDepth + 1 + 0.8
+        const targetDepth = this.baseDepth + 1.8;
+        this.tendrils.forEach(e => e.setDepth(targetDepth));
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        return [...this.tendrils];
+    }
+
     private createTendrils() {
         // if (!this.planet.gameObject) return;
 
         const planetDepth = 1; // Default depth 1 since gameObject might not exist yet
+        // note: we will apply baseDepth offset in the loop or via setDepth called later
         const scale = this.planet.visualScale || 1.0;
 
         // Create emitters for ghostly green shades that hover over the planet
@@ -106,7 +124,7 @@ export class GhostShadeEffect implements IPlanetEffect {
                 }
             });
 
-            emitter.setDepth(planetDepth + 0.8); // Just above the planet
+            emitter.setDepth(this.baseDepth + planetDepth + 0.8); // Just above the planet
             this.tendrils.push(emitter);
         }
     }

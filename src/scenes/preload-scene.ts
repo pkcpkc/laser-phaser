@@ -166,14 +166,21 @@ export default class PreloadScene extends Phaser.Scene {
         this.scale.off('resize', this.resize, this); // Clean up listener
 
         // Check for galaxyId in URL parameters (for debugging)
+        // Also support legacy 'universeId' parameter for backward compatibility
         const params = new URLSearchParams(window.location.search);
-        const galaxyId = params.get('galaxyId');
+        let galaxyId = params.get('galaxyId') || params.get('universeId');
+
+        // Handle legacy ID format (e.g., 'demo-universe' -> 'demo-galaxy')
+        if (galaxyId && galaxyId.endsWith('-universe')) {
+            galaxyId = galaxyId.replace('-universe', '-galaxy');
+        }
 
         if (galaxyId) {
-            console.log(`Starting with galaxy: ${galaxyId}`);
+            console.log(`Starting directly with galaxy: ${galaxyId} (skipping wormhole)`);
             this.scene.start('GalaxyScene', { galaxyId });
         } else {
-            this.scene.start('GalaxyScene');
+            console.log('No galaxyId specified, starting with WormholeScene');
+            this.scene.start('WormholeScene');
         }
     }
 

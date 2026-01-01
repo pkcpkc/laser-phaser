@@ -19,6 +19,7 @@ export class GameStatus {
 
     private revealedPlanets: Set<string> = new Set();
     private seenIntroPlanetIds: Set<string> = new Set();
+    private defeatedPlanets: Set<string> = new Set(); // Key: "galaxyId:planetId"
 
     // Key format: "galaxyId:planetId"
     private planetPositions: Map<string, PlanetPosition> = new Map();
@@ -115,6 +116,16 @@ export class GameStatus {
         this.save();
     }
 
+    // Planet Defeat Tracking
+    public isPlanetDefeated(galaxyId: string, planetId: string): boolean {
+        return this.defeatedPlanets.has(`${galaxyId}:${planetId}`);
+    }
+
+    public markPlanetDefeated(galaxyId: string, planetId: string) {
+        this.defeatedPlanets.add(`${galaxyId}:${planetId}`);
+        this.save();
+    }
+
     public reset() {
         this.loot = {
             [LootType.GOLD]: 0,
@@ -125,6 +136,7 @@ export class GameStatus {
         this.revealedPlanets.clear();
         this.seenIntroPlanetIds.clear();
         this.planetPositions.clear();
+        this.defeatedPlanets.clear();
         this.victories = {};
         this.save();
     }

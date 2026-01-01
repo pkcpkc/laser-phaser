@@ -80,12 +80,14 @@ export abstract class ShootEmUpScene extends BaseScene {
             // Also mark intro as seen so it won't show again after completing the level
             if (this.returnPlanetId) {
                 GameStatus.getInstance().markIntroSeen(this.returnPlanetId);
+                GameStatus.getInstance().markPlanetDefeated(sceneData.galaxyId, this.returnPlanetId);
             }
         }
 
         // If victory, check for galaxy warp - override galaxyId if warping
         if (victory && this.warpGalaxyId) {
-            sceneData.galaxyId = this.warpGalaxyId;
+            this.scene.start('WormholeScene', { galaxyId: this.warpGalaxyId });
+            return;
         }
 
         this.scene.start('GalaxyScene', sceneData);

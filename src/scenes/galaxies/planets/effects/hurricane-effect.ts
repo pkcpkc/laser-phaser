@@ -304,10 +304,27 @@ export class HurricaneEffect implements IPlanetEffect {
         this.eyeEmitter?.killAll();
     }
 
+    private baseDepth: number = 0;
+
     public setDepth(depth: number) {
-        this.armEmitter?.setDepth(depth);
-        this.eyewallEmitter?.setDepth(depth);
-        this.eyeEmitter?.setDepth(depth + 0.1);
+        this.baseDepth = depth;
+        // Planet is at base + 1. Hurricane must be above.
+        const effectiveDepth = depth + 1.1;
+        this.armEmitter?.setDepth(effectiveDepth);
+        this.eyewallEmitter?.setDepth(effectiveDepth);
+        this.eyeEmitter?.setDepth(effectiveDepth + 0.1);
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        const elements: Phaser.GameObjects.GameObject[] = [];
+        if (this.armEmitter) elements.push(this.armEmitter);
+        if (this.eyewallEmitter) elements.push(this.eyewallEmitter);
+        if (this.eyeEmitter) elements.push(this.eyeEmitter);
+        return elements;
     }
 
     public destroy() {

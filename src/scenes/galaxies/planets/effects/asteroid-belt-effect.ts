@@ -28,6 +28,7 @@ export class AsteroidBeltEffect extends BaseRingEffect {
     private asteroids: AsteroidData[] = [];
     private backAsteroids: AsteroidData[] = [];
     private frontAsteroids: AsteroidData[] = [];
+    private dustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config: AsteroidBeltConfig) {
         super(scene, planet, { angle: config.angle });
@@ -65,13 +66,20 @@ export class AsteroidBeltEffect extends BaseRingEffect {
 
             // Determine if asteroid should be in front or back based on Y position
             const isFront = ty > 0;
-            const currentDepth = asteroid.sprite.depth;
+            const targetDepth = isFront ? this.baseDepth + 2 : this.baseDepth;
 
-            if (isFront && currentDepth < 1) {
-                asteroid.sprite.setDepth(2);
-            } else if (!isFront && currentDepth >= 1) {
-                asteroid.sprite.setDepth(0);
+            if (asteroid.sprite.depth !== targetDepth) {
+                // Debug logging to troubleshoot layering
+                if (Math.random() < 0.001) {
+                    console.log(`Asteroid @ ${this.planet.id}: ty=${ty.toFixed(1)}, target=${targetDepth}, base=${this.baseDepth}`);
+                }
+                asteroid.sprite.setDepth(targetDepth);
             }
+        }
+
+        // Sync dust emitter with planet position
+        if (this.dustEmitter) {
+            this.dustEmitter.setPosition(this.planet.x, this.planet.y);
         }
     }
 
@@ -113,7 +121,7 @@ export class AsteroidBeltEffect extends BaseRingEffect {
             const ty = ux * Math.sin(this.tilt) + uy * Math.cos(this.tilt);
 
             asteroidGraphics.setPosition(this.planet.x + tx, this.planet.y + ty);
-            asteroidGraphics.setDepth(ty > 0 ? 2 : 0);
+            asteroidGraphics.setDepth(ty > 0 ? this.baseDepth + 2 : this.baseDepth);
 
             const asteroidData: AsteroidData = {
                 sprite: asteroidGraphics,
@@ -184,7 +192,8 @@ export class AsteroidBeltEffect extends BaseRingEffect {
         const dustColor = this.config.color ?? 0x8B7355;
 
         // Create dust emitter for subtle particle effect
-        const dustEmitter = this.scene.add.particles(this.planet.x, this.planet.y, 'flare-white', {
+        // Create dust emitter for subtle particle effect
+        this.dustEmitter = this.scene.add.particles(this.planet.x, this.planet.y, 'flare-white', {
             color: [dustColor],
             alpha: { start: 0.3, end: 0 },
             scale: { start: 0.05, end: 0 },
@@ -215,7 +224,23 @@ export class AsteroidBeltEffect extends BaseRingEffect {
             }
         });
 
-        dustEmitter.setDepth(1);
+        this.dustEmitter.setDepth(this.baseDepth);
+    }
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+        super.setDepth(depth);
+        // Asteroids update own depth in update()
+        this.dustEmitter?.setDepth(depth + 1); // Dust behind front asteroids(2)? Or just middle(1)? 
+        // Dust usually background, so 1 (with planet).
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        const elements = super.getVisualElements();
+        // Add all asteroids
+        this.asteroids.forEach(a => elements.push(a.sprite));
+        if (this.dustEmitter) elements.push(this.dustEmitter);
+        return elements;
     }
 
     public setVisible(visible: boolean): void {
@@ -224,6 +249,7 @@ export class AsteroidBeltEffect extends BaseRingEffect {
         for (const asteroid of this.asteroids) {
             asteroid.sprite.setVisible(visible);
         }
+        this.dustEmitter?.setVisible(visible);
     }
 
     public destroy(): void {

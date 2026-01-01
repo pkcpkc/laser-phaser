@@ -12,6 +12,10 @@ export class StorylineManager {
         return StorylineManager.instance;
     }
 
+    public get initialized(): boolean {
+        return this.isInitialized;
+    }
+
     /**
      * Parses the markdown content and caches the texts.
      * Expected format:

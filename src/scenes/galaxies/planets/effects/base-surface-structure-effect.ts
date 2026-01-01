@@ -233,6 +233,14 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
         this.graphics.setDepth(depth);
     }
 
+    public getDepth(): number {
+        return this.graphics.depth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        return [this.graphics];
+    }
+
     public destroy() {
         this.scene.events.off('update', this.updateListener);
         this.graphics.destroy();

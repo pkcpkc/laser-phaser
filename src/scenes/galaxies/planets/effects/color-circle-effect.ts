@@ -257,10 +257,18 @@ export class ColorCircleEffect implements IPlanetEffect {
         });
     }
 
+    private baseDepth: number = 0;
+
     public setDepth(depth: number) {
+        this.baseDepth = depth;
         this.waveEmitters.forEach(emitter => {
-            emitter?.setDepth(depth);
+            // Planet is at depth + 1. We want waves ON TOP of the planet.
+            emitter?.setDepth(depth + 1.1);
         });
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
     }
 
     public destroy() {

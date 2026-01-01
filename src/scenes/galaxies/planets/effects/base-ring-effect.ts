@@ -5,11 +5,11 @@ import type { IPlanetEffect } from '../planet-effect';
 export abstract class BaseRingEffect implements IPlanetEffect {
     protected scene: Phaser.Scene;
     protected planet: PlanetData;
-    protected occluder?: Phaser.GameObjects.Graphics;
-
     protected backElement?: Phaser.GameObjects.GameObject | Phaser.GameObjects.Particles.ParticleEmitter;
     protected frontElement?: Phaser.GameObjects.GameObject | Phaser.GameObjects.Particles.ParticleEmitter;
     protected tilt: number = 0;
+
+    protected baseDepth: number = 0;
 
     constructor(scene: Phaser.Scene, planet: PlanetData, config?: { angle?: number }) {
         this.scene = scene;
@@ -20,28 +20,25 @@ export abstract class BaseRingEffect implements IPlanetEffect {
         } else {
             this.tilt = Phaser.Math.DegToRad(-20); // Default tilt
         }
-
-        this.createOccluder();
     }
 
-    protected createOccluder() {
-        this.occluder = this.scene.add.graphics();
-        this.occluder.fillStyle(0x000000, 1);
-        // Use larger radius (22) to fully cover moon including transparency
-        this.occluder.fillCircle(0, 0, 22);
-        this.occluder.setPosition(this.planet.x, this.planet.y);
-        this.occluder.setDepth(0.5); // Between BackRing (0) and Moon (1)
 
-        // Scale with planet if needed
-        if (this.planet.visualScale) {
-            this.occluder.setScale(this.planet.visualScale);
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+        if (this.backElement && 'setDepth' in this.backElement) {
+            (this.backElement as any).setDepth(this.baseDepth);
         }
+        if (this.frontElement && 'setDepth' in this.frontElement) {
+            (this.frontElement as any).setDepth(this.baseDepth + 2); // Above planet (which is usually baseDepth + 1 effectively)
+        }
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
     }
 
     public setVisible(visible: boolean): void {
-        if (this.occluder) {
-            this.occluder.setVisible(visible);
-        }
 
         if (this.backElement) {
             // Safe check for setVisible
@@ -64,9 +61,6 @@ export abstract class BaseRingEffect implements IPlanetEffect {
     }
 
     public destroy(): void {
-        if (this.occluder) {
-            this.occluder.destroy();
-        }
 
         if (this.backElement) {
             this.backElement.destroy();
@@ -77,15 +71,9 @@ export abstract class BaseRingEffect implements IPlanetEffect {
         }
     }
 
-    // Optional update method
     public update?(_time: number, _delta: number): void {
-        // Skip update if planet is hidden
         if (this.planet.hidden ?? true) {
             return;
-        }
-
-        if (this.occluder) {
-            this.occluder.setPosition(this.planet.x, this.planet.y);
         }
 
         // Use type guard or checks
@@ -97,5 +85,13 @@ export abstract class BaseRingEffect implements IPlanetEffect {
         if (this.frontElement && 'setPosition' in this.frontElement) {
             (this.frontElement as any).setPosition(this.planet.x, this.planet.y);
         }
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        const elements: Phaser.GameObjects.GameObject[] = [];
+        if (this.backElement && (this.backElement instanceof Phaser.GameObjects.GameObject)) elements.push(this.backElement);
+        // Front element
+        if (this.frontElement && (this.frontElement instanceof Phaser.GameObjects.GameObject)) elements.push(this.frontElement);
+        return elements;
     }
 }

@@ -78,7 +78,8 @@ export class GlimmeringSnowEffect implements IPlanetEffect {
                 type: 'random'
             }
         });
-        this.snowEmitter.setDepth(planetDepth + 0.1);
+
+        this.snowEmitter.setDepth(this.baseDepth + planetDepth + 0.1);
 
         // 2. Glimmer Emitter - Sparkles on the surface
         this.glimmerEmitter = this.scene.add.particles(0, 0, 'flare-white', {
@@ -106,7 +107,28 @@ export class GlimmeringSnowEffect implements IPlanetEffect {
                 type: 'random'
             }
         });
-        this.glimmerEmitter.setDepth(planetDepth + 0.2);
+        this.glimmerEmitter.setDepth(this.baseDepth + planetDepth + 0.2);
+    }
+
+    private baseDepth: number = 0;
+
+    public setDepth(depth: number) {
+        this.baseDepth = depth;
+        // Snow and glimmer always on top of planet surface (depth 1)
+        this.snowEmitter?.setDepth(this.baseDepth + 1.1);
+        this.glimmerEmitter?.setDepth(this.baseDepth + 1.2);
+    }
+
+    public getDepth(): number {
+        return this.baseDepth;
+    }
+
+    public getVisualElements(): Phaser.GameObjects.GameObject[] {
+        const elements: Phaser.GameObjects.GameObject[] = [];
+        // ParticleEmitters are GameObjects in recent Phaser versions, but check just in case
+        if (this.snowEmitter) elements.push(this.snowEmitter);
+        if (this.glimmerEmitter) elements.push(this.glimmerEmitter);
+        return elements;
     }
 
     private onUpdate() {

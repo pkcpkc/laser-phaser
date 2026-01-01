@@ -24,6 +24,7 @@ export interface PlanetConfig {
         levelId?: string;
         hasShipyard?: boolean;
         warpGalaxyId?: string;
+        showAlways?: boolean; // Show shipyard/warp icons even if planet not defeated
     };
 
     // Central planet flag - if true, this planet is positioned at the center and doesn't orbit

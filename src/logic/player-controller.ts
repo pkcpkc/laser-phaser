@@ -271,9 +271,18 @@ export class PlayerController {
             if (this.ship.sprite.y === clampedY) {
                 this.ship.sprite.setVelocityY(0);
             }
-            // Also clear target if we hit wall
+
+            // Stop target movement if we hit a wall
             if (this.targetPosition) {
-                // Check if target is outside bounds? nah, just let it slide
+                this.targetPosition = null;
+                this.currentSpeed = 0;
+
+                if (this.targetEffect) {
+                    this.targetEffect.destroy();
+                    this.targetEffect = null;
+                }
+
+                this.returnToUpright();
             }
         }
     }
