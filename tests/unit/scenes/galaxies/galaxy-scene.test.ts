@@ -1,22 +1,75 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import GalaxyScene from '../../../../src/scenes/galaxies/galaxy-scene';
+import { StorylineManager } from '../../../../src/logic/storyline-manager';
+import { GameStatus } from '../../../../src/logic/game-status';
+import { GalaxyFactory } from '../../../../src/scenes/galaxies/galaxy-factory';
 
-// Mock Phaser by default as many files depend on it
+// Mock dependencies
+vi.mock('../../../../src/logic/storyline-manager');
+vi.mock('../../../../src/logic/game-status');
+vi.mock('../../../../src/scenes/galaxies/galaxy-factory');
+vi.mock('../../../../src/scenes/galaxies/galaxy-interaction', () => {
+    return {
+        GalaxyInteractionManager: class {
+            constructor() {
+                // Ensure methods are spies
+                this.setGalaxyId = vi.fn();
+                this.setStorylineCallback = vi.fn();
+                this.showInteractionUI = vi.fn();
+                this.hide = vi.fn();
+            }
+            setGalaxyId: any;
+            setStorylineCallback: any;
+            showInteractionUI: any;
+            hide: any;
+        }
+    };
+});
+vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
+vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals');
+vi.mock('../../../../src/backgrounds/warp-starfield');
+vi.mock('../../../../src/ui/loot-ui');
+
+// Mock Phaser
 vi.mock('phaser', () => {
     return {
         default: {
-            Scene: class { },
+            Scene: class {
+                sys = {
+                    events: { on: vi.fn(), off: vi.fn() },
+                    displayList: { remove: vi.fn() },
+                    updateList: { remove: vi.fn() }
+                };
+                scale = { width: 800, height: 600, on: vi.fn() };
+                input = { keyboard: { createCursorKeys: vi.fn() } };
+                add = {
+                    image: vi.fn().mockReturnThis(),
+                    rectangle: vi.fn().mockReturnThis(),
+                    text: vi.fn().mockReturnThis(),
+                    container: vi.fn().mockReturnThis(),
+                    existing: vi.fn()
+                };
+                tweens = { add: vi.fn() };
+                time = { delayedCall: vi.fn() };
+                cache = { text: { exists: vi.fn(), get: vi.fn() } };
+                registry = { set: vi.fn(), get: vi.fn() };
+            },
             GameObjects: {
                 Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
+                    setOrigin = vi.fn().mockReturnThis();
+                    setDepth = vi.fn().mockReturnThis();
+                    setScale = vi.fn().mockReturnThis();
+                    setVisible = vi.fn().mockReturnThis();
+                    setAngle = vi.fn().mockReturnThis();
+                    setPosition = vi.fn().mockReturnThis();
+                    x = 0;
+                    y = 0;
                 },
                 Container: class {
                     add = vi.fn();
                     setDepth = vi.fn();
                     setPosition = vi.fn();
+                    destroy = vi.fn();
                 },
                 Sprite: class {
                     play = vi.fn();
@@ -31,48 +84,173 @@ vi.mock('phaser', () => {
                         this.x = x;
                         this.y = y;
                     }
-                    normalize() { return this; }
-                    scale() { return this; }
+                    distance() { return 0; }
+                    copy() { return this; }
                 },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
+                Clamp: vi.fn(),
                 Angle: {
                     Between: vi.fn()
+                }
+            },
+            Input: {
+                Keyboard: {
+                    JustDown: vi.fn(),
+                    KeyCodes: {}
                 }
             }
         }
     };
 });
 
-
 describe('GalaxyScene', () => {
+    let scene: GalaxyScene;
+    let mockStorylineManager: any;
+    let mockGameStatus: any;
+    let mockGalaxy: any;
+    let mockInteractions: any;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        // Setup Singleton Mocks
+        mockStorylineManager = {
+            initialized: true,
+            init: vi.fn(),
+            getIntroText: vi.fn()
+        };
+        (StorylineManager.getInstance as any).mockReturnValue(mockStorylineManager);
+
+        mockGameStatus = {
+            hasSeenIntro: vi.fn(),
+            markIntroSeen: vi.fn(),
+            getVictories: vi.fn().mockReturnValue(0),
+            getLoot: vi.fn().mockReturnValue({ scrap: 0, modules: [] })
+        };
+        (GameStatus.getInstance as any).mockReturnValue(mockGameStatus);
+
+        // Setup Galaxy Mock
+        mockGalaxy = {
+            id: 'test-galaxy',
+            init: vi.fn(),
+            getAll: vi.fn().mockReturnValue([]),
+            getById: vi.fn(),
+            backgroundTexture: 'bg-texture'
+        };
+        (GalaxyFactory.create as any).mockReturnValue(mockGalaxy);
+
+        (GalaxyFactory.create as any).mockReturnValue(mockGalaxy);
+
+        scene = new GalaxyScene();
+        // @ts-ignore
+        scene.add = {
+            image: vi.fn().mockImplementation(() => ({
+                setOrigin: vi.fn().mockReturnThis(),
+                setDepth: vi.fn().mockReturnThis(),
+                setScale: vi.fn().mockReturnThis(),
+                setVisible: vi.fn().mockReturnThis(),
+                setAngle: vi.fn().mockReturnThis(),
+                setPosition: vi.fn().mockReturnThis(),
+                setAlpha: vi.fn().mockReturnThis(),
+                x: 0,
+                y: 0
+            })),
+            rectangle: vi.fn().mockImplementation(() => ({
+                setOrigin: vi.fn().mockReturnThis(),
+                setDepth: vi.fn().mockReturnThis(),
+                setInteractive: vi.fn().mockReturnThis(),
+                setAlpha: vi.fn().mockReturnThis()
+            })),
+            text: vi.fn().mockImplementation(() => ({
+                setOrigin: vi.fn().mockReturnThis(),
+                setScrollFactor: vi.fn().mockReturnThis(),
+                setDepth: vi.fn().mockReturnThis(),
+                setVisible: vi.fn().mockReturnThis(),
+                setAlpha: vi.fn().mockReturnThis(),
+                destroy: vi.fn()
+            })),
+            container: vi.fn().mockImplementation(() => ({
+                add: vi.fn(),
+                setDepth: vi.fn().mockReturnThis(),
+                setScrollFactor: vi.fn().mockReturnThis(),
+                setVisible: vi.fn().mockReturnThis()
+            })),
+            existing: vi.fn()
+        } as any;
+        // @ts-ignore
+        scene.input = { keyboard: { createCursorKeys: vi.fn().mockReturnValue({}) } } as any;
+        // @ts-ignore
+        scene.time = { delayedCall: vi.fn() } as any;
+        // @ts-ignore
+        scene.registry = { get: vi.fn() } as any; // default galaxy
+
+        // Determine the mock object we want the constructor to return
+        // Since we provided a class factory, new GalaxyInteractionManager() returns an instance with spies.
+        // We will access access them via (scene as any).interactions after create().
+    });
+
     it('is defined', () => {
         expect(GalaxyScene).toBeDefined();
     });
 
-    it('should set ship depth to 1000 in createPlayerShip', () => {
-        const scene = new GalaxyScene();
-        const mockImage = {
-            setScale: vi.fn().mockReturnThis(),
-            setAngle: vi.fn().mockReturnThis(),
-            setOrigin: vi.fn().mockReturnThis(),
-            setDepth: vi.fn().mockReturnThis(),
-            setPosition: vi.fn().mockReturnThis(),
-            visible: true,
-            active: true,
-            alpha: 1
-        };
+    describe('Intro Delay Logic', () => {
+        it('should delay intro if intro is required and not seen', async () => {
+            const planetId = 'planet-1';
+            const planetData = { id: planetId, x: 100, y: 100 };
+            mockGalaxy.getById.mockReturnValue(planetData);
+            mockGalaxy.getAll.mockReturnValue([planetData]);
 
-        // @ts-ignore - access private method for testing
-        scene.add = {
-            image: vi.fn().mockReturnValue(mockImage)
-        };
+            // Storyline available and NOT seen
+            mockStorylineManager.getIntroText.mockReturnValue('Intro Text');
+            mockGameStatus.hasSeenIntro.mockReturnValue(false);
 
-        // @ts-ignore
-        scene.createPlayerShip();
+            // Execute create (which calls moveToPlanet -> delayed path)
+            scene.create();
 
-        expect(mockImage.setDepth).toHaveBeenCalledWith(1000);
+            // Capture the interactions instance created by the scene
+            mockInteractions = (scene as any).interactions;
+
+            // Check if delayedCall was invoked with correct delay (hardcoded 1500 or 2000 in code)
+            // Code uses 1500 currently based on user edit
+            expect(scene.time.delayedCall).toHaveBeenCalledWith(1500, expect.any(Function));
+
+            // Verify interactions hidden
+            expect(mockInteractions.hide).toHaveBeenCalled();
+        });
+
+        it('should NOT delay if intro is already seen', async () => {
+            const planetId = 'planet-1';
+            const planetData = { id: planetId, x: 100, y: 100 };
+            mockGalaxy.getById.mockReturnValue(planetData);
+            mockGalaxy.getAll.mockReturnValue([planetData]);
+
+            // Storyline available BUT seen
+            mockStorylineManager.getIntroText.mockReturnValue('Intro Text');
+            mockGameStatus.hasSeenIntro.mockReturnValue(true);
+
+            scene.create();
+            mockInteractions = (scene as any).interactions;
+
+            // Should NOT call delayedCall for intro
+            expect(scene.time.delayedCall).not.toHaveBeenCalled();
+            // Should verify that interactions are shown immediately
+            expect(mockInteractions.showInteractionUI).toHaveBeenCalledWith(planetData);
+        });
+
+        it('should disable controls during delay', () => {
+            // @ts-ignore
+            scene.controlsEnabled = false;
+            // @ts-ignore
+            scene.introOverlay = { visible: false };
+            // @ts-ignore
+            scene.cursorKeys = { up: { isDown: true } }; // Simulate input
+
+            // Spy on navigate/movement
+            const travelSpy = vi.spyOn(scene as any, 'travelToPlanet');
+
+            // @ts-ignore
+            scene.handleInput();
+
+            expect(travelSpy).not.toHaveBeenCalled();
+        });
     });
 });

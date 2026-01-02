@@ -53,7 +53,6 @@ export class SinusTactic extends BaseTactic {
 
             // Let's try to read from the enemy sprite data if possible, as a bridge.
             const startX = (enemyData as any).startX ?? enemy.x; // Fallback?
-            const verticalOffset = (enemyData as any).verticalOffset ?? 0;
             const spawnY = (enemyData as any).startY ?? -50;
 
             // X movement: Sinus
@@ -64,7 +63,7 @@ export class SinusTactic extends BaseTactic {
             const newX = startX + Math.sin(phase) * this.config.amplitude;
 
             // Y movement: Linear
-            const newY = spawnY + verticalOffset + (speed * (elapsed / FRAME_DURATION_MS));
+            const newY = spawnY + (speed * (elapsed / FRAME_DURATION_MS));
 
             enemy.setPosition(newX, newY);
             enemy.setVelocity(0, 0);

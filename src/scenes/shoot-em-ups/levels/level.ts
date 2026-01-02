@@ -162,6 +162,7 @@ export class Level {
     }
 
     start() {
+        console.log(`Starting Level: ${this.config.name}`);
         this.spawnNextStep();
     }
 

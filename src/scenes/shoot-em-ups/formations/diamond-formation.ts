@@ -4,7 +4,7 @@ import type { ShipConfig } from '../../../ships/types';
 import { BaseFormation } from './base-formation';
 
 // Movement & Spawning Constants
-const SPAWN_Y = -65;
+const SPAWN_Y = -200;
 const WOBBLE_SPEED_BASE = 0.8;
 const WOBBLE_SPEED_RANGE = 0.4;
 const WOBBLE_TIME_SCALE = 0.001;

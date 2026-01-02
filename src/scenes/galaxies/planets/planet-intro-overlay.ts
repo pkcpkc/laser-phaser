@@ -149,11 +149,9 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         // Setup borrowPlanetVisuals BEFORE showing overlay
         this.borrowPlanetVisuals(planet);
 
-        // Delay showing by one frame to ensure Phaser has processed all text clearing
-        this.scene.time.delayedCall(0, () => {
-            this.setVisible(true);
-            this.setAlpha(1);
-        });
+        // Show immediately
+        this.setVisible(true);
+        this.setAlpha(1);
         // Input
         this.scene.input.keyboard?.on('keydown-SPACE', this.handleInput, this);
         this.scene.input.on('pointerdown', this.handleInput, this);

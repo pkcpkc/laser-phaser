@@ -105,7 +105,7 @@ const createBomberConfig = (): FormationConfig => {
         interval: 4000,
         config: {
             startWidthPercentage: 0.2,
-            formationGrid: [2, 3], // 2 front, 3 back
+            formationGrid: [2, 4], // 2 front, 3 back
             spacing: 100,
             verticalSpacing: 80,
             rotation: angle - Math.PI / 2
@@ -118,7 +118,7 @@ export const BloodHuntersLevel: LevelConfig = {
     formations: [
         [
             createSinusConfig(),
-            createDiamondConfig(0.25, 0.5, [1, 2, 3], 1000) // Center
+            createDiamondConfig(0.25, 0.5, [1, 2], 1000) // Center
         ],
         [
             createBomberConfig()

@@ -4,7 +4,7 @@ import type { ShipConfig } from '../../../ships/types';
 import { BaseFormation } from './base-formation';
 
 // Movement & Spawning Constants
-const SPAWN_Y_OFFSET = -50;
+const SPAWN_Y_OFFSET = -200;
 const SCREEN_DIVISOR_MIN_SHIPS = 250;
 const SCREEN_DIVISOR_MAX_SHIPS = 150;
 const FRAME_DURATION_MS = 16.66;

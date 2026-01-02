@@ -37,6 +37,12 @@ export class Ship {
         private readonly collisionConfig: ShipCollisionConfig
     ) {
         // Use definition for asset loading
+        if (!scene.textures.exists(config.definition.assetKey)) {
+            console.error(`Ship ${config.definition.id}: Texture '${config.definition.assetKey}' not found!`);
+        } else if (config.definition.frame && !scene.textures.get(config.definition.assetKey).has(config.definition.frame)) {
+            console.error(`Ship ${config.definition.id}: Frame '${config.definition.frame}' not found in texture '${config.definition.assetKey}'!`);
+        }
+
         this.sprite = scene.matter.add.image(x, y, config.definition.assetKey, config.definition.frame);
         this.sprite.setData('ship', this);
 

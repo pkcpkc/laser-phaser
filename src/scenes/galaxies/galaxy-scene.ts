@@ -19,6 +19,9 @@ export default class GalaxyScene extends Phaser.Scene {
     private playerShip!: Phaser.GameObjects.Image;
     private currentPlanetId: string = '';
 
+    private controlsEnabled: boolean = true;
+    private introPending: boolean = false;
+
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
     private lastShipPos: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
@@ -133,7 +136,7 @@ export default class GalaxyScene extends Phaser.Scene {
 
         this.introOverlay = new PlanetIntroOverlay(this);
 
-        this.moveToPlanet(this.currentPlanetId, true);
+        this.moveToPlanet(this.currentPlanetId, true, 1500);
 
         console.log('GalaxyScene: setting up resize handler');
         // Handle Resize
@@ -193,6 +196,8 @@ export default class GalaxyScene extends Phaser.Scene {
     }
 
     private handlePlanetClick(planet: PlanetData) {
+        if (!this.controlsEnabled || this.introOverlay.visible) return;
+
         if (this.isPlanetLocked(planet)) {
             // Optional: Shake effect or sound to indicate locked?
             // For now just block.
@@ -325,7 +330,7 @@ export default class GalaxyScene extends Phaser.Scene {
         }
     }
 
-    private moveToPlanet(planetId: string, instant: boolean = false) {
+    private moveToPlanet(planetId: string, instant: boolean = false, introDelay: number = 0) {
         const planet = this.galaxy.getById(planetId);
         if (!planet) return;
 
@@ -336,16 +341,44 @@ export default class GalaxyScene extends Phaser.Scene {
 
         if (instant) {
             this.playerShip.setPosition(shipX, shipY);
-            // Check for intro trigger on instant move (e.g. initial start)
-            const introStarted = this.checkAndShowIntro(planet);
 
-            if (!introStarted) {
-                this.interactions.showInteractionUI(planet);
+            // Check if we need to show intro
+            const introRequired = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id) &&
+                !GameStatus.getInstance().hasSeenIntro(planet.id);
+
+            if (introRequired && introDelay > 0) {
+                this.controlsEnabled = false;
+                this.introPending = true;
+                // Hide interaction UI while waiting
+                this.interactions.hide();
+
+                setTimeout(() => {
+                    this.introPending = false;
+                    this.controlsEnabled = true;
+
+                    // Re-check intro in case state changed
+                    const introStarted = this.checkAndShowIntro(planet);
+                    if (introStarted) {
+                        // Failsafe: Ensure overlay is visible if it started
+                        this.introOverlay.setVisible(true);
+                        this.introOverlay.setAlpha(1);
+                    } else {
+                        this.interactions.showInteractionUI(planet);
+                    }
+                }, introDelay);
+            } else {
+                if (!this.introPending) {
+                    const introStarted = this.checkAndShowIntro(planet);
+                    if (!introStarted) {
+                        this.interactions.showInteractionUI(planet);
+                    }
+                }
             }
         }
     }
 
     private handleInput() {
+        if (!this.controlsEnabled || this.introOverlay.visible) return;
         if (!this.cursorKeys) return;
 
         if (Phaser.Input.Keyboard.JustDown(this.cursorKeys.up)) {

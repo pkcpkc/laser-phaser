@@ -2,8 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Demo Galaxy Smoke Test', () => {
     test.beforeEach(async ({ page }) => {
-        // Go to the root url
-        await page.goto('/');
+        // Go to the demo galaxy directly
+        await page.goto('/?galaxyId=demo-galaxy');
     });
 
     test('should load the game canvas', async ({ page }) => {
@@ -100,11 +100,8 @@ test.describe('Demo Galaxy Smoke Test', () => {
         const box = await canvas.boundingBox();
         if (!box) throw new Error('Canvas bounding box not found');
 
-        // Click on the planet
-        await page.mouse.click(box.x + planetData.planetX, box.y + planetData.planetY);
-
-        // Wait for potential Intro Overlay
-        await page.waitForTimeout(1000);
+        // 3. Handle Auto-Intro (waits for 1.5s delay + animation)
+        await page.waitForTimeout(3000);
 
         // Check if Intro Overlay is visible
         const isIntroVisible = await page.evaluate(() => {
@@ -114,10 +111,12 @@ test.describe('Demo Galaxy Smoke Test', () => {
         });
 
         if (isIntroVisible) {
-            console.log('Intro Overlay detected. Dismissing...');
-            // Click to skip typing (Click neutral area to avoid hitting planet underneath)
+            // Click to skip typing
             await page.mouse.click(10, 10);
             await page.waitForTimeout(500);
+            // Click to hide
+            await page.mouse.click(10, 10);
+
             // Wait for fade out and HIDDEN state
             await page.waitForFunction(() => {
                 const game = (window as any).game;
@@ -126,12 +125,19 @@ test.describe('Demo Galaxy Smoke Test', () => {
             }, null, { timeout: 5000 });
         }
 
+        // 4. Click on the planet to open menu
+        // Need to re-query bounding box as window might have shifted or resized slightly? Unlikely inside test.
+        // But safe to just use previous logic.
+        await page.mouse.click(box.x + planetData.planetX, box.y + planetData.planetY);
+        await page.waitForTimeout(500); // Wait for UI to open
+
         // 5. Inspect the Play Button Bounds to click accurately
         const btnBounds = await page.evaluate(() => {
             const game = (window as any).game;
             const scene = game.scene.getScene('GalaxyScene');
             const manager = (scene as any).interactions;
             const container = (manager as any).interactionContainer;
+            if (!container) return null;
             const btn = container.list.find((c: any) => c.text === '🔫');
             if (!btn) return null;
 

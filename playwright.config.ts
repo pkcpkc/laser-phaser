@@ -9,7 +9,7 @@ export default defineConfig({
     reporter: [['html', { outputFolder: 'tests/reports/playwright-report' }]],
     outputDir: 'tests/reports/test-results',
     use: {
-        baseURL: 'http://localhost:5174', // Use distinct port for E2E
+        baseURL: 'http://localhost:5177', // Use distinct port for E2E
         trace: 'on-first-retry',
     },
     projects: [
@@ -19,8 +19,8 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: 'TEST_E2E=true npm run dev -- --port 5174',
-        url: 'http://localhost:5174',
+        command: 'TEST_E2E=true npm run dev -- --port 5177',
+        url: 'http://localhost:5177',
         reuseExistingServer: false, // Force new server with correct env vars
     },
 });

@@ -22,7 +22,7 @@ export interface LineFormationConfig {
     continuousFire?: boolean;
 }
 
-const SPAWN_Y_OFFSET = -50;
+const SPAWN_Y_OFFSET = -200;
 const TIME_OFFSET_PER_ENEMY = 0.5;
 
 export class LineFormation extends BaseFormation {

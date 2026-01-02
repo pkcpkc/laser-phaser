@@ -43,7 +43,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
         {
             id: 'veridia',
             name: 'Veridia',
-            hidden: true,
             tint: 0xeeeeee, // Green-ish
             effects: [
                 {
@@ -68,6 +67,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             interaction: {
                 levelId: 'blood-hunters-level'
             },
+            hidden: false,
             visualScale: 1.5, // Smaller? No, 1.5 is bigger usually.
             tint: 0xAA00FF, // Purple
             effects: [
