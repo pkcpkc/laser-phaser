@@ -27,10 +27,18 @@ describe('ShipHazardHandler', () => {
     const mockOnGameOver = vi.fn();
     const handler = new ShipHazardHandler(SHIP_CATEGORY, ENEMY_LASER_CATEGORY, mockOnGameOver);
 
-    // Mock scene
+    // Mock scene with delayedCall and add.particles for hit effect
     const mockScene = {
         time: {
             delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
+        },
+        add: {
+            particles: vi.fn().mockReturnValue({
+                setDepth: vi.fn(),
+                explode: vi.fn(),
+                active: true,
+                destroy: vi.fn()
+            })
         }
     } as unknown as Phaser.Scene;
 
@@ -45,7 +53,10 @@ describe('ShipHazardHandler', () => {
         } as unknown as Phaser.GameObjects.GameObject;
         const mockEnemyLaser = {
             active: true,
-            destroy: vi.fn()
+            destroy: vi.fn(),
+            x: 100,
+            y: 200,
+            tintTopLeft: 0xff0000
         } as unknown as Phaser.GameObjects.GameObject;
 
         const result = handler.handle(mockScene, SHIP_CATEGORY, ENEMY_LASER_CATEGORY, mockShipGO, mockEnemyLaser);

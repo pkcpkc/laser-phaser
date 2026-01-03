@@ -2,9 +2,8 @@ import Phaser from 'phaser';
 console.log('Main.ts: initializing game...');
 import BootScene from './scenes/boot-scene';
 import PreloadScene from './scenes/preload-scene';
-import BloodHuntersScene from './scenes/shoot-em-ups/blood-hunters-scene';
+import { ShootEmUpScene } from './scenes/shoot-em-ups/shoot-em-up-scene';
 import GalaxyScene from './scenes/galaxies/galaxy-scene';
-import ShipDemoScene from './scenes/shoot-em-ups/ship-demo-scene';
 import ShipyardScene from './scenes/shipyards/shipyard-scene';
 import TowerDefenseScene from './scenes/tower-defenses/tower-defense-scene';
 import WormholeScene from './scenes/wormhole-scene';
@@ -32,7 +31,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: import.meta.env.MODE === 'debug' // Set to true if you want to see physics bodies
     }
   },
-  scene: [BootScene, PreloadScene, GalaxyScene, BloodHuntersScene, ShipDemoScene, ShipyardScene, TowerDefenseScene, WormholeScene]
+  scene: [BootScene, PreloadScene, GalaxyScene, ShootEmUpScene, ShipyardScene, TowerDefenseScene, WormholeScene]
 };
 
 // Clean up existing game instance if it exists (HMR)

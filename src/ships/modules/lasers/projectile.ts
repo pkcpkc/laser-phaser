@@ -4,6 +4,12 @@ export class Projectile extends Phaser.Physics.Matter.Image {
     private readonly lifespan?: number;
     private spawnTime: number;
 
+    /** Hit effect color - set from weapon's COLOR property */
+    public hitColor: number = 0xffffff;
+
+    /** Whether this is a rocket (shows explosion) or laser (shows simple hit) */
+    public isRocket: boolean = false;
+
     constructor(
         scene: Phaser.Scene,
         x: number,

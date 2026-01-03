@@ -5,6 +5,8 @@ import { glob } from 'glob';
 const SRC_DIR = 'src';
 const TESTS_DIR = 'tests/unit';
 
+const SRC_GEN_DIR = 'src-generated';
+
 async function checkTests() {
     console.log('🔍 Checking test coverage...');
 
@@ -25,6 +27,7 @@ async function checkTests() {
         // Construct expected test file path
         // src/foo/bar.ts -> tests/foo/bar.test.ts
         // scripts/foo.ts -> tests/scripts/foo.test.ts
+        // src-generated/foo.ts -> tests/src-generated/foo.test.ts
         let relPath: string;
         if (srcFile.startsWith(SRC_DIR + path.sep)) {
             relPath = path.relative(SRC_DIR, srcFile);
@@ -45,24 +48,12 @@ async function checkTests() {
         // Construct expected source file path
         // tests/foo/bar.test.ts -> src/foo/bar.ts
         // tests/scripts/foo.test.ts -> scripts/foo.ts
+        // tests/src-generated/foo.test.ts -> src-generated/foo.ts
         const relPath = path.relative(TESTS_DIR, testFile);
         const srcRelPath = relPath.replace(/\.test\.ts$/, '.ts');
 
         let expectedSrcPath: string;
-        if (srcRelPath.startsWith('scripts/')) {
-            expectedSrcPath = srcRelPath;
-        } else {
-            expectedSrcPath = path.join(SRC_DIR, srcRelPath);
-        }
-
-        if (!fs.existsSync(expectedSrcPath) && !fs.existsSync(path.join(SRC_DIR, srcRelPath))) {
-            // Double check if it might be in src even if it says scripts? No.
-            // But simpler check:
-            // If implicit src check failed, checking specific path.
-        }
-
-        // Re-simplifying logic for read-ability
-        if (srcRelPath.startsWith('scripts' + path.sep)) {
+        if (srcRelPath.startsWith('scripts' + path.sep) || srcRelPath.startsWith(SRC_GEN_DIR + path.sep)) {
             expectedSrcPath = srcRelPath;
         } else {
             expectedSrcPath = path.join(SRC_DIR, srcRelPath);

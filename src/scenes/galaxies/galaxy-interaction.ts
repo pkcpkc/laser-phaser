@@ -3,6 +3,19 @@ import type { PlanetData } from './planets/planet-data';
 import { StorylineManager } from '../../logic/storyline-manager';
 import { GameStatus } from '../../logic/game-status';
 
+export enum InteractionIcon {
+    Play = '🚀',
+    Shipyard = '🛠️',
+    Warp = '🌀',
+    Story = '📃'
+}
+
+const ICON_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
+    fontSize: '24px',
+    padding: { x: 5, y: 5 },
+    shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
+};
+
 export class GalaxyInteractionManager {
     private scene: Phaser.Scene;
     private interactionContainer!: Phaser.GameObjects.Container;
@@ -31,6 +44,13 @@ export class GalaxyInteractionManager {
         this.planetNameContainer = this.scene.add.container(0, 0);
         this.planetNameContainer.setDepth(100);
         this.planetNameContainer.setVisible(false);
+    }
+
+    private createIcon(icon: InteractionIcon, onClick: () => void): Phaser.GameObjects.Text {
+        return this.scene.add.text(0, 0, icon, ICON_STYLE)
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', onClick);
     }
 
     public showInteractionUI(planet: PlanetData) {
@@ -71,19 +91,10 @@ export class GalaxyInteractionManager {
 
         const icons: Phaser.GameObjects.Text[] = [];
 
+        // Play icon - show if planet has a level
         if (planet.interaction?.levelId) {
             const levelId = planet.interaction.levelId;
-            const playBtn = this.scene.add.text(0, 0, '🔫', {
-                fontSize: '24px',
-                padding: { x: 5, y: 5 },
-                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
-            })
-                .setOrigin(0.5)
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {
-                    this.launchLevel(levelId, planet);
-                });
-            icons.push(playBtn);
+            icons.push(this.createIcon(InteractionIcon.Play, () => this.launchLevel(levelId, planet)));
         }
 
         // Determine if "locked" icons should show
@@ -95,45 +106,20 @@ export class GalaxyInteractionManager {
             : false;
         const showLockedIcons = !hasLevel || showAlways || isDefeated;
 
+        // Shipyard icon
         if (planet.interaction?.hasShipyard && showLockedIcons) {
-            const shipyardBtn = this.scene.add.text(0, 0, '🛠️', {
-                fontSize: '24px',
-                padding: { x: 5, y: 5 },
-                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
-            })
-                .setOrigin(0.5)
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.scene.scene.start('ShipyardScene'));
-            icons.push(shipyardBtn);
+            icons.push(this.createIcon(InteractionIcon.Shipyard, () => this.scene.scene.start('ShipyardScene')));
         }
 
+        // Warp icon
         if (planet.interaction?.warpGalaxyId && showLockedIcons) {
-            const warpBtn = this.scene.add.text(0, 0, '🌀', {
-                fontSize: '24px',
-                padding: { x: 5, y: 5 },
-                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
-            })
-                .setOrigin(0.5)
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => this.scene.scene.start('WormholeScene', { galaxyId: planet.interaction?.warpGalaxyId }));
-            icons.push(warpBtn);
+            const warpGalaxyId = planet.interaction.warpGalaxyId;
+            icons.push(this.createIcon(InteractionIcon.Warp, () => this.scene.scene.start('WormholeScene', { galaxyId: warpGalaxyId })));
         }
 
         // Storyline re-read icon - show if planet has intro text
         if (this.galaxyId && StorylineManager.getInstance().getIntroText(this.galaxyId, planet.id)) {
-            const storyBtn = this.scene.add.text(0, 0, '📃', {
-                fontSize: '24px',
-                padding: { x: 5, y: 5 },
-                shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
-            })
-                .setOrigin(0.5)
-                .setInteractive({ useHandCursor: true })
-                .on('pointerdown', () => {
-                    if (this.onShowStoryline) {
-                        this.onShowStoryline(planet);
-                    }
-                });
-            icons.push(storyBtn);
+            icons.push(this.createIcon(InteractionIcon.Story, () => this.onShowStoryline?.(planet)));
         }
 
         // Horizontal Layout
@@ -294,19 +280,8 @@ export class GalaxyInteractionManager {
     private launchLevel(levelId: string, planet: PlanetData) {
         const planetColor = planet.tint ? `#${planet.tint.toString(16).padStart(6, '0')}` : '#ffff00';
 
-        // Special case for ship-demo-level which uses its own scene
-        if (levelId === 'ship-demo-level') {
-            this.scene.scene.start('ShipDemoScene', {
-                returnPlanetId: planet.id,
-                warpGalaxyId: planet.interaction?.warpGalaxyId,
-                planetColor: planetColor,
-                galaxyId: this.galaxyId
-            });
-            return;
-        }
-
-        // All other levels use BloodHunters scene with levelId passed
-        this.scene.scene.start('BloodHunters', {
+        // All levels use ShootEmUpScene with levelId passed
+        this.scene.scene.start('ShootEmUpScene', {
             returnPlanetId: planet.id,
             warpGalaxyId: planet.interaction?.warpGalaxyId,
             planetColor: planetColor,

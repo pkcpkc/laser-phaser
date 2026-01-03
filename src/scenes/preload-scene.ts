@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 // import { BigCruiser } from '../ships/big-cruiser';
 // import { BloodHunter } from '../ships/blood-hunter';
 // import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
-import { createFlareTexture } from '../utils/texture-generator';
+import { createFlareTexture } from '../ships/textures/flares-texture';
+// import { getSupportedLocales } from '../config/i18n';
 
 export default class PreloadScene extends Phaser.Scene {
     private startTime: number = 0;
@@ -45,8 +46,10 @@ export default class PreloadScene extends Phaser.Scene {
         this.load.image('nebula', 'assets/images/nebula.png');
         this.load.image('blood_nebula', 'assets/images/blood_nebula.png');
 
+
         // Load Data
-        this.load.text('storylines', 'assets/data/storylines.md');
+        // Always load the default storylines.json (which corresponds to 'en' or fallback)
+        // this.load.json('storylines', 'assets/storylines/storylines.json'); - REMOVED (Compiled)
     }
 
     create() {

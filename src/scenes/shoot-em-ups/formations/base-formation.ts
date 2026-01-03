@@ -13,7 +13,6 @@ export interface BaseEnemyData {
 }
 
 export interface ShootingConfig {
-    shootingChance: number;
     shotsPerEnemy: number;
     shotDelay: { min: number; max: number };
     continuousFire?: boolean;
@@ -70,25 +69,21 @@ export abstract class BaseFormation implements IFormation {
      */
     protected scheduleShootingBehavior(ship: Ship, enemy: Phaser.Physics.Matter.Image, config: ShootingConfig): void {
         if (config.continuousFire) {
-            if (Math.random() < config.shootingChance) {
-                const startDelay = Phaser.Math.Between(0, 2000);
-                this.scheduleContinuousFire(ship, config.shotDelay, startDelay);
-            }
+            const startDelay = Phaser.Math.Between(0, 2000);
+            this.scheduleContinuousFire(ship, config.shotDelay, startDelay);
         } else if (config.shotsPerEnemy > 0) {
-            if (Math.random() < config.shootingChance) {
-                for (let j = 0; j < config.shotsPerEnemy; j++) {
-                    const delay = Phaser.Math.Between(
-                        config.shotDelay.min,
-                        config.shotDelay.max
-                    ) + j * 500;
+            for (let j = 0; j < config.shotsPerEnemy; j++) {
+                const delay = Phaser.Math.Between(
+                    config.shotDelay.min,
+                    config.shotDelay.max
+                ) + j * 500;
 
-                    const timer = this.scene.time.delayedCall(delay, () => {
-                        if (enemy.active) {
-                            this.fireEnemyLaser(ship);
-                        }
-                    });
-                    this.timers.push(timer);
-                }
+                const timer = this.scene.time.delayedCall(delay, () => {
+                    if (enemy.active) {
+                        this.fireEnemyLaser(ship);
+                    }
+                });
+                this.timers.push(timer);
             }
         }
     }

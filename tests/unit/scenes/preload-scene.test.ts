@@ -13,8 +13,10 @@ vi.mock('phaser', () => {
     };
 });
 
+
+
 import PreloadScene from '../../../src/scenes/preload-scene';
-import * as TextureGenerator from '../../../src/utils/texture-generator';
+import * as FlaresTexture from '../../../src/ships/textures/flares-texture';
 
 describe('PreloadScene', () => {
     let preloadScene: PreloadScene;
@@ -36,9 +38,11 @@ describe('PreloadScene', () => {
             image: vi.fn(),
             atlas: vi.fn(),
             text: vi.fn(),
+            json: vi.fn(), // Added json spy
             on: vi.fn(), // For load event listeners
         };
 
+        // ... rest of the mocks (keep existing)
         mockLogo = {
             setOrigin: vi.fn(),
             setAlpha: vi.fn(),
@@ -53,6 +57,7 @@ describe('PreloadScene', () => {
             setOrigin: vi.fn().mockReturnThis(),
             setText: vi.fn(),
             setPosition: vi.fn(),
+            width: 100,
         };
 
         mockAdd = {
@@ -76,6 +81,7 @@ describe('PreloadScene', () => {
             on: vi.fn(),
             keyboard: {
                 on: vi.fn(),
+                createCursorKeys: vi.fn(), // Ensure createCursorKeys is mocked usually called in create/init
             },
         };
 
@@ -97,7 +103,7 @@ describe('PreloadScene', () => {
         (preloadScene as any).tweens = mockTweens;
 
         // Mock texture generator
-        vi.spyOn(TextureGenerator, 'createFlareTexture').mockImplementation(() => { });
+        vi.spyOn(FlaresTexture, 'createFlareTexture').mockImplementation(() => { });
     });
 
     it('should init correctly', () => {
@@ -105,18 +111,33 @@ describe('PreloadScene', () => {
         expect((preloadScene as any).startTime).toBeDefined();
     });
 
-    it('should preload assets', () => {
+    it('should preload assets (default en)', () => {
+        // Default behavior (en)
         preloadScene.preload();
         expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'logo');
         expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
         expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/images/nebula.png');
         expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/images/blood_nebula.png');
-        expect(mockLoad.text).toHaveBeenCalledWith('storylines', 'assets/data/storylines.md');
+    });
+
+    it('should preload assets for requested locale', () => {
+        // Mock URL search params
+        const originalLocation = window.location;
+        delete (window as any).location;
+        (window as any).location = new URL('http://localhost/?locale=de');
+
+        preloadScene.preload();
+
+        // Should basically do same as default now, but it verify logic doesn't crash
+        expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
+
+        // Restore window.location
+        (window as any).location = originalLocation;
     });
 
     it('should generate flares and setup loading text on create', () => {
         preloadScene.create();
-        expect(TextureGenerator.createFlareTexture).toHaveBeenCalledTimes(5); // 5 colors defined
+        expect(FlaresTexture.createFlareTexture).toHaveBeenCalledTimes(5); // 5 colors defined
         expect(mockAdd.text).toHaveBeenCalledWith(0, 0, 'LOADING...', expect.any(Object));
         expect(mockScale.on).toHaveBeenCalledWith('resize', expect.any(Function), preloadScene);
     });

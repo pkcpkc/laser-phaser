@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ShootEmUpScene } from '../../../../src/scenes/shoot-em-ups/shoot-em-up-scene';
-import { Level, type LevelConfig } from '../../../../src/scenes/shoot-em-ups/levels/level';
+import { Level } from '../../../../src/scenes/shoot-em-ups/levels/level';
 
 const MockPhaser = vi.hoisted(() => {
     const mock = {
@@ -94,30 +94,14 @@ vi.mock('../../../../src/scenes/shoot-em-ups/levels/level', () => {
     };
 });
 
-// Mock LevelConfig for testing
-const mockLevelConfig: LevelConfig = {
-    name: 'Test Level',
-    formations: []
-};
-
-// Concrete class for testing abstract base
-class TestScene extends ShootEmUpScene {
-    constructor() {
-        super('TestScene');
-    }
-    protected getLevelClass(): LevelConfig {
-        return mockLevelConfig;
-    }
-}
-
 describe('ShootEmUpScene', () => {
-    let scene: TestScene;
+    let scene: ShootEmUpScene;
 
     beforeEach(() => {
-        // Mock phaser scene context
-        scene = new TestScene();
+        // Mock phaser scene context - ShootEmUpScene is now concrete
+        scene = new ShootEmUpScene();
         scene.sys = {
-            settings: { key: 'TestScene' }
+            settings: { key: 'ShootEmUpScene' }
         } as any;
 
         const mockGameObject = {
@@ -264,7 +248,45 @@ describe('ShootEmUpScene', () => {
 
         expect(scene.scene.start).toHaveBeenCalledWith('GalaxyScene', expect.objectContaining({
             galaxyId: 'source-galaxy',
-            victory: true
+            victory: true, // Should be true for victory case
+            autoStart: false
         }));
+    });
+
+    it('should transition to GalaxyScene on RETRY (game over) with autoStart: false', () => {
+        // Mock registry
+        scene.registry = {
+            get: vi.fn().mockReturnValue('source-galaxy'),
+            set: vi.fn()
+        } as any;
+
+        // Setup scene data
+        scene.init({
+            returnPlanetId: 'current-planet',
+            galaxyId: 'source-galaxy'
+        });
+
+        // Mock scene.scene.start
+        scene.scene = {
+            start: vi.fn()
+        } as any;
+
+        // Mock gameManager.isVictoryState -> FALSE for Game Over
+        (scene as any).gameManager.isVictoryState = vi.fn().mockReturnValue(false);
+
+        // Mock cleanup methods
+        (scene as any).level = { destroy: vi.fn() };
+        (scene as any).ship = { destroy: vi.fn() };
+
+        // Trigger onGameOverInput (NOT finishLevel directly, as logic is in onGameOverInput now for retry)
+        // Actually onGameOverInput calls scene.start directly for retry case now.
+        (scene as any).onGameOverInput();
+
+        expect(scene.scene.start).toHaveBeenCalledWith('GalaxyScene', {
+            planetId: 'current-planet',
+            victory: false,
+            galaxyId: 'source-galaxy',
+            autoStart: false
+        });
     });
 });

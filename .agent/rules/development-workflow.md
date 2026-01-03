@@ -5,7 +5,7 @@ trigger: always_on
 # Development Workflow
 
 1. **Context Analysis**
-   - Check `README.md` to get an overview before starting the planning.
+   - Check `TECHNICAL_README.md` to get an overview before starting the planning.
 
 2. **Implementation**
    - Write or modify the code.
@@ -21,7 +21,6 @@ trigger: always_on
    - Run tests: `npm test`
    - When running specific test files, ALWAYS use `npx vitest run path/to/file.test.ts` (never just `vitest`) to avoid watch mode.
    - Fix any failing tests immediately.
-   - Run build: `npm run build` to check for build errors.
 
 5. **Problem Check**
    - After each task, check `@current_problems` (IDE/linter diagnostics).

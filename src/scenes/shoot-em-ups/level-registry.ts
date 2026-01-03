@@ -9,6 +9,7 @@ export interface LevelEntry {
     sceneKey: string;
     levelConfig: LevelConfig;
     defaultColor?: string;
+    backgroundTexture?: string;
 }
 
 // Auto-import all level modules (excluding level.ts which is the base class)
@@ -35,9 +36,10 @@ for (const path in levelModules) {
         const exported = module[exportName];
         if (exported && typeof exported === 'object' && 'name' in exported && 'formations' in exported) {
             levels[levelId] = {
-                sceneKey: 'BloodHunters',
+                sceneKey: 'ShootEmUpScene',
                 levelConfig: exported as LevelConfig,
-                defaultColor: '#ffff00'
+                defaultColor: '#ffff00',
+                backgroundTexture: 'blood_nebula'
             };
             console.log(`Registered level: ${levelId}`);
             break;

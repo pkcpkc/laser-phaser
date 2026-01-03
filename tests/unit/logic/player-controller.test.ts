@@ -22,7 +22,11 @@ vi.mock('phaser', () => {
             GameObjects: {
                 Image: class { },
                 Text: class { },
-                Arc: class { } // Added Arc for targetEffect
+                Arc: class {
+                    setPosition(x: number, y: number) { this.x = x; this.y = y; }
+                    x: number = 0;
+                    y: number = 0;
+                } // Added Arc for targetEffect
             },
             Physics: {
                 Matter: {
@@ -62,7 +66,9 @@ class MockScene {
     add = {
         circle: vi.fn(() => ({
             setDepth: vi.fn(),
-            destroy: vi.fn()
+            destroy: vi.fn(),
+            setPosition: vi.fn(), // Mock setPosition
+            alpha: 1
         })),
         text: vi.fn()
     } as any;
@@ -95,6 +101,7 @@ class MockShip {
     config = {
         modules: []
     };
+    maxSpeed = 10;
 }
 
 describe('PlayerController', () => {
@@ -157,5 +164,70 @@ describe('PlayerController', () => {
 
         // Should not throw
         expect(() => destroyListener.call(context)).not.toThrow();
+    });
+
+    // --- Drag Support Tests ---
+
+    it('should set drag state and target on pointerdown', () => {
+        const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
+        const pointer = { worldX: 200, worldY: 300, isDown: true };
+
+        pointerDownHandler(pointer);
+
+        // Check if isDragging is true (private property, cast to any)
+        expect((controller as any).isDragging).toBe(true);
+        // Check if targetPosition was updated
+        expect((controller as any).targetPosition).toEqual(expect.objectContaining({ x: 200, y: 300 }));
+    });
+
+    it('should update target on pointermove when dragging', () => {
+        // Activate drag
+        (controller as any).isDragging = true;
+
+        const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
+        const pointer = { worldX: 400, worldY: 500 };
+
+        pointerMoveHandler(pointer);
+
+        expect((controller as any).targetPosition).toEqual(expect.objectContaining({ x: 400, y: 500 }));
+    });
+
+    it('should NOT update target on pointermove when NOT dragging', () => {
+        // Deactivate drag
+        (controller as any).isDragging = false;
+        // Set an initial target
+        const initialTarget = { x: 100, y: 100 };
+        (controller as any).targetPosition = initialTarget;
+
+        const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
+        const pointer = { worldX: 400, worldY: 500 };
+
+        pointerMoveHandler(pointer);
+
+        // Target should be unchanged
+        expect((controller as any).targetPosition).toEqual(initialTarget);
+    });
+
+    it('should reset drag state on pointerup', () => {
+        (controller as any).isDragging = true;
+        const pointerUpHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerup')[1];
+
+        pointerUpHandler();
+
+        expect((controller as any).isDragging).toBe(false);
+    });
+
+    it('should move existing target effect instead of creating new one during updates', () => {
+        // Setup existing target effect
+        const existingEffect = { destroy: vi.fn(), setPosition: vi.fn() };
+        (controller as any).targetEffect = existingEffect;
+
+        // Directly call setTarget (private)
+        (controller as any).setTarget(300, 400);
+
+        // Should move, not destroy
+        expect(existingEffect.destroy).not.toHaveBeenCalled();
+        expect(existingEffect.setPosition).toHaveBeenCalledWith(300, 400);
+        expect(scene.add.circle).not.toHaveBeenCalled(); // No new circle added
     });
 });

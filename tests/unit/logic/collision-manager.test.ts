@@ -36,6 +36,14 @@ describe('CollisionManager', () => {
             },
             time: {
                 delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
+            },
+            add: {
+                particles: vi.fn().mockReturnValue({
+                    setDepth: vi.fn(),
+                    explode: vi.fn(),
+                    active: true,
+                    destroy: vi.fn()
+                })
             }
         };
 

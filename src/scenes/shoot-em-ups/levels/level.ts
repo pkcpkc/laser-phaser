@@ -43,7 +43,7 @@ const RUNNER_STATES = {
     FINISHED: 'FINISHED' as const       // Done
 };
 
-class TacticRunner {
+class WaveRunner {
     private scene: Phaser.Scene;
     private config: FormationConfig;
     private collisionConfig: ShipCollisionConfig;
@@ -90,7 +90,7 @@ class TacticRunner {
 
             this.tactic.spawn();
         } else {
-            console.warn('TacticRunner: No tacticType provided. Waves should always have a tactic.');
+            console.warn('WaveRunner: No tacticType provided. Waves should always have a tactic.');
         }
     }
 
@@ -131,7 +131,7 @@ export class Level {
     private scene: Phaser.Scene;
     private config: LevelConfig;
     private currentStepIndex: number = 0;
-    private activeRunners: TacticRunner[] = [];
+    private activeRunners: WaveRunner[] = [];
     private isLevelComplete: boolean = false;
     private collisionConfig: ShipCollisionConfig;
     private onComplete?: () => void;
@@ -189,7 +189,7 @@ export class Level {
         // const configs = Array.isArray(step) ? step : [step]; // Removed backwards compatibility
 
         for (const config of step) {
-            const runner = new TacticRunner(this.scene, config, this.collisionConfig);
+            const runner = new WaveRunner(this.scene, config, this.collisionConfig);
             this.activeRunners.push(runner);
         }
 

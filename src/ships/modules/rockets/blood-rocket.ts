@@ -17,6 +17,8 @@ export class BloodRocket extends BaseRocket {
 
     readonly maxAmmo = 20;
 
+
+
     constructor() {
         super();
         this.currentAmmo = this.maxAmmo;

@@ -9,9 +9,9 @@ vi.mock('phaser', () => {
     };
 });
 
-import { createFlareTexture } from '../../../src/utils/texture-generator';
+import { createFlareTexture } from '../../../../src/ships/textures/flares-texture';
 
-describe('TextureGenerator', () => {
+describe('FlaresTexture', () => {
     let mockScene: any;
     let mockTextures: any;
     let mockContext: any;

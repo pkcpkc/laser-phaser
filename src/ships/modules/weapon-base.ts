@@ -74,6 +74,9 @@ export abstract class WeaponBase {
             projectile.setScale(this.scale);
         }
 
+        // Set hit effect color from weapon's COLOR
+        projectile.hitColor = this.COLOR;
+
         // Calculate velocity vector from angle and speed
         let velocityX = Math.cos(angle) * this.SPEED;
         let velocityY = Math.sin(angle) * this.SPEED;

@@ -79,6 +79,15 @@ vi.mock('../../../../src/logic/game-status', () => ({
     }
 }));
 
+const mockGetIntroText = vi.fn().mockReturnValue(null);
+vi.mock('../../../../src/logic/storyline-manager', () => ({
+    StorylineManager: {
+        getInstance: () => ({
+            getIntroText: mockGetIntroText
+        })
+    }
+}));
+
 describe('GalaxyInteractionManager', () => {
     let manager: GalaxyInteractionManager;
 
@@ -122,8 +131,8 @@ describe('GalaxyInteractionManager', () => {
         };
 
         manager.showInteractionUI(planetData as any);
-        // Play button (🔫) should be present
-        expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🔫', expect.any(Object));
+        // Play button (🚀) should be present
+        expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🚀', expect.any(Object));
         // Shipyard/Warp should NOT be present
         expect(mockScene.add.text).not.toHaveBeenCalledWith(0, 0, '🛠️', expect.any(Object));
         expect(mockScene.add.text).not.toHaveBeenCalledWith(0, 0, '🌀', expect.any(Object));
@@ -144,7 +153,7 @@ describe('GalaxyInteractionManager', () => {
         };
 
         manager.showInteractionUI(planetData as any);
-        expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🔫', expect.any(Object));
+        expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🚀', expect.any(Object));
         expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🛠️', expect.any(Object));
         expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🌀', expect.any(Object));
     });

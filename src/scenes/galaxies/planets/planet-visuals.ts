@@ -120,13 +120,27 @@ export class PlanetVisual {
         this.lockIcon = this.scene.add.text(this.planet.x - 1, this.planet.y + 1, '🔒', {
             fontSize: '24px', // Smaller
             padding: { x: 5, y: 5 },
-            color: '#000000' // Black
+            color: '#ffffff' // White for better visibility on dark planets
         }).setOrigin(0.5, 0.5); // Center
 
         // Should be on top of planet (PLANET_DEPTH) and potential effects
         this.lockIcon.setDepth(this.PLANET_DEPTH + 10);
         this.lockIcon.setAngle(0); // Explicitly no tilt
-        this.lockIcon.setTint(0x000000); // Ensure it is black (overriding emoji colors)
+
+        // Apply black tint via postFX (desaturation + dark color matrix)
+        const colorMatrix = this.lockIcon.postFX.addColorMatrix();
+        colorMatrix.saturate(-1);
+        const tintColor = 0x333333; // Dark gray/black
+        const r = ((tintColor >> 16) & 0xFF) / 255;
+        const g = ((tintColor >> 8) & 0xFF) / 255;
+        const b = (tintColor & 0xFF) / 255;
+        const tintMatrix = this.lockIcon.postFX.addColorMatrix();
+        tintMatrix.multiply([
+            r, 0, 0, 0, 0,
+            0, g, 0, 0, 0,
+            0, 0, b, 0, 0,
+            0, 0, 0, 1, 0
+        ]);
 
         // Make sure it's visible
         this.lockIcon.setVisible(true);

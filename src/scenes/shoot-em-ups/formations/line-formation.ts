@@ -85,7 +85,6 @@ export class LineFormation extends BaseFormation {
             });
 
             this.scheduleShootingBehavior(ship, enemy, {
-                shootingChance: this.config.shootingChance ?? 0,
                 shotsPerEnemy: this.config.shotsPerEnemy ?? 0,
                 shotDelay: this.config.shotDelay ?? { min: 1000, max: 2000 },
                 continuousFire: this.config.continuousFire

@@ -34,7 +34,6 @@ export class FixedFormation extends BaseFormation {
         super(scene, shipClass, collisionConfig, shipConfigs);
         this.config = {
             positions: config?.positions ?? [],
-            shootingChance: config?.shootingChance ?? 0.5,
             shotsPerEnemy: config?.shotsPerEnemy ?? 1,
             shotDelay: config?.shotDelay ?? { min: 1000, max: 3000 },
             spawnDelay: config?.spawnDelay,

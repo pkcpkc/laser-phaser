@@ -1,5 +1,5 @@
 import type { ShipDefinition } from '../types';
-import { markers as allMarkers } from '../markers-generated/green-rocket-carrier.markers';
+import { markers as allMarkers } from '../../../src-generated/ships/markers/green-rocket-carrier.markers';
 
 export const GreenRocketCarrierDefinition: ShipDefinition = {
     id: 'green-rocket-carrier',

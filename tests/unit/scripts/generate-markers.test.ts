@@ -10,15 +10,15 @@ const TEST_DIR = 'tests/temp/ships';
 const TEST_FILE = 'test_ship_vitest.png';
 const TEST_MARKER_FILE = 'test_ship_vitest.markers.ts';
 const TEST_PATH = path.join(TEST_DIR, TEST_FILE);
-const MARKER_PATH = path.join('src/ships/markers-generated', TEST_MARKER_FILE);
+const MARKER_PATH = path.join('src-generated/ships/markers', TEST_MARKER_FILE);
 
 describe('Marker Generator', () => {
     beforeAll(() => {
         if (!fs.existsSync(TEST_DIR)) {
             fs.mkdirSync(TEST_DIR, { recursive: true });
         }
-        if (!fs.existsSync('src/ships/markers-generated')) {
-            fs.mkdirSync('src/ships/markers-generated', { recursive: true });
+        if (!fs.existsSync('src-generated/ships/markers')) {
+            fs.mkdirSync('src-generated/ships/markers', { recursive: true });
         }
         createTestPng(TEST_PATH);
     });

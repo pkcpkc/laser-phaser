@@ -24,8 +24,7 @@ dist-ssr
 *.sw?
 
 # Generated files
-src/ships/markers-generated
+src-generated/
 
 # Tests
-tests/temp/
 tests/reports/

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "debug": "vite --mode debug",
-    "build": "npm run build:atlases && npm run build:markers && tsc && vite build",
+    "build": "npm run build:atlases && npm run build:markers && npm run build:storylines && tsc && vite build",
     "preview": "vite preview",
     "test": "vitest run",
     "posttest": "rm -rf tests/temp",
@@ -17,7 +17,8 @@
     "lint": "tsc --noEmit",
     "build:markers": "tsx scripts/generate-markers.ts",
     "build:atlases": "node scripts/generate-atlases.js",
-    "build:colors": "tsx scripts/generate-color-palette.ts"
+    "build:colors": "tsx scripts/generate-color-palette.ts",
+    "build:storylines": "tsx scripts/build-storylines.ts"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

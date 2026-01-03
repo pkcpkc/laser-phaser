@@ -103,7 +103,6 @@ export class SinusFormation extends BaseFormation {
 
             // Shooting behavior
             this.scheduleShootingBehavior(ship, enemy, {
-                shootingChance: this.config.shootingChance,
                 shotsPerEnemy: this.config.shotsPerEnemy,
                 shotDelay: this.config.shotDelay,
                 continuousFire: this.config.continuousFire

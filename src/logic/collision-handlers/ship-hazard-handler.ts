@@ -1,6 +1,9 @@
 import Phaser from 'phaser';
 import type { CollisionHandler } from './collision-handler.interface';
 import { Ship } from '../../ships/ship';
+import { LaserHitEffect } from '../../ships/effects/laser-hit-effect';
+import { RocketHitEffect } from '../../ships/effects/rocket-hit-effect';
+import type { Projectile } from '../../ships/modules/lasers/projectile';
 
 export class ShipHazardHandler implements CollisionHandler {
     constructor(
@@ -21,11 +24,22 @@ export class ShipHazardHandler implements CollisionHandler {
         if ((categoryA === this.shipCategory && categoryB === this.enemyLaserCategory) ||
             (categoryB === this.shipCategory && categoryA === this.enemyLaserCategory)) {
 
-            // Destroy enemy laser
-            // Destroy enemy laser
-            const laser = categoryA === this.enemyLaserCategory ? gameObjectA : gameObjectB;
-            const damage = (laser as any).damage || 10;
+            // Get projectile and its properties
+            const projectile = categoryA === this.enemyLaserCategory ? gameObjectA : gameObjectB;
+            const projectileImage = projectile as Phaser.Physics.Matter.Image;
+            const projectileTyped = projectile as Projectile;
+            const damage = projectileTyped.damage || 10;
+            // Use hitColor from projectile if available
+            const color = projectileTyped.hitColor || projectileImage.tintTopLeft || 0xffffff;
 
+            // Rockets have isRocket flag, lasers don't
+            if (projectileTyped.isRocket) {
+                new RocketHitEffect(scene, projectileImage.x, projectileImage.y, color);
+            } else {
+                new LaserHitEffect(scene, projectileImage.x, projectileImage.y, color);
+            }
+
+            // Destroy enemy laser
             scene.time.delayedCall(0, () => {
                 if (categoryA === this.enemyLaserCategory && gameObjectA.active) gameObjectA.destroy();
                 if (categoryB === this.enemyLaserCategory && gameObjectB.active) gameObjectB.destroy();

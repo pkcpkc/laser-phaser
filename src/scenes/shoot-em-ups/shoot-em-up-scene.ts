@@ -2,8 +2,9 @@ import BaseScene from '../base-scene';
 import { Level, type LevelConfig } from './levels/level';
 import { GameStatus } from '../../logic/game-status';
 import { Loot } from '../../ships/loot';
+import { getLevelConfig, getLevel } from './level-registry';
 
-export abstract class ShootEmUpScene extends BaseScene {
+export class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
     protected returnPlanetId?: string;
 
@@ -11,8 +12,11 @@ export abstract class ShootEmUpScene extends BaseScene {
     protected planetColor?: string;
     protected levelId?: string;
 
-    constructor(key: string) {
-        super(key);
+    constructor() {
+        super('ShootEmUpScene');
+        // Default background, can be overridden by level registry
+        this.backgroundTexture = 'blood_nebula';
+        this.backgroundFrame = undefined;
     }
 
     init(data: { returnPlanetId?: string, warpGalaxyId?: string, planetColor?: string, levelId?: string, galaxyId?: string }) {
@@ -21,16 +25,31 @@ export abstract class ShootEmUpScene extends BaseScene {
         this.warpGalaxyId = data?.warpGalaxyId;
         this.planetColor = data?.planetColor;
         this.levelId = data?.levelId;
-        // If we are playing a level in a galaxy, we need to know WHICH galaxy to credit the victory to.
-        // We can either pass it in data or assume it's the current one if not passed?
-        // But ShootEmUpScene doesn't HAVE a 'current galaxy' concept unless passed.
-        // I will add galaxyId to the class properties.
+
+        // Set background from level registry if available
+        if (this.levelId) {
+            const levelEntry = getLevel(this.levelId);
+            if (levelEntry?.backgroundTexture) {
+                this.backgroundTexture = levelEntry.backgroundTexture;
+            }
+        }
+
         if (data?.galaxyId) {
             this.registry.set('activeGalaxyId', data.galaxyId);
         }
     }
 
-    protected abstract getLevelClass(): LevelConfig;
+    protected getLevelClass(): LevelConfig {
+        if (this.levelId) {
+            const levelConfig = getLevelConfig(this.levelId);
+            if (levelConfig) {
+                return levelConfig;
+            }
+            console.warn(`Level '${this.levelId}' not found in registry`);
+        }
+        // Fallback: return empty level config
+        return { name: 'Unknown', formations: [] };
+    }
 
     create() {
         super.create();
@@ -68,10 +87,11 @@ export abstract class ShootEmUpScene extends BaseScene {
             this.ship.destroy();
         }
 
-        const sceneData: { planetId?: string, victory?: boolean, galaxyId?: string } = {
+        const sceneData: { planetId?: string, victory?: boolean, galaxyId?: string, autoStart?: boolean } = {
             planetId: this.returnPlanetId,
             victory: victory,
-            galaxyId: this.registry.get('activeGalaxyId')
+            galaxyId: this.registry.get('activeGalaxyId'),
+            autoStart: false
         };
 
         // Record the victory in GameStatus
@@ -123,6 +143,27 @@ export abstract class ShootEmUpScene extends BaseScene {
         }
 
         this.isTransitioning = true;
+
+        // On RETRY (game over), go to GalaxyScene to let user choose to restart or pick an easier planet
+        // On victory, proceed with normal finish flow (includes warp handling)
+        if (!isVictory) {
+            // Clean up before transitioning
+            if (this.level) {
+                this.level.destroy();
+                this.level = null;
+            }
+            if (this.ship) {
+                this.ship.destroy();
+            }
+            this.scene.start('GalaxyScene', {
+                planetId: this.returnPlanetId,
+                victory: false,
+                galaxyId: this.registry.get('activeGalaxyId'),
+                autoStart: false
+            });
+            return;
+        }
+
         this.finishLevel(isVictory);
     }
 

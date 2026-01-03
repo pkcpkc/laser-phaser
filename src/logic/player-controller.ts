@@ -36,6 +36,7 @@ export class PlayerController {
     private targetPosition: Phaser.Math.Vector2 | null = null;
     private targetEffect: Phaser.GameObjects.Arc | null = null;
     private currentSpeed: number = 0;
+    private isDragging: boolean = false; // Add drag state
 
     // Tilt effect state
     private currentTiltDirection: 'left' | 'right' | 'none' | 'moving' = 'none';
@@ -51,16 +52,23 @@ export class PlayerController {
 
         // Setup input for movement
         this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-            // Skip if ship is destroyed (game over state)
             if (!this.ship.sprite.active) return;
-
-            // Ignore if clicking on fire button or other interactive UI (if any)
-            // Ideally UI stops propagation, but we can check checking ignore here
-            // Basic check: if clicking valid world area
             const isUIInteraction = this.isClickingUI(pointer);
             if (!isUIInteraction) {
+                this.isDragging = true;
                 this.setTarget(pointer.worldX, pointer.worldY);
             }
+        });
+
+        this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+            if (!this.ship.sprite.active) return;
+            if (this.isDragging) {
+                this.setTarget(pointer.worldX, pointer.worldY);
+            }
+        });
+
+        this.scene.input.on('pointerup', () => {
+            this.isDragging = false;
         });
     }
 
@@ -102,7 +110,17 @@ export class PlayerController {
         const clampedY = Phaser.Math.Clamp(y, 0, height);
 
         this.targetPosition = new Phaser.Math.Vector2(clampedX, clampedY);
-        this.showTargetEffect(clampedX, clampedY);
+
+        // Only show/restart effect if NOT replacing an existing one during drag
+        // Actually, for drag, we might want to move the effect? 
+        // Logic: if effect exists, just move it. If not, create it.
+        if (this.targetEffect) {
+            this.targetEffect.setPosition(clampedX, clampedY);
+            // If we are starting a new tap (not dragging continuously), maybe restart animation? 
+            // But simplify: just move the target reticle.
+        } else {
+            this.showTargetEffect(clampedX, clampedY);
+        }
     }
 
     /**

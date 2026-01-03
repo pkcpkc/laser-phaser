@@ -53,7 +53,8 @@ graph TD
     subgraph "Galaxy Navigation Architecture"
         GalaxyScene --> |"Configures"| GalaxyFactory
         GalaxyFactory --> |"Creates"| Galaxy
-        GalaxyScene --> |"Visualizes"| PlanetVisuals
+        GalaxyScene --> |"Visualizes"| PlanetVisual
+        PlanetVisual --> |"Has many"| PlanetEffect
         GalaxyScene --> |"Manages"| GalaxyInteractionManager
         GalaxyScene --> |"UI"| LootUI
         GalaxyInteractionManager --> |"Triggers"| PlanetIntroOverlay
@@ -62,24 +63,18 @@ graph TD
 
     subgraph "Shoot 'Em Up Logic"
         ShootEmUpScene --> |"Executes"| Level
-        Level --> |"Spawns"| TacticRunner
-        TacticRunner --> |"Instantiates"| Tactic
+        Level --> |"Spawns"| WaveRunner
+        WaveRunner --> |"Instantiates"| Tactic
         Tactic --> |"Instantiates"| Formation
         Tactic --> |"Drives"| Formation
         Formation --> |"Positions"| Ships
+        Ships --> |"Equipped with"| ShipModule
+        ShipModule -.-> Drive
+        ShipModule -.-> Weapon
+        Weapon -.-> Laser
+        Weapon -.-> Rocket
         Ships --> |"Explode into"| Loot
     end
-    
-    subgraph "Persistence & Global Systems"
-        GameStatus["GameStatus"]
-        CollisionManager["CollisionManager"]
-        PlayerController["PlayerController"]
-    end
-
-    GalaxyScene -.-> GameStatus
-    ShootEmUpScene -.-> GameStatus
-    ShootEmUpScene -.-> CollisionManager
-    ShootEmUpScene -.-> PlayerController
 ```
 
 ### Key Components
@@ -87,17 +82,15 @@ graph TD
 *   **Galaxy System**: A modular configuration-driven map. Each galaxy (e.g., *Blood Hunters*) defines its own physics, backgrounds, and planet layouts.
 *   **Wormhole Transition**: A cinematic transition scene used when jumping between galaxies, ensuring a smooth visual bridge.
 *   **Storyline & Intros**: Managed by `StorylineManager` (parsing markdown data) and visualized via `PlanetIntroOverlay` to provide immersive briefings.
-*   **Player Controller**: Bridges the gap between player input (mouse, touch, keyboard) and ship physics, implementing snappy movement and auto-firing logic.
-*   **GameStatus**: The persistent source of truth for gems, modules, unlocked planets, and victories, synced with `localStorage`.
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
-*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `TacticRunner` manages the lifecycle of a `Tactic`, which in turn instantiates and drives one or more `Formations`.
+*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`, which in turn instantiates and drives one or more `Formations`.
 
 ## 4. Asset Pipeline & Tooling
 
 We use a custom asset pipeline and various tools to optimize game performance and help with asset creation:
 
 *   **[Nano Banana](https://gemini.google/overview/image-generation/)**: The creative engine behind pimping hand-drawn ship assets for the digital realm.
-*   **Meta SAM 2**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation during asset preparation.
+*   **Meta SAM 3**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation during asset preparation.
 *   **Texture Atlases**: Automatically generated from `public/assets` folders using `free-tex-packer-core`.
 *   **Marker Generation**: Ship attachment points (markers) are extracted from ship PNGs to define where thrusters, lasers, and rockets attached.
 *   **Custom Build Scripts**: Written in TypeScript/JavaScript, executed via `tsx` or `node`:
@@ -108,7 +101,7 @@ We use a custom asset pipeline and various tools to optimize game performance an
 
 ## 5. Storyline Management
 
-Planet intro texts are managed in `public/assets/data/storylines.md`. Grouped by galaxy and planet ID.
+Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
 
 **Format:**
 ```markdown
@@ -140,25 +133,34 @@ To define the rotation (angle) of a marker, place a **Red Pixel** (`#FF0000`) ad
 
 To fire up the engines and start developing, use the following commands:
 
-### Development Commands
+### 7.1 NPM Scripts
+
+#### Development Commands
 *   `npm install`: Install project dependencies.
 *   `npm run dev`: Start the development server at `http://localhost:5173`.
 *   `npm run debug`: Start in debug mode (shows physics bodies and enables 'B' key state dump).
 *   `npm run preview`: Preview the production build locally.
 
-### Build & Asset Commands
+#### Build & Asset Commands
 *   `npm run build`: Full production build (generates atlases, markers, and bundles the app).
 *   `npm run build:atlases`: Manually regenerate texture atlases from `public/assets`.
 *   `npm run build:markers`: Manually extract marker data from ship PNGs.
+*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to JSON in `public/assets/storylines/`.
 *   `npm run build:colors`: Analyze assets for UI color matching.
 
-### Testing & Quality Commands
+#### Testing & Quality Commands
 *   `npm test`: Run all unit tests with Vitest.
 *   `npm run test:watch`: Run unit tests in watch mode.
 *   `npm run test:check`: Verify that every source file has a corresponding test file.
 *   `npm run test:e2e`: Run end-to-end tests with Playwright.
 *   `npm run test:e2e-ui`: Run E2E tests with the Playwright UI.
 *   `npm run lint`: Static type checking with TypeScript (`tsc --noEmit`).
+
+### 7.2 Antigravity Workflows
+
+We use **Antigravity** workflows to automate complex agentic tasks. These are defined in `.agent/workflows/`.
+
+*   **/translate_storylines**: Automates the translation of the default English storyline (`storylines.md`) into all supported locales found in `res/storylines/`. Preserves markdown structure and proper nouns.
 
 ---
 

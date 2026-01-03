@@ -62,8 +62,8 @@ export class ExplicitFormation extends BaseFormation {
             });
 
             // Schedule shooting
+            // Schedule shooting
             this.scheduleShootingBehavior(ship, enemy, {
-                shootingChance: this.config.shootingChance!,
                 shotsPerEnemy: this.config.shotsPerEnemy!,
                 shotDelay: this.config.shotDelay!,
                 continuousFire: this.config.continuousFire

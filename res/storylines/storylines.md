@@ -1,9 +1,4 @@
 # Storyline
-This file allows defining intro texts for planets dynamically.
-Format:
-## [galaxy-id]
-### [planet-id]
-Text content...
 
 ## blood-hunters-galaxy
 
@@ -23,7 +18,7 @@ These evil scavengers are only interested in one thing: looting my ship.
 
 I see Fighters and Bombers on the scope. They are swarming the vortex. I must destroy them before they pick my bones clean!
 
-I'm intercepting strange reports in their comms... something about a warp gate on planet Halo. If it's true, that's my way out of this forsaken galaxy!
+I'm intercepting strange reports in their comms... something about a warp gate on planet Halo. If it's true, that's my way out of this god forsaken galaxy!
 
 ### halo
 I've reached the planet Halo, but a massive signature is blocking the warp gate.

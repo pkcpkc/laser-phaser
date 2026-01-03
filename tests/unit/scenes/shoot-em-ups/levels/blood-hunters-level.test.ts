@@ -50,6 +50,11 @@ describe('BloodHuntersLevel', () => {
         if (step5[0].shipConfigs) {
             expect(step5[0].shipConfigs[0]).toBe(BloodBomberBloodRocketConfig);
         }
+        // Verify shooting config
+        const bomberConfig = step5[0].config;
+        expect(bomberConfig?.continuousFire).toBe(true);
+        expect(bomberConfig?.shotDelay).toEqual({ min: 0, max: 100 });
+
 
         // Sixth step: DiamondFormation
         const step6 = BloodHuntersLevel.formations[5];

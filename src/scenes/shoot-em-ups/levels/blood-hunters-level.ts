@@ -105,7 +105,9 @@ export const BloodHuntersLevel: LevelConfig = {
                 endWidthPercentage: 0.8,
                 formationGrid: [2, 3],
                 spacing: 100,
-                verticalSpacing: 80
+                verticalSpacing: 80,
+                continuousFire: true,
+                shotDelay: { min: 0, max: 100 } // Allow weapon rate (500-1500) to control firing
             }
         }
     ],

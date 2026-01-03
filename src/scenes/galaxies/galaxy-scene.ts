@@ -10,6 +10,7 @@ import { LootUI } from '../../ui/loot-ui';
 import { setupDebugKey } from '../../logic/debug-utils';
 import { PlanetIntroOverlay } from './planets/planet-intro-overlay';
 import { StorylineManager } from '../../logic/storyline-manager';
+// import { getSupportedLocales, DEFAULT_LOCALE } from '../../config/i18n';
 
 export default class GalaxyScene extends Phaser.Scene {
     private galaxy!: Galaxy;
@@ -22,6 +23,7 @@ export default class GalaxyScene extends Phaser.Scene {
     private controlsEnabled: boolean = true;
     private introPending: boolean = false;
     private autoStartLevel: boolean = false;
+    private currentLocale: string = 'en';
 
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -37,11 +39,14 @@ export default class GalaxyScene extends Phaser.Scene {
         this.visuals = new PlanetVisuals(this);
     }
 
-    init(data: { galaxyId?: string, planetId?: string, victory?: boolean }) {
+    init(data: { galaxyId?: string, planetId?: string, victory?: boolean, autoStart?: boolean }) {
         // Store target planet to move to in create()
         if (data?.planetId) {
             this.currentPlanetId = data.planetId;
-            this.autoStartLevel = true;
+            // Only auto-start if explicitly requested or if not specified (backward compat default true when planetId present? No, let's make it controlled)
+            // If I change default to false, checking planetId is not enough.
+            // Let's use the plan: data.autoStart ?? !!data.planetId
+            this.autoStartLevel = data.autoStart ?? !!data.planetId;
         }
 
         // Store explicit galaxy to load in create
@@ -65,14 +70,21 @@ export default class GalaxyScene extends Phaser.Scene {
         this.interactions = new GalaxyInteractionManager(this);
 
         // Initialize Storyline Manager
-        if (this.cache.text.exists('storylines')) {
-            const manager = StorylineManager.getInstance();
-            if (!manager.initialized) {
-                manager.init(this.cache.text.get('storylines'));
-            }
-        } else {
-            console.warn('Storylines data not found in cache.');
-        }
+
+
+
+        // Initialize Storyline Manager
+
+        // 1. Check URL param or Browser
+        const params = new URLSearchParams(window.location.search);
+        // Browser lang e.g. 'de-DE' -> 'de'
+        const browserLocale = navigator.language.split('-')[0];
+        const userLocale = params.get('locale') || browserLocale || 'en';
+
+        this.currentLocale = userLocale;
+        this.registry.set('locale', this.currentLocale);
+
+        // StorylineManager is now static/compiled, so no runtime init required.
 
         // this.visuals = new PlanetVisuals(this); // Re-assign to ensure scene is valid - REMOVED, already in constructor
 
@@ -288,7 +300,7 @@ export default class GalaxyScene extends Phaser.Scene {
         // 1. Has intro text available in StorylineManager
         // 2. Not seen yet
 
-        const introText = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id);
+        const introText = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id, this.currentLocale);
 
         if (introText && !gameStatus.hasSeenIntro(planet.id)) {
             // Pause interactions? The overlay covers everything so clicks are blocked.
@@ -307,7 +319,7 @@ export default class GalaxyScene extends Phaser.Scene {
     }
 
     private showStoryline(planet: PlanetData) {
-        const introText = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id);
+        const introText = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id, this.currentLocale);
         if (!introText) return;
 
         if (this.lootUI) this.lootUI.setVisible(false);
@@ -353,7 +365,7 @@ export default class GalaxyScene extends Phaser.Scene {
             this.playerShip.setPosition(shipX, shipY);
 
             // Check if we need to show intro
-            const introRequired = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id) &&
+            const introRequired = StorylineManager.getInstance().getIntroText(this.galaxy.id, planet.id, this.currentLocale) &&
                 !GameStatus.getInstance().hasSeenIntro(planet.id);
 
             if (introRequired && introDelay > 0) {

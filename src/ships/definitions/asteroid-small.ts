@@ -35,7 +35,11 @@ export const SmallAsteroidDefinition: ShipDefinition = {
         particleCount: 15
     },
     createTextures: (scene: Phaser.Scene) => {
-        // Base Texture (Variants)
+        // Base texture (required by Ship class check, sprite is hidden by morph effect)
+        AsteroidTexture.create(scene, 'asteroid-small-texture', 15, {
+            fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
+        });
+        // Base Texture Variants
         for (let i = 0; i < 5; i++) {
             AsteroidTexture.create(scene, `asteroid-small-texture-${i}`, 15, { // Aligned radius to 15
                 fill: 0x2C2C2C,      // Dark Granite

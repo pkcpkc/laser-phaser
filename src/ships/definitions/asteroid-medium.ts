@@ -33,7 +33,11 @@ export const MediumAsteroidDefinition: ShipDefinition = {
         particleCount: 25
     },
     createTextures: (scene: Phaser.Scene) => {
-        // Base Texture
+        // Base texture (required by Ship class check, sprite is hidden by morph effect)
+        AsteroidTexture.create(scene, 'asteroid-medium-texture', 20, {
+            fill: 0x2C2C2C, stroke: 0x252525, fissure: 0x151515, highlight: 0x454545
+        });
+        // Base Texture Variants
         for (let i = 0; i < 5; i++) {
             AsteroidTexture.create(scene, `asteroid-medium-texture-${i}`, 20, { // Reduced radius 25 -> 20
                 fill: 0x2C2C2C,      // Dark Granite

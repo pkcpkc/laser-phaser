@@ -17,6 +17,7 @@ const mockGameObject = {
     setScale: vi.fn().mockReturnThis(),
     scale: 1,
     on: vi.fn().mockReturnThis(),
+    once: vi.fn().mockReturnThis(),
     off: vi.fn().mockReturnThis(),
     x: 0,
     y: 0,
@@ -96,6 +97,7 @@ vi.mock('phaser', () => {
                     setAlpha = mockContainer.setAlpha;
                     setScrollFactor = mockGameObject.setScrollFactor;
                     on = mockContainer.on;
+                    once = (mockContainer as any).once;
                     off = mockContainer.off;
                 },
                 Rectangle: class { },
@@ -223,5 +225,38 @@ describe('PlanetIntroOverlay', () => {
 
         // RESTORE
         expect(mockEffect.setDepth).toHaveBeenCalledWith(2);
+    });
+
+    it('should not restart typing if user skips during show animation', () => {
+        const planet: PlanetData = {
+            id: 'test',
+            name: 'Test Planet',
+            x: 100,
+            y: 100,
+            gameObject: { ...mockGameObject } as any
+        };
+
+        const onComplete = vi.fn();
+        overlay.show(planet, 'Hello World', onComplete);
+
+        // Simulate User Input (Skip) immediately
+        // This calls forceFinishTyping() -> finishTyping()
+        // It sets isTyping = false
+        (overlay as any).handleInput();
+
+        // Now simulate the Tween (Move) completing
+        // This is where the BUG happens: onComplete calls startTyping()
+        const tweenCalls = scene.tweens.add.mock.calls.filter((call: any) => call[0].targets === planet);
+        const moveTween = tweenCalls[tweenCalls.length - 1][0]; // Last tween for planet
+
+        // Clear mock history to be sure what happens next
+        (scene.time.addEvent as any).mockClear();
+
+        // Trigger tween complete
+        moveTween.onComplete();
+
+        // Expectation: startTyping() should NOT be called again
+        // startTyping calls time.addEvent
+        expect(scene.time.addEvent).not.toHaveBeenCalled();
     });
 });

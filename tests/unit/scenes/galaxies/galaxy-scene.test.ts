@@ -30,6 +30,8 @@ vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals');
 vi.mock('../../../../src/backgrounds/warp-starfield');
 vi.mock('../../../../src/ui/loot-ui');
 
+
+
 // Mock Phaser
 vi.mock('phaser', () => {
     return {
@@ -51,7 +53,10 @@ vi.mock('phaser', () => {
                 };
                 tweens = { add: vi.fn() };
                 time = { delayedCall: vi.fn() };
-                cache = { text: { exists: vi.fn(), get: vi.fn() } };
+                cache = {
+                    text: { exists: vi.fn(), get: vi.fn() },
+                    json: { exists: vi.fn(), get: vi.fn() }
+                };
                 registry = { set: vi.fn(), get: vi.fn() };
             },
             GameObjects: {
@@ -181,7 +186,15 @@ describe('GalaxyScene', () => {
         // @ts-ignore
         scene.time = { delayedCall: vi.fn() } as any;
         // @ts-ignore
-        scene.registry = { get: vi.fn() } as any; // default galaxy
+        scene.registry = { get: vi.fn(), set: vi.fn() } as any; // default galaxy
+
+        // Initialize scene cache mocks
+        (scene as any).cache = {
+            json: {
+                exists: vi.fn().mockReturnValue(true),
+                get: vi.fn().mockReturnValue({})
+            }
+        };
 
         // Determine the mock object we want the constructor to return
         // Since we provided a class factory, new GalaxyInteractionManager() returns an instance with spies.
@@ -236,11 +249,84 @@ describe('GalaxyScene', () => {
             expect(mockInteractions.showInteractionUI).toHaveBeenCalledWith(planetData);
         });
 
+        it('should use correct locale when fetching intro text', async () => {
+            vi.useFakeTimers();
+            const planetId = 'planet-1';
+            const planetData = { id: planetId, x: 100, y: 100 };
+            mockGalaxy.getById.mockReturnValue(planetData);
+            mockGalaxy.getAll.mockReturnValue([planetData]);
+
+            // Setup locale in URL params mock
+            Object.defineProperty(window, 'location', {
+                value: {
+                    search: '?locale=de'
+                },
+                writable: true
+            });
+
+            // Storyline available and NOT seen
+            mockStorylineManager.getIntroText.mockReturnValue('Intro Text DE');
+            mockGameStatus.hasSeenIntro.mockReturnValue(false);
+
+            // Mock introOverlay on the scene instance that will be created
+            // We need to intercept the assignment or mock the class used.
+            // Since `scene.introOverlay` is assigned in create(), we can't set it on `scene` before create easily 
+            // without mocking the constructor or the class.
+            // Actually, we are mocking the class `PlanetIntroOverlay`. 
+            // Let's verify if the mocked class instance has the methods.
+
+            // The file mocks `PlanetIntroOverlay` at line 28:
+            // vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
+            // By default this returns an auto-mocked class.
+
+            // However, the previous error `TypeError: this.introOverlay.setVisible is not a function` suggests the auto-mock didn't include setVisible.
+            // Let's explicitly mock the implementation of the class for this test.
+            // Properly mock the constructor
+            const { PlanetIntroOverlay } = await import('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
+            // @ts-ignore
+            (PlanetIntroOverlay as any).mockImplementation(class {
+                show = vi.fn().mockImplementation((_planet, _text, cb) => cb && cb());
+                setVisible = vi.fn();
+                setAlpha = vi.fn();
+                visible = false;
+            });
+
+            scene.create();
+
+            // First check: moveToPlanet calls getIntroText to decide if delay is needed.
+            // This passed in the previous test run.
+            expect(mockStorylineManager.getIntroText).toHaveBeenNthCalledWith(
+                1,
+                expect.any(String),
+                planetId,
+                'de'
+            );
+
+            // Advance timers to trigger the delayed checkAndShowIntro
+            vi.advanceTimersByTime(2000);
+
+            // Second check: checkAndShowIntro calls getIntroText effectively to show it.
+            // THIS SHOULD FAIL if the code doesn't pass the locale.
+            expect(mockStorylineManager.getIntroText).toHaveBeenNthCalledWith(
+                2,
+                expect.any(String),
+                planetId,
+                'de' // Expect 'de' here too
+            );
+
+            vi.useRealTimers();
+        });
+
         it('should disable controls during delay', () => {
             // @ts-ignore
             scene.controlsEnabled = false;
             // @ts-ignore
-            scene.introOverlay = { visible: false };
+            scene.introOverlay = {
+                visible: false,
+                setVisible: vi.fn(),
+                setAlpha: vi.fn(),
+                show: vi.fn() // Ensure show is present too
+            };
             // @ts-ignore
             scene.cursorKeys = { up: { isDown: true } }; // Simulate input
 

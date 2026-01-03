@@ -72,7 +72,6 @@ describe('DiamondFormation', () => {
             formationGrid: [1, 2, 3],
             startWidthPercentage: 0.5,
             endWidthPercentage: 0.5,
-            shootingChance: 0 // Disable shooting for basic tests
         });
     });
 
@@ -161,7 +160,6 @@ describe('DiamondFormation', () => {
             formationGrid: [2, 4],
             startWidthPercentage: 0.5,
             endWidthPercentage: 0.5,
-            shootingChance: 0 // Disable shooting for basic tests
         });
 
         diamondFormation.spawn();

@@ -20,7 +20,6 @@ export interface DiamondFormationConfig {
     verticalSpacing?: number;
     startWidthPercentage: number;
     endWidthPercentage: number;
-    shootingChance?: number;
     shotsPerEnemy?: number;
     shotDelay?: { min: number; max: number };
     continuousFire?: boolean;
@@ -41,7 +40,7 @@ export interface DiamondEnemyData {
 }
 
 export class DiamondFormation extends BaseFormation {
-    private config: Required<Pick<DiamondFormationConfig, 'spacing' | 'verticalSpacing' | 'startWidthPercentage' | 'shootingChance' | 'shotsPerEnemy' | 'shotDelay' | 'continuousFire' | 'movementVariation' | 'formationGrid' | 'rotation'>>;
+    private config: Required<Pick<DiamondFormationConfig, 'spacing' | 'verticalSpacing' | 'startWidthPercentage' | 'shotsPerEnemy' | 'shotDelay' | 'continuousFire' | 'movementVariation' | 'formationGrid' | 'rotation'>>;
     // @ts-ignore
     protected enemies: DiamondEnemyData[] = [];
 
@@ -75,7 +74,6 @@ export class DiamondFormation extends BaseFormation {
             verticalSpacing: 60,
             startWidthPercentage: config?.startWidthPercentage ?? 0.5,
             endWidthPercentage: config?.endWidthPercentage ?? 0.5,
-            shootingChance: 0.5,
             shotsPerEnemy: 1,
             shotDelay: { min: 1000, max: 3000 },
             continuousFire: false,
@@ -135,7 +133,6 @@ export class DiamondFormation extends BaseFormation {
                 });
 
                 this.scheduleShootingBehavior(ship, enemy, {
-                    shootingChance: this.config.shootingChance,
                     shotsPerEnemy: this.config.shotsPerEnemy,
                     shotDelay: this.config.shotDelay,
                     continuousFire: this.config.continuousFire

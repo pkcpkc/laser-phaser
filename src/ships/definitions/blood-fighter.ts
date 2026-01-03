@@ -1,5 +1,5 @@
 import type { ShipDefinition } from '../types';
-import { markers as allMarkers } from '../markers-generated/blood-fighter.markers';
+import { markers as allMarkers } from '../../../src-generated/ships/markers/blood-fighter.markers';
 
 export const BloodFighterDefinition: ShipDefinition = {
     id: 'blood-fighter',

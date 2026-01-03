@@ -55,8 +55,9 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             color: '#ffffff',
             align: 'left',
             lineSpacing: 8,
-            wordWrap: { width: presetWidth },
-            fixedWidth: presetWidth // Predefined centered box width
+            wordWrap: { width: presetWidth - 40 },
+            fixedWidth: presetWidth, // Predefined centered box width
+            padding: { top: 10, bottom: 10, left: 10, right: 10 }
         }).setOrigin(0.5, 0).setScrollFactor(0); // FIX: Lock to camera
 
         // Add text to the common container for sorting!
@@ -125,8 +126,9 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             color: '#ffffff',
             align: 'left',
             lineSpacing: 8,
-            wordWrap: { width: presetWidth },
-            fixedWidth: presetWidth
+            wordWrap: { width: presetWidth - 40 },
+            fixedWidth: presetWidth,
+            padding: { top: 10, bottom: 10, left: 10, right: 10 }
         }).setOrigin(0.5, 0).setScrollFactor(0);
         this.textContainer.setVisible(false);
         this.textContainer.setAlpha(0);
@@ -174,7 +176,38 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
 
         // Target Positions (Screen Space)
         const targetX = width / 2;
-        const targetY = (height * 0.25) - 110;
+
+        // Calculate layout:
+        // User requested equal 40px spacing above and below the planet.
+        // Planet center Y = Top Margin + Planet Visual Size/2? 
+        // Let's assume a reasonable top margin of 80px for the planet center (approx 40px above matching visual top).
+        // Then Text Start = Planet Center + Planet Radius + 40px.
+
+        // Let's base it on a screen percentage minimum to ensure it doesn't overlap header/UI on small screens, 
+        // but prioritize the specific spacing request.
+
+        // Approximate visual radius (accounting for effects/rings) can be estimated. 
+        // Base planet visual radius is ~30px. With scale ~1.0. 
+        // So 40px gap -> Center is at 40 (gap) + 30 (radius) = 70px from relevant top.
+        // But visuals have "The Belt" header above? 
+        // Let's stick to the previous relative logic but shift the text closer.
+
+        // Current: textStartY = height * 0.3. Planet = textStartY / 2.
+        // If height=800, text=240. Planet=120. 
+        // Gap Top = 120 - 30(rad) = 90. Gap Bottom = 120 - 30 = 90. 
+        // User sees 40 / 80. This means the visual center is different or text starts lower visually.
+
+        // Let's move the text UP closer to the planet.
+        // Instead of splitting the space evenly (targetY = textStartY/2), let's push the text up.
+
+        const textStartY = Math.max(180, height * 0.3) - 70;
+
+        // Move planet down relative to the space center, OR move text up.
+        // User wants LESS space below planet.
+        // So planet should be closer to text. 
+        // targetY = textStartY - 50 (was 70, moved 20 down).
+
+        const targetY = textStartY - 50;
 
         // Start Positions (Screen Space)
         const startX = planet.x - camera.scrollX;
@@ -245,9 +278,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         }
 
         // Start Text Layout
-        const effectiveRadius = 30 * (planet.visualScale || 1.0);
-        const textStartY = targetY + effectiveRadius + 30;
-
+        // Text Position is already calculated
         this.textContainer.setPosition(width / 2, textStartY);
         this.textContainer.setText("");
         this.textContainer.setVisible(false);
@@ -287,7 +318,9 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
                 // Note: Asteroids/Rings update themselves in their own update() loop reading planet.x/y
             },
             onComplete: () => {
-                this.startTyping();
+                if (this.isTyping) {
+                    this.startTyping();
+                }
             }
         });
     }
@@ -567,7 +600,18 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         if (!this.background) return; // Guard against resize during destruction
         const { width, height } = gameSize;
         this.background.setSize(width, height);
-        this.textContainer.setX(width / 2);
+
+        const textStartY = Math.max(180, height * 0.3) - 70;
+        // const targetY = textStartY - 70; // Sync with show() logic (Unused here, planet pos handled by tween/state)
+
+        this.textContainer.setPosition(width / 2, textStartY);
+
+        // Note: resizing while overlay is active and animating is complex. 
+        // For now we just update text and prompt. 
+        // Ideally we would update planet position too if it's currently "hijacked" and shown.
+        // But since borrowedPlanet is tweened, simple setting might conflict. 
+        // Optimally, we mainly care about text flow for now.
+
         this.promptText.setPosition(width / 2, height - 80);
     }
 }

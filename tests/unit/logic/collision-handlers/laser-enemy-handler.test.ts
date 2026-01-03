@@ -26,15 +26,23 @@ describe('LaserEnemyHandler', () => {
 
     const handler = new LaserEnemyHandler(LASER_CATEGORY, ENEMY_CATEGORY);
 
-    // Mock scene with delayedCall
+    // Mock scene with delayedCall and add.particles for hit effect
     const mockScene = {
         time: {
             delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
+        },
+        add: {
+            particles: vi.fn().mockReturnValue({
+                setDepth: vi.fn(),
+                explode: vi.fn(),
+                active: true,
+                destroy: vi.fn()
+            })
         }
     } as unknown as Phaser.Scene;
 
     it('should handle collision between laser and enemy', () => {
-        const mockLaser = { destroy: vi.fn(), active: true } as unknown as Phaser.GameObjects.GameObject;
+        const mockLaser = { destroy: vi.fn(), active: true, x: 100, y: 200, tintTopLeft: 0xffffff } as unknown as Phaser.GameObjects.GameObject;
 
         const mockShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
         const mockEnemy = {
@@ -51,7 +59,7 @@ describe('LaserEnemyHandler', () => {
     });
 
     it('should handle collision (swapped categories)', () => {
-        const mockLaser = { destroy: vi.fn(), active: true } as unknown as Phaser.GameObjects.GameObject;
+        const mockLaser = { destroy: vi.fn(), active: true, x: 100, y: 200, tintTopLeft: 0xffffff } as unknown as Phaser.GameObjects.GameObject;
 
         const mockShip = { explode: vi.fn(), takeDamage: vi.fn(), currentHealth: 0 };
         const mockEnemy = {
@@ -69,7 +77,7 @@ describe('LaserEnemyHandler', () => {
     });
 
     it('should fallback to destroy if enemy is not a ship', () => {
-        const mockLaser = { destroy: vi.fn(), active: true } as unknown as Phaser.GameObjects.GameObject;
+        const mockLaser = { destroy: vi.fn(), active: true, x: 100, y: 200, tintTopLeft: 0xffffff } as unknown as Phaser.GameObjects.GameObject;
 
         // No 'ship' data
         const mockEnemy = {
