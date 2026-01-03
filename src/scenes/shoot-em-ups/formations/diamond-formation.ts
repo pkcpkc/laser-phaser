@@ -18,14 +18,14 @@ const BOUNDS_BUFFER = 200;
 export interface DiamondFormationConfig {
     spacing?: number;
     verticalSpacing?: number;
-    startWidthPercentage?: number;
-    // endWidthPercentage removed, travel logic is now in Tactic (e.g. LinearTactic with angle)
+    startWidthPercentage: number;
+    endWidthPercentage: number;
     shootingChance?: number;
     shotsPerEnemy?: number;
     shotDelay?: { min: number; max: number };
     continuousFire?: boolean;
     movementVariation?: number; // Wobble magnitude
-    formationGrid?: number[];
+    formationGrid: number[];
     // We can also accept an angle to pre-rotate the formation alignment?
     rotation?: number;
 }
@@ -54,17 +54,34 @@ export class DiamondFormation extends BaseFormation {
     ) {
         super(scene, shipClass, collisionConfig, shipConfigs);
 
+        const defaultRotation = (() => {
+            if (config?.rotation !== undefined) return config.rotation;
+
+            // Auto-calculate
+            const startPct = config?.startWidthPercentage ?? 0.5;
+            const endPct = config?.endWidthPercentage ?? 0.5;
+            const width = scene.scale.width;
+            const startX = width * startPct;
+            const endX = width * endPct;
+            const dx = endX - startX;
+            // Same assumption as LinearTactic: dy = height + 400
+            const dy = scene.scale.height + 400;
+            const angle = Math.atan2(dy, dx);
+            return angle - Math.PI / 2;
+        })();
+
         this.config = {
             spacing: 80,
             verticalSpacing: 60,
-            startWidthPercentage: 0.5,
+            startWidthPercentage: config?.startWidthPercentage ?? 0.5,
+            endWidthPercentage: config?.endWidthPercentage ?? 0.5,
             shootingChance: 0.5,
             shotsPerEnemy: 1,
             shotDelay: { min: 1000, max: 3000 },
             continuousFire: false,
             movementVariation: 10,
             formationGrid: config?.formationGrid || [1, 2, 3],
-            rotation: config?.rotation || 0,
+            rotation: defaultRotation,
             ...config
         };
     }
@@ -75,6 +92,7 @@ export class DiamondFormation extends BaseFormation {
 
         // Alignment Rotation
         const rotationAngle = this.config.rotation;
+
 
         const rows = this.config.formationGrid.map((count, index) => ({
             count: count,

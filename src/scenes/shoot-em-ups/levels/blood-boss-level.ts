@@ -64,7 +64,6 @@ const createBloodBossFormation = (): FormationConfig => {
         },
         formationType: SingleShipFormation as any as IFormationConstructor,
         shipConfigs: [BloodBossConfig],
-        count: 1, // 1 Boss
         startDelay: 1000
     };
 };

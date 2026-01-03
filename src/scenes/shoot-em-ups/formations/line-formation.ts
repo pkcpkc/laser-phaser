@@ -12,7 +12,7 @@ export interface LineEnemyData extends BaseEnemyData {
 }
 
 export interface LineFormationConfig {
-    enemyCount: { min: number; max: number };
+    enemyCount: number;
     spacing: number;
     verticalOffset: number; // Alternating vertical offset (zig-zag line)
     spawnY?: number;
@@ -40,7 +40,7 @@ export class LineFormation extends BaseFormation {
         super(scene, shipClass, collisionConfig, shipConfigs);
 
         this.config = {
-            enemyCount: { min: 3, max: 6 },
+            enemyCount: 3,
             spacing: 100,
             verticalOffset: 60,
             spawnY: SPAWN_Y_OFFSET,
@@ -57,7 +57,7 @@ export class LineFormation extends BaseFormation {
         const startY = this.config.spawnY ?? SPAWN_Y_OFFSET;
 
         // Determine count
-        const numEnemies = Phaser.Math.Between(this.config.enemyCount.min, this.config.enemyCount.max);
+        const numEnemies = this.config.enemyCount;
 
         for (let i = 0; i < numEnemies; i++) {
             const x = startX + (i - Math.floor(numEnemies / 2)) * this.config.spacing;

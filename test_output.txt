@@ -1,0 +1,1023 @@
+
+> laser-phaser@0.0.0 test
+> vitest run
+
+
+[1m[46m RUN [49m[22m [36mv4.0.14 [39m[90m/Users/pkc/Projekte/laser-phaser[39m
+
+[90mstdout[2m | tests/unit/scenes/preload-scene.test.ts[2m > [22m[2mPreloadScene[2m > [22m[2mshould generate flares and setup loading text on create
+[22m[39mPreloadScene: create started
+Generating flare textures...
+PreloadScene: elapsed 1767397930357ms, waiting 0ms
+PreloadScene: loading complete, starting game
+No galaxyId specified, starting with WormholeScene
+
+[90mstdout[2m | tests/unit/scenes/preload-scene.test.ts[2m > [22m[2mPreloadScene[2m > [22m[2mshould handle resize layout updates
+[22m[39mPreloadScene: create started
+Generating flare textures...
+PreloadScene: elapsed 1767397930359ms, waiting 0ms
+PreloadScene: loading complete, starting game
+No galaxyId specified, starting with WormholeScene
+
+[90mstdout[2m | tests/unit/scenes/preload-scene.test.ts[2m > [22m[2mPreloadScene[2m > [22m[2mshould start WormholeScene automatically after loading by default
+[22m[39mPreloadScene: create started
+Generating flare textures...
+PreloadScene: elapsed 1767397930360ms, waiting 0ms
+PreloadScene: loading complete, starting game
+No galaxyId specified, starting with WormholeScene
+
+[90mstdout[2m | tests/unit/scenes/preload-scene.test.ts[2m > [22m[2mPreloadScene[2m > [22m[2mshould skip WormholeScene and start GalaxyScene if galaxyId is in URL
+[22m[39mPreloadScene: create started
+Generating flare textures...
+PreloadScene: elapsed 1767397930360ms, waiting 0ms
+PreloadScene: loading complete, starting game
+Starting directly with galaxy: test-galaxy (skipping wormhole)
+
+[90mstdout[2m | tests/unit/scenes/preload-scene.test.ts[2m > [22m[2mPreloadScene[2m > [22m[2mshould calculate layout correctly
+[22m[39mPreloadScene: create started
+Generating flare textures...
+PreloadScene: elapsed 1767397930364ms, waiting 0ms
+PreloadScene: loading complete, starting game
+Starting directly with galaxy: test-galaxy (skipping wormhole)
+
+ [31m❯[39m tests/unit/scenes/preload-scene.test.ts [2m([22m[2m7 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 11[2mms[22m[39m
+     [32m✓[39m should init correctly[32m 1[2mms[22m[39m
+     [32m✓[39m should preload assets[32m 1[2mms[22m[39m
+     [32m✓[39m should generate flares and setup loading text on create[32m 2[2mms[22m[39m
+     [32m✓[39m should handle resize layout updates[32m 1[2mms[22m[39m
+     [32m✓[39m should start WormholeScene automatically after loading by default[32m 1[2mms[22m[39m
+[31m     [31m×[31m should skip WormholeScene and start GalaxyScene if galaxyId is in URL[39m[32m 4[2mms[22m[39m
+     [32m✓[39m should calculate layout correctly[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/unit/logic/ship-rotation-repro.test.ts[2m > [22m[2mPlayerController Edge Rotation[2m > [22m[2mshould rotate back to upright when hitting the edge while moving to target
+[22m[39mDEBUG: tweenCalls []
+
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/levels/level.test.ts[2m > [22m[2mLevel[2m > [22m[2mshould spawn formations sequentially across steps
+[22m[39mStarting Level: Test Level
+Starting Wave 1: MockTactic (Unknown Ship)
+
+ [31m❯[39m tests/unit/logic/ship-rotation-repro.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 6[2mms[22m[39m
+[31m     [31m×[31m should rotate back to upright when hitting the edge while moving to target[39m[32m 5[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/levels/level.test.ts[2m > [22m[2mLevel[2m > [22m[2mshould spawn formations in parallel
+[22m[39mStarting Level: Test Level
+Starting Wave 1: MockTactic (Unknown Ship), MockTactic (Unknown Ship)
+
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/levels/level.test.ts[2m > [22m[2mLevel[2m > [22m[2mshould handle startDelay
+[22m[39mStarting Level: Test Level
+Starting Wave 1: MockTactic (Unknown Ship)
+
+ [31m❯[39m tests/unit/scenes/shoot-em-ups/levels/level.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[32m 9[2mms[22m[39m
+[31m     [31m×[31m should spawn formations sequentially across steps[39m[32m 6[2mms[22m[39m
+[31m     [31m×[31m should spawn formations in parallel[39m[32m 1[2mms[22m[39m
+     [32m✓[39m should handle startDelay[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts
+[22m[39mRegistered effect: asteroid-belt
+Registered effect: bubble
+Registered effect: color-circle
+Registered effect: gas-ring
+Registered effect: ghost-shade
+Registered effect: glimmering-snow
+Registered effect: hurricane
+Registered effect: mini-moon
+Registered effect: rectangles
+Registered effect: satellite
+Registered effect: solar-flare
+Registered effect: solid-ring
+Registered effect: spikes
+
+[90mstdout[2m | tests/unit/scenes/galaxies/demo-galaxy.test.ts
+[22m[39mRegistered effect: asteroid-belt
+Registered effect: bubble
+Registered effect: color-circle
+Registered effect: gas-ring
+Registered effect: ghost-shade
+Registered effect: glimmering-snow
+Registered effect: hurricane
+Registered effect: mini-moon
+Registered effect: rectangles
+Registered effect: satellite
+Registered effect: solar-flare
+Registered effect: solid-ring
+Registered effect: spikes
+
+[90mstdout[2m | tests/unit/scenes/galaxies/blood-hunters-galaxy.test.ts
+[22m[39mRegistered effect: asteroid-belt
+Registered effect: bubble
+Registered effect: color-circle
+Registered effect: gas-ring
+Registered effect: ghost-shade
+Registered effect: glimmering-snow
+Registered effect: hurricane
+Registered effect: mini-moon
+Registered effect: rectangles
+Registered effect: satellite
+Registered effect: solar-flare
+Registered effect: solid-ring
+Registered effect: spikes
+
+[90mstdout[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts
+[22m[39mRegistered galaxy: blood-hunters-galaxy
+Registered galaxy: demo-galaxy
+
+ [32m✓[39m tests/unit/scenes/galaxies/blood-hunters-galaxy.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 14[2mms[22m[39m
+ [31m❯[39m tests/unit/scenes/galaxies/demo-galaxy.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 116[2mms[22m[39m
+     [32m✓[39m should initialize planets correctly (Demo Galaxy)[32m 35[2mms[22m[39m
+[31m     [31m×[31m should configure specific planets with correct properties[39m[32m 19[2mms[22m[39m
+     [32m✓[39m should update positions based on screen size[32m 15[2mms[22m[39m
+     [32m✓[39m should find nearest neighbor[32m 13[2mms[22m[39m
+     [32m✓[39m should return null if no neighbor in direction[32m 21[2mms[22m[39m
+     [32m✓[39m should initialize Blood Hunters Galaxy[32m 12[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts[2m > [22m[2mGalaxyScene[2m > [22m[2mIntro Delay Logic[2m > [22m[2mshould delay intro if intro is required and not seen
+[22m[39mGalaxyScene: create() started
+GalaxyScene: initializing managers
+GalaxyScene: initializing Galaxy
+GalaxyScene: creating background
+GalaxyScene: creating starfield
+Starfield initialized
+GalaxyScene: creating visuals
+GalaxyScene: creating player ship
+createPlayerShip: Created at 0,0
+GalaxyScene: Ship created: {
+  setOrigin: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setDepth: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setScale: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setVisible: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setAngle: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setPosition: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setAlpha: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  x: [33m0[39m,
+  y: [33m0[39m
+}
+GalaxyScene: Ship visible: [90mundefined[39m active: [90mundefined[39m alpha: [90mundefined[39m
+GalaxyScene: updating visibility and moving to planet
+GalaxyScene: setting up resize handler
+GalaxyScene: setting up input
+GalaxyScene: create() complete
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts[2m > [22m[2mGalaxyScene[2m > [22m[2mIntro Delay Logic[2m > [22m[2mshould delay intro if intro is required and not seen
+[22m[39mStorylines data not found in cache.
+
+[90mstdout[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts[2m > [22m[2mGalaxyScene[2m > [22m[2mIntro Delay Logic[2m > [22m[2mshould NOT delay if intro is already seen
+[22m[39mGalaxyScene: create() started
+GalaxyScene: initializing managers
+GalaxyScene: initializing Galaxy
+GalaxyScene: creating background
+GalaxyScene: creating starfield
+Starfield initialized
+GalaxyScene: creating visuals
+GalaxyScene: creating player ship
+createPlayerShip: Created at 0,0
+GalaxyScene: Ship created: {
+  setOrigin: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setDepth: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setScale: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setVisible: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setAngle: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [36m[Array][39m,
+      contexts: [36m[Array][39m,
+      instances: [36m[Array][39m,
+      invocationCallOrder: [36m[Array][39m,
+      settledResults: [36m[Array][39m,
+      results: [36m[Array][39m,
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setPosition: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  setAlpha: [Function: Mock] {
+    _isMockFunction: [33mtrue[39m,
+    getMockImplementation: [36m[Function (anonymous)][39m,
+    mock: {
+      calls: [],
+      contexts: [],
+      instances: [],
+      invocationCallOrder: [],
+      settledResults: [],
+      results: [],
+      lastCall: [36m[Getter][39m
+    },
+    mockImplementation: [36m[Function: mockImplementation][39m,
+    mockImplementationOnce: [36m[Function: mockImplementationOnce][39m,
+    withImplementation: [36m[Function: withImplementation][39m,
+    mockReturnThis: [36m[Function: mockReturnThis][39m,
+    mockReturnValue: [36m[Function: mockReturnValue][39m,
+    mockReturnValueOnce: [36m[Function: mockReturnValueOnce][39m,
+    mockResolvedValue: [36m[Function: mockResolvedValue][39m,
+    mockResolvedValueOnce: [36m[Function: mockResolvedValueOnce][39m,
+    mockRejectedValue: [36m[Function: mockRejectedValue][39m,
+    mockRejectedValueOnce: [36m[Function: mockRejectedValueOnce][39m,
+    mockClear: [36m[Function: mockClear][39m,
+    mockReset: [36m[Function: mockReset][39m,
+    mockRestore: [36m[Function: mockRestore][39m,
+    mockName: [36m[Function: mockName][39m,
+    getMockName: [36m[Function: getMockName][39m,
+    [[32mSymbol(nodejs.dispose)[39m]: [36m[Function (anonymous)][39m
+  },
+  x: [33m0[39m,
+  y: [33m0[39m
+}
+GalaxyScene: Ship visible: [90mundefined[39m active: [90mundefined[39m alpha: [90mundefined[39m
+GalaxyScene: updating visibility and moving to planet
+GalaxyScene: setting up resize handler
+GalaxyScene: setting up input
+GalaxyScene: create() complete
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-scene.test.ts[2m > [22m[2mGalaxyScene[2m > [22m[2mIntro Delay Logic[2m > [22m[2mshould NOT delay if intro is already seen
+[22m[39mStorylines data not found in cache.
+
+ [31m❯[39m tests/unit/scenes/galaxies/galaxy-scene.test.ts [2m([22m[2m4 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 14[2mms[22m[39m
+     [32m✓[39m is defined[32m 1[2mms[22m[39m
+[31m       [31m×[31m should delay intro if intro is required and not seen[39m[32m 8[2mms[22m[39m
+       [32m✓[39m should NOT delay if intro is already seen[32m 3[2mms[22m[39m
+       [32m✓[39m should disable controls during delay[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/integration/levels/blood-hunters-level.test.ts[2m > [22m[2mIntegration: BloodHuntersLevel[2m > [22m[2mshould spawn Blood Hunters and move them downwards
+[22m[39mStarting Level: Blood Hunters
+Starting Wave 1: SinusTactic (blood-hunter)
+Created 0 sprites.
+Active Blood Hunters: 0
+
+ [31m❯[39m tests/integration/levels/blood-hunters-level.test.ts [2m([22m[2m1 test[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 7[2mms[22m[39m
+[31m     [31m×[31m should spawn Blood Hunters and move them downwards[39m[32m 5[2mms[22m[39m
+[90mstderr[2m | tests/unit/ships/ship.test.ts[2m > [22m[2mShip[2m > [22m[2mshould calculate acceleration with drives
+[22m[39mNo texture key for visible mount module
+
+[90mstderr[2m | tests/unit/ships/ship.test.ts[2m > [22m[2mShip[2m > [22m[2mshould reduce acceleration by 30% when multiple drives are installed
+[22m[39mNo texture key for visible mount module
+No texture key for visible mount module
+
+ [32m✓[39m tests/unit/ships/ship.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/solid-ring-effect.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 91[2mms[22m[39m
+[90mstdout[2m | tests/unit/scripts/generate-markers.test.ts[2m > [22m[2mMarker Generator[2m > [22m[2mshould generate correct markers from PNG
+[22m[39mGenerating markers for test_ship_vitest.png...
+Generated src/ships/markers-generated/test_ship_vitest.markers.ts with 4 markers.
+
+ [32m✓[39m tests/unit/scripts/generate-markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 22[2mms[22m[39m
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for green-rocket-carrier.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/green-rocket-carrier.markers.ts with 3 markers.
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for blood-hunter.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/blood-hunter.markers.ts with 3 markers.
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for blood-fighter.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/blood-fighter.markers.ts with 3 markers.
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for blood-boss.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/blood-boss.markers.ts with 9 markers.
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for blood-bomber.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/blood-bomber.markers.ts with 3 markers.
+
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/spikes-effect.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:14:13)
+[22m[39mGenerating markers for big-cruiser.png...
+
+[90mstdout[2m | processFile (/Users/pkc/Projekte/laser-phaser/scripts/generate-markers.ts:75:13)
+[22m[39mGenerated src/ships/markers-generated/big-cruiser.markers.ts with 5 markers.
+
+ [32m✓[39m tests/unit/scenes/wormhole-scene.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+[90mstdout[2m | tests/unit/scripts/generate-color-palette.test.ts[2m > [22m[2mgenerate-color-palette[2m > [22m[2mshould generate a palette without crashing
+[22m[39mSuccessfully generated module-color-palette.png
+
+ [32m✓[39m tests/unit/scripts/generate-color-palette.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould show all icons if planet has no level (peaceful)
+[22m[39mStorylineManager not initialized. Call init() first.
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould HIDE shipyard/warp if planet has level and is NOT defeated
+[22m[39mStorylineManager not initialized. Call init() first.
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould SHOW shipyard/warp if planet has level and IS DEFEATED
+[22m[39mStorylineManager not initialized. Call init() first.
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould SHOW shipyard/warp if showAlways is true, even if not defeated
+[22m[39mStorylineManager not initialized. Call init() first.
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould apply grayscale and brightness to interaction icons
+[22m[39mStorylineManager not initialized. Call init() first.
+
+[90mstderr[2m | tests/unit/scenes/galaxies/galaxy-interaction.test.ts[2m > [22m[2mGalaxyInteractionManager[2m > [22m[2mshould show UI for astra
+[22m[39mStorylineManager not initialized. Call init() first.
+
+ [32m✓[39m tests/unit/scenes/galaxies/galaxy-interaction.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/satellite-effect.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mshould initialize categories correctly
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mshould setup collision listener
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mCollision Logic[2m > [22m[2mshould destroy laser when hitting world bounds (no gameObjectB)
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mCollision Logic[2m > [22m[2mshould destroy laser and explode enemy when they collide
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mCollision Logic[2m > [22m[2mshould trigger game over when ship collides with enemy
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+[90mstdout[2m | tests/unit/logic/collision-manager.test.ts[2m > [22m[2mCollisionManager[2m > [22m[2mCollision Logic[2m > [22m[2mshould trigger game over when ship collides with enemy laser
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+ [32m✓[39m tests/unit/logic/collision-manager.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/hurricane-effect.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/planet-visuals.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/base-scene.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/tactics/base-tactic.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/textures/asteroid-texture.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/rectangles-effect.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/loot.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/tactics/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/gas-ring-effect.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/player-controller.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/mini-moon-effect.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/asteroid-medium-dust.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/diamond-formation.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/asteroid-large-dust.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/shoot-em-up-scene.test.ts[2m > [22m[2mShootEmUpScene[2m > [22m[2mshould start level on create
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+ [32m✓[39m tests/unit/scenes/shipyards/shipyard-scene.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/shoot-em-up-scene.test.ts[2m > [22m[2mShootEmUpScene[2m > [22m[2mshould NOT destroy level on victory
+[22m[39mCollisionManager Initialized. Categories: { wall: [33m1[39m, ship: [33m2[39m, laser: [33m4[39m, enemy: [33m8[39m, enemyLaser: [33m16[39m, loot: [33m32[39m }
+
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/shoot-em-up-scene.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/levels/blood-boss-level.test.ts[2m > [22m[2mBloodBossLevel[2m > [22m[2mFormation[2m > [22m[2mshould spawn ship off-screen
+[22m[39mBloodBossLevel: Spawning boss!
+BloodBossLevel: Boss spawned at 400, -200
+
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/levels/blood-boss-level.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/color-circle-effect.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/planet-intro-overlay.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/engine-trail.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/laser-enemy-handler.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/boot-scene.test.ts[2m > [22m[2mBootScene[2m > [22m[2mshould start PreloadScene in create
+[22m[39mBootScene: starting PreloadScene
+
+ [32m✓[39m tests/unit/scenes/boot-scene.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/explosion.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/game-status.test.ts [2m([22m[2m19 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/levels/blood-hunters-level.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/line-formation.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+[90mstdout[2m | tests/unit/utils/texture-generator.test.ts[2m > [22m[2mTextureGenerator[2m > [22m[2mshould not create texture if it already exists
+[22m[39mTexture existing-key already exists
+
+ [32m✓[39m tests/unit/utils/texture-generator.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/solar-flare-effect.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/green-rocket-carrier-green-rocket.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/tactics/blood-boss-tactic.test.ts[2m > [22m[2mBloodBossTactic[2m > [22m[2mshould start in MOVING state, set rotation, and move ship
+[22m[39mBloodBossTactic: Distance 200, Speed 100
+BloodBossTactic: Movement Duration 2000
+
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/tactics/blood-boss-tactic.test.ts[2m > [22m[2mBloodBossTactic[2m > [22m[2mshould transition to ROTATING after movement completes
+[22m[39mBloodBossTactic: Distance 200, Speed 100
+BloodBossTactic: Movement Duration 2000
+
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/tactics/blood-boss-tactic.test.ts[2m > [22m[2mBloodBossTactic[2m > [22m[2mshould transition to ATTACKING after rotation aligns
+[22m[39mBloodBossTactic: Distance 200, Speed 100
+BloodBossTactic: Movement Duration 2000
+
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/tactics/blood-boss-tactic.test.ts[2m > [22m[2mBloodBossTactic[2m > [22m[2mshould fire lasers continuously in ATTACKING state
+[22m[39mBloodBossTactic: Distance 200, Speed 100
+BloodBossTactic: Movement Duration 2000
+
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/tactics/blood-boss-tactic.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/module-types.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/big-red-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/green-rocket-carrier.markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/blood-boss.markers.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/blood-fighter.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/big-cruiser-white-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/game-manager.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/green-rocket-carrier.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/blood-bomber.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/asteroid-morph-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/ship-hazard-handler.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/base-laser.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/blood-boss-config.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/rockets/base-rocket.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/green-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/ion-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/blood-fighter-big-red-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/base-ring-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/asteroid-small-dust.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/asteroid-belt-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/levels/ship-demo-level.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/dust-explosion.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/thruster-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/backgrounds/warp-starfield.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/backgrounds/starfield.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/main.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/rockets/green-rocket.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/big-cruiser.markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/drives/dust-drive.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/red-thruster-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/wall-collision-handler.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/tower-defenses/tower-defense-scene.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ui/loot-ui.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/unit/logic/storyline-manager.test.ts[2m > [22m[2mStorylineManager[2m > [22m[2mshould parse markdown correctly
+[22m[39mStorylineManager initialized with [33m2[39m galaxies.
+
+[90mstdout[2m | tests/unit/logic/storyline-manager.test.ts[2m > [22m[2mStorylineManager[2m > [22m[2mshould handle multi-line text
+[22m[39mStorylineManager initialized with [33m1[39m galaxies.
+
+[90mstderr[2m | tests/unit/logic/storyline-manager.test.ts[2m > [22m[2mStorylineManager[2m > [22m[2mshould handle multi-line text
+[22m[39mStorylineManager already initialized. Overwriting existing data.
+
+[90mstdout[2m | tests/unit/logic/storyline-manager.test.ts[2m > [22m[2mStorylineManager[2m > [22m[2mshould handle the real galaxy IDs
+[22m[39mStorylineManager initialized with [33m2[39m galaxies.
+
+[90mstderr[2m | tests/unit/logic/storyline-manager.test.ts[2m > [22m[2mStorylineManager[2m > [22m[2mshould handle the real galaxy IDs
+[22m[39mStorylineManager already initialized. Overwriting existing data.
+
+ [32m✓[39m tests/unit/logic/storyline-manager.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/galaxies/planets/planet-effect-factory.test.ts
+[22m[39mRegistered effect: asteroid-belt
+Registered effect: bubble
+Registered effect: color-circle
+Registered effect: gas-ring
+Registered effect: ghost-shade
+Registered effect: glimmering-snow
+Registered effect: hurricane
+Registered effect: mini-moon
+Registered effect: rectangles
+Registered effect: satellite
+Registered effect: solar-flare
+Registered effect: solid-ring
+Registered effect: spikes
+
+ [32m✓[39m tests/unit/scenes/galaxies/planets/planet-effect-factory.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/ship-enemy-handler.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/planet-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/collision-handler.interface.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/collision-handlers/ship-loot-handler.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/big-cruiser.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/tactics/linear-tactic.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/base-orbit-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/shoot-em-ups/blood-hunters-scene.test.ts
+[22m[39mRegistered level: blood-boss-level
+Registered level: blood-hunters-level
+Registered level: intro-asteroid-level
+Registered level: ship-demo-level
+
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/blood-hunters-scene.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/bubble-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/tactics/sinus-tactic.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/planet-data.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/ship-demo-scene.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/base-formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/explicit-formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/weapon-base.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/drives/red-thruster-drive.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/asteroid-medium.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/galaxy-config.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/dust-trail-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | tests/unit/scenes/galaxies/galaxy.test.ts
+[22m[39mRegistered effect: asteroid-belt
+Registered effect: bubble
+Registered effect: color-circle
+Registered effect: gas-ring
+Registered effect: ghost-shade
+Registered effect: glimmering-snow
+Registered effect: hurricane
+Registered effect: mini-moon
+Registered effect: rectangles
+Registered effect: satellite
+Registered effect: solar-flare
+Registered effect: solid-ring
+Registered effect: spikes
+
+ [32m✓[39m tests/unit/scenes/galaxies/galaxy.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/blood-bomber.markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/white-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/base-surface-structure-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/red-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/ghost-shade-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/drives/base-drive.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/blood-boss.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/asteroid-large.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/sinus-formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scripts/marker-config.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scripts/png-utils.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scripts/scaffold-tests.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/blood-hunter.markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/projectile.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/blood-bomber-blood-rocket.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/effects/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/blood-hunter.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scripts/check-tests.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/drives/ion-drive.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/markers-generated/blood-fighter.markers.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/asteroid-field-formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/levels/intro-asteroid-level.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/level-registry.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/drives/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/rockets/blood-rocket.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/planets/effects/glimmering-snow-effect.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/shoot-em-ups/formations/demo-formation.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/definitions/asteroid-small.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/scenes/galaxies/galaxy-factory.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/configurations/blood-hunter-red-laser.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/logic/debug-utils.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+ [32m✓[39m tests/unit/ships/modules/lasers/types.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 1[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 7 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m tests/integration/levels/blood-hunters-level.test.ts[2m > [22mIntegration: BloodHuntersLevel[2m > [22mshould spawn Blood Hunters and move them downwards
+[31m[1mAssertionError[22m: expected 0 to be greater than 0[39m
+[36m [2m❯[22m tests/integration/levels/blood-hunters-level.test.ts:[2m211:37[22m[39m
+    [90m209| [39m
+    [90m210| [39m        [90m// Assertion: We should have spawned blood hunters[39m
+    [90m211| [39m        [34mexpect[39m(bloodHunters[33m.[39mlength)[33m.[39m[34mtoBeGreaterThan[39m([34m0[39m)[33m;[39m
+    [90m   | [39m                                    [31m^[39m
+    [90m212| [39m
+    [90m213| [39m        // Assertion: At least some should be on screen or have passed…
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/logic/ship-rotation-repro.test.ts[2m > [22mPlayerController Edge Rotation[2m > [22mshould rotate back to upright when hitting the edge while moving to target
+[31m[1mAssertionError[22m: expected undefined to be defined[39m
+[36m [2m❯[22m tests/unit/logic/ship-rotation-repro.test.ts:[2m177:30[22m[39m
+    [90m175| [39m        const uprightTween = tweenCalls.find((call: any[]) => call[0].…
+    [90m176| [39m
+    [90m177| [39m        [34mexpect[39m(uprightTween)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m   | [39m                             [31m^[39m
+    [90m178| [39m
+    [90m179| [39m        [90m// Also verify targetPosition is cleared[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/scenes/preload-scene.test.ts[2m > [22mPreloadScene[2m > [22mshould skip WormholeScene and start GalaxyScene if galaxyId is in URL
+[31m[1mAssertionError[22m: expected "vi.fn()" to be called with arguments: [ 'GalaxyScene', …(1) ][90m
+
+Received: 
+
+[1m  1st vi.fn() call:
+
+[22m[2m  [[22m
+[2m    "GalaxyScene",[22m
+[2m    {[22m
+[2m      "galaxyId": "test-galaxy",[22m
+[31m+     "planetId": null,[90m
+[2m    },[22m
+[2m  ][22m
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[36m [2m❯[22m tests/unit/scenes/preload-scene.test.ts:[2m157:39[22m[39m
+    [90m155| [39m        preloadScene[33m.[39m[34mcreate[39m()[33m;[39m
+    [90m156| [39m
+    [90m157| [39m        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScen…
+    [90m   | [39m                                      [31m^[39m
+    [90m158| [39m
+    [90m159| [39m        [90m// Restore window.location[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/scenes/galaxies/demo-galaxy.test.ts[2m > [22mGalaxyRegistry (testing DemoGalaxy)[2m > [22mshould configure specific planets with correct properties
+[31m[1mAssertionError[22m: expected undefined to be truthy[39m
+
+[32m- Expected:[39m 
+true
+
+[31m+ Received:[39m 
+undefined
+
+[36m [2m❯[22m tests/unit/scenes/galaxies/demo-galaxy.test.ts:[2m201:32[22m[39m
+    [90m199| [39m        [34mexpect[39m(veridia[33m.[39meffects)[33m.[39m[34mtoBeDefined[39m()[33m;[39m
+    [90m200| [39m        expect(veridia.effects!.length).toBe(2); // Rectangles + Satel…
+    [90m201| [39m        [34mexpect[39m(veridia[33m.[39mhidden)[33m.[39m[34mtoBeTruthy[39m()[33m;[39m
+    [90m   | [39m                               [31m^[39m
+    [90m202| [39m    })[33m;[39m
+    [90m203| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/scenes/galaxies/galaxy-scene.test.ts[2m > [22mGalaxyScene[2m > [22mIntro Delay Logic[2m > [22mshould delay intro if intro is required and not seen
+[31m[1mAssertionError[22m: expected "vi.fn()" to be called with arguments: [ 1500, Any<Function> ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[36m [2m❯[22m tests/unit/scenes/galaxies/galaxy-scene.test.ts:[2m214:44[22m[39m
+    [90m212| [39m            // Check if delayedCall was invoked with correct delay (ha…
+    [90m213| [39m            [90m// Code uses 1500 currently based on user edit[39m
+    [90m214| [39m            expect(scene.time.delayedCall).toHaveBeenCalledWith(1500, …
+    [90m   | [39m                                           [31m^[39m
+    [90m215| [39m
+    [90m216| [39m            [90m// Verify interactions hidden[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/scenes/shoot-em-ups/levels/level.test.ts[2m > [22mLevel[2m > [22mshould spawn formations sequentially across steps
+[31m[1mAssertionError[22m: expected +0 to be 1 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 1[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/unit/scenes/shoot-em-ups/levels/level.test.ts:[2m145:45[22m[39m
+    [90m143| [39m
+    [90m144| [39m        [90m// First tactic should spawn immediately[39m
+    [90m145| [39m        [34mexpect[39m([33mMockTactic[39m[33m.[39minstances[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m1[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m146| [39m        [35mconst[39m tactic1 [33m=[39m [33mMockTactic[39m[33m.[39minstances[[34m0[39m][33m;[39m
+    [90m147| [39m        [34mexpect[39m(tactic1[33m.[39minitialize)[33m.[39m[34mtoHaveBeenCalled[39m()[33m;[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯[22m[39m
+
+[41m[1m FAIL [22m[49m tests/unit/scenes/shoot-em-ups/levels/level.test.ts[2m > [22mLevel[2m > [22mshould spawn formations in parallel
+[31m[1mAssertionError[22m: expected +0 to be 2 // Object.is equality[39m
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 2[39m
+[31m+ 0[39m
+
+[36m [2m❯[22m tests/unit/scenes/shoot-em-ups/levels/level.test.ts:[2m189:45[22m[39m
+    [90m187| [39m        level[33m.[39m[34mstart[39m()[33m;[39m
+    [90m188| [39m
+    [90m189| [39m        [34mexpect[39m([33mMockTactic[39m[33m.[39minstances[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m2[39m)[33m;[39m
+    [90m   | [39m                                            [31m^[39m
+    [90m190| [39m        [34mexpect[39m([33mMockFormation[39m[33m.[39minstances[33m.[39mlength)[33m.[39m[34mtoBe[39m([34m2[39m)[33m;[39m
+    [90m191| [39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/7]⎯[22m[39m
+
+
+[2m Test Files [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m129 passed[39m[22m[90m (135)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[2m | [22m[1m[32m305 passed[39m[22m[90m (312)[39m
+[2m   Start at [22m 00:52:09
+[2m   Duration [22m 11.50s[2m (transform 2.82s, setup 1.32s, import 4.47s, tests 793ms, environment 55.61s)[22m
+

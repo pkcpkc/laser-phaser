@@ -8,4 +8,5 @@ export class WhiteLaser extends BaseLaser {
     readonly width = 4;
     readonly height = 4;
     readonly reloadTime = 300; // Fast firing light laser
+    readonly fixedFireDirection = true;
 }

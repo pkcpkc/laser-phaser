@@ -70,7 +70,7 @@ describe('LineFormation', () => {
         mockCollisionConfig = {};
 
         lineFormation = new LineFormation(mockScene, mockShipClass, mockCollisionConfig, {
-            enemyCount: { min: 3, max: 3 }, // Force 3 enemies
+            enemyCount: 3,
             spacing: 100,
             shootingChance: 0
         });

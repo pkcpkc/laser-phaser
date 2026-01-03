@@ -177,7 +177,8 @@ export default class PreloadScene extends Phaser.Scene {
 
         if (galaxyId) {
             console.log(`Starting directly with galaxy: ${galaxyId} (skipping wormhole)`);
-            this.scene.start('GalaxyScene', { galaxyId });
+            const planetId = params.get('planetId');
+            this.scene.start('GalaxyScene', { galaxyId, planetId });
         } else {
             console.log('No galaxyId specified, starting with WormholeScene');
             this.scene.start('WormholeScene');

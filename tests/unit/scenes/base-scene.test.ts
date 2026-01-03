@@ -218,7 +218,8 @@ describe('BaseScene', () => {
         // Or directly call protected method if casted
         (scene as any).handleResize({ width: 1000, height: 800 });
 
-        expect(scene.matter.world.setBounds).toHaveBeenCalledWith(0, 0, 1000, 800);
+        // World bounds are expanded by 100px on each side to allow ship to partially leave screen
+        expect(scene.matter.world.setBounds).toHaveBeenCalledWith(-100, -100, 1200, 1000);
         // Verify lootUI.updatePositions was called
         const lootUIInstance = (LootUI as any).mock.instances[0];
         expect(lootUIInstance.updatePositions).toHaveBeenCalled();

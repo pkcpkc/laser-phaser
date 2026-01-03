@@ -31,6 +31,7 @@ export interface WeaponModule extends ShipModule {
     currentAmmo?: number;
     maxAmmo?: number;
     firingDelay?: { min: number; max: number };
+    fixedFireDirection?: boolean;
 }
 
 /**

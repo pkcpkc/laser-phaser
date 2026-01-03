@@ -141,7 +141,10 @@ describe('Level', () => {
         const level = new Level(mockScene, config, mockCollisionConfig);
         level.start();
 
-        // First tactic should spawn immediately
+        // Advance timers to trigger deferred spawn (time.delayedCall(0))
+        vi.advanceTimersByTime(0);
+
+        // First tactic should spawn after deferred call
         expect(MockTactic.instances.length).toBe(1);
         const tactic1 = MockTactic.instances[0];
         expect(tactic1.initialize).toHaveBeenCalled();
@@ -160,6 +163,9 @@ describe('Level', () => {
         level.update(0, 0);
 
         expect(tactic1.destroy).toHaveBeenCalled();
+
+        // Advance timers to trigger deferred spawn of second wave
+        vi.advanceTimersByTime(0);
 
         // Second wave should spawn
         expect(MockTactic.instances.length).toBe(2);
@@ -185,6 +191,9 @@ describe('Level', () => {
 
         const level = new Level(mockScene, config, mockCollisionConfig);
         level.start();
+
+        // Advance timers to trigger deferred spawn (time.delayedCall(0))
+        vi.advanceTimersByTime(0);
 
         expect(MockTactic.instances.length).toBe(2);
         expect(MockFormation.instances.length).toBe(2);
@@ -227,54 +236,5 @@ describe('Level', () => {
         expect(MockFormation.instances.length).toBe(1);
     });
 
-    it('should handle interval repeating', () => {
-        class MockFormationType1 extends MockFormation { }
 
-        const config: LevelConfig = {
-            name: 'Test Level',
-            formations: [
-                [{
-                    formationType: MockFormationType1,
-                    tacticType: MockTactic as any,
-                    count: 2,
-                    interval: 500
-                }]
-            ]
-        };
-
-        const level = new Level(mockScene, config, mockCollisionConfig);
-        level.start();
-
-        // First spawn
-        expect(MockTactic.instances.length).toBe(1);
-        const tactic1 = MockTactic.instances[0];
-        expect(tactic1.spawn).toHaveBeenCalled();
-        expect(MockFormation.instances.length).toBe(1);
-
-        // Complete first spawn
-        tactic1.isComplete.mockReturnValue(true);
-        level.update(0, 0);
-        expect(tactic1.destroy).toHaveBeenCalled();
-
-        // Should be waiting for interval. No new instance yet.
-        expect(MockTactic.instances.length).toBe(1);
-
-        // Advance time
-        vi.advanceTimersByTime(500);
-
-        // Second spawn
-        expect(MockTactic.instances.length).toBe(2);
-        const tactic2 = MockTactic.instances[1];
-        expect(tactic2.spawn).toHaveBeenCalled();
-        expect(MockFormation.instances.length).toBe(2);
-
-        // Complete second spawn
-        tactic2.isComplete.mockReturnValue(true);
-        level.update(0, 0);
-        expect(tactic2.destroy).toHaveBeenCalled();
-
-        // No more spawns
-        vi.advanceTimersByTime(1000);
-        expect(MockTactic.instances.length).toBe(2);
-    });
 });

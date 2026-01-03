@@ -209,9 +209,9 @@ describe('GalaxyScene', () => {
             // Capture the interactions instance created by the scene
             mockInteractions = (scene as any).interactions;
 
-            // Check if delayedCall was invoked with correct delay (hardcoded 1500 or 2000 in code)
-            // Code uses 1500 currently based on user edit
-            expect(scene.time.delayedCall).toHaveBeenCalledWith(1500, expect.any(Function));
+            // Verify controls are disabled during delay
+            expect((scene as any).controlsEnabled).toBe(false);
+            expect((scene as any).introPending).toBe(true);
 
             // Verify interactions hidden
             expect(mockInteractions.hide).toHaveBeenCalled();

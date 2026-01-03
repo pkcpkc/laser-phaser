@@ -25,7 +25,8 @@ export abstract class WeaponBase {
     readonly reloadTime: number = DEFAULT_RELOAD_TIME;
     readonly mountTextureKey?: string;
     readonly visibleOnMount: boolean = false;
-    firingDelay?: { min: number; max: number };
+    readonly firingDelay?: { min: number; max: number };
+    readonly fixedFireDirection?: boolean;
     currentAmmo?: number;
 
     /**

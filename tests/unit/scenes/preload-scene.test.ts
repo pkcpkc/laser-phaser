@@ -154,7 +154,7 @@ describe('PreloadScene', () => {
         preloadScene.preload();
         preloadScene.create();
 
-        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy' });
+        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', planetId: null });
 
         // Restore window.location
         (window as any).location = originalLocation;

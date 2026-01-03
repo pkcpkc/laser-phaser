@@ -5,7 +5,7 @@ import type { IFormation } from '../formations/types';
 import type { ITactic } from '../tactics/types';
 
 export interface IFormationConstructor {
-    new(scene: Phaser.Scene, shipClass: any, collisionConfig: ShipCollisionConfig, config?: Record<string, unknown>, shipConfigs?: ShipConfig[]): IFormation;
+    new(scene: Phaser.Scene, shipClass: any, collisionConfig: ShipCollisionConfig, config?: any, shipConfigs?: ShipConfig[]): IFormation;
 }
 
 export interface ITacticConstructor {
@@ -23,10 +23,8 @@ export interface FormationConfig {
     formationType: IFormationConstructor;
     shipClass?: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
     shipConfigs?: ShipConfig[]; // Changed from single to array
-    config?: Record<string, unknown>; // Specific config for the formation
+    config?: any; // Specific config for the formation
 
-    count?: number;
-    interval?: number; // Delay between repeats in ms
     startDelay?: number; // Delay before the first spawn of this formation in ms (relative to the step start)
 }
 
@@ -37,13 +35,12 @@ export interface LevelConfig {
     formations: LevelStep[];
 }
 
-type RunnerState = 'DELAY' | 'RUNNING' | 'REPEAT_DELAY' | 'FINISHED';
+type RunnerState = 'DELAY' | 'RUNNING' | 'FINISHED';
 
 const RUNNER_STATES = {
     DELAY: 'DELAY' as const,         // Waiting for startDelay
     RUNNING: 'RUNNING' as const,       // Formation is active
-    REPEAT_DELAY: 'REPEAT_DELAY' as const,  // Waiting for interval before repeating
-    FINISHED: 'FINISHED' as const       // All repeats done
+    FINISHED: 'FINISHED' as const       // Done
 };
 
 class TacticRunner {
@@ -51,8 +48,6 @@ class TacticRunner {
     private config: FormationConfig;
     private collisionConfig: ShipCollisionConfig;
     private tactic: ITactic | null = null;
-    private repeatCount: number = 0;
-    private maxRepeats: number;
     private state: RunnerState;
     private timerEvent?: Phaser.Time.TimerEvent;
 
@@ -60,7 +55,6 @@ class TacticRunner {
         this.scene = scene;
         this.config = config;
         this.collisionConfig = collisionConfig;
-        this.maxRepeats = config.count || 1;
         this.state = RUNNER_STATES.DELAY;
 
         const startDelay = config.startDelay || 0;
@@ -69,7 +63,10 @@ class TacticRunner {
                 this.spawn();
             });
         } else {
-            this.spawn();
+            // Defer spawn to next update cycle to ensure time consistency
+            this.timerEvent = this.scene.time.delayedCall(0, () => {
+                this.spawn();
+            });
         }
     }
 
@@ -112,22 +109,7 @@ class TacticRunner {
             this.tactic.destroy();
             this.tactic = null;
         }
-
-        this.repeatCount++;
-
-        if (this.repeatCount < this.maxRepeats) {
-            this.state = RUNNER_STATES.REPEAT_DELAY;
-            const interval = this.config.interval || 0;
-            if (interval > 0) {
-                this.timerEvent = this.scene.time.delayedCall(interval, () => {
-                    this.spawn();
-                });
-            } else {
-                this.spawn();
-            }
-        } else {
-            this.state = RUNNER_STATES.FINISHED;
-        }
+        this.state = RUNNER_STATES.FINISHED;
     }
 
     public isFinished(): boolean {

@@ -63,7 +63,6 @@ describe('BloodBossLevel', () => {
         });
 
         it('should create formation with correct config', () => {
-            expect(formationConfig.count).toBe(1);
             expect(formationConfig.tacticConfig.fireDuration).toBe(4000);
         });
 

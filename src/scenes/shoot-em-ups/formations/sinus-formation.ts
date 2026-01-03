@@ -13,7 +13,7 @@ const DEFAULT_SPEED = 2;
 const TIME_OFFSET_PER_ENEMY = 0.5;
 
 export interface FormationConfig {
-    enemyCount: { min: number; max: number };
+    enemyCount: number;
     spacing: number;
     verticalOffset: number;
     amplitude: number;
@@ -47,7 +47,7 @@ export class SinusFormation extends BaseFormation {
 
         // Default configuration
         this.config = {
-            enemyCount: { min: 3, max: 6 },
+            enemyCount: 3,
             spacing: 100,
             verticalOffset: 60,
             amplitude: 50,

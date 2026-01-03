@@ -392,6 +392,38 @@ describe('Ship', () => {
         expect(weaponInstance.currentAmmo).toBe(9); // Should NOT be reset to 10
     });
 
+    it('should fire with fixed direction if fixedFireDirection is true', () => {
+        const mockWeapon = class {
+            fire = vi.fn().mockReturnValue(true);
+            createTexture = vi.fn();
+            visibleOnMount = false;
+            fixedFireDirection = true;
+        };
+
+        const config = {
+            ...mockConfig,
+            modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: mockWeapon }]
+        };
+
+        const ship = new Ship(mockScene, 100, 100, config, mockCollisionConfig);
+        (ship.sprite as any).scene = mockScene;
+        ship.sprite.rotation = Math.PI; // Ship facing down
+
+        ship.fireLasers();
+
+        const weaponInstance = (ship as any).activeModules[0].module;
+        // Should ignore ship rotation (PI) and fire upright (-PI/2)
+        expect(weaponInstance.fire).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.anything(),
+            expect.anything(),
+            -Math.PI / 2, // absoluteAngle should be upright
+            expect.anything(),
+            expect.anything(),
+            expect.anything()
+        );
+    });
+
     describe('Damage', () => {
         it('should initialize with correct health', () => {
             expect(ship.currentHealth).toBe(100);

@@ -18,7 +18,7 @@ const TAP_SPEED_MULTIPLIER = 3; // Tap movement is 3x faster than base ship spee
 const ACCELERATION = 2.0; // Fast acceleration for tap movement
 const DECELERATION = 3.0; // Quick deceleration for snappy stops
 const MIN_SPEED = 0.5;
-const SCREEN_MARGIN = 30;
+
 
 const KEYBOARD_THRUST = 0.04;
 
@@ -46,6 +46,9 @@ export class PlayerController {
         this.ship = ship;
         this.cursors = cursors;
 
+        // Clean up when ship is destroyed
+        this.ship.sprite.once('destroy', this.onDestroy, this);
+
         // Setup input for movement
         this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             // Skip if ship is destroyed (game over state)
@@ -59,6 +62,21 @@ export class PlayerController {
                 this.setTarget(pointer.worldX, pointer.worldY);
             }
         });
+    }
+
+    private onDestroy() {
+        // Stop any active tweens
+        if (this.tiltTween) {
+            this.tiltTween.stop();
+            this.tiltTween = null;
+        }
+
+        // Clean up target effect
+        if (this.targetEffect) {
+            this.scene.tweens.killTweensOf(this.targetEffect);
+            this.targetEffect.destroy();
+            this.targetEffect = null;
+        }
     }
 
     // Helper to check if clicking UI (specifically firebutton for now)
@@ -77,8 +95,14 @@ export class PlayerController {
     }
 
     private setTarget(x: number, y: number) {
-        this.targetPosition = new Phaser.Math.Vector2(x, y);
-        this.showTargetEffect(x, y);
+        const { width, height } = this.scene.scale;
+
+        // Clamp target to screen bounds - ship's origin can reach anywhere from 0 to width/height
+        const clampedX = Phaser.Math.Clamp(x, 0, width);
+        const clampedY = Phaser.Math.Clamp(y, 0, height);
+
+        this.targetPosition = new Phaser.Math.Vector2(clampedX, clampedY);
+        this.showTargetEffect(clampedX, clampedY);
     }
 
     /**
@@ -203,6 +227,7 @@ export class PlayerController {
                 this.ship.sprite.setPosition(this.targetPosition.x, this.targetPosition.y);
                 this.ship.sprite.setVelocity(0, 0);
                 this.targetPosition = null;
+                this.currentSpeed = 0;
 
                 // Clear effect immediately
                 if (this.targetEffect) {
@@ -211,6 +236,7 @@ export class PlayerController {
                 }
 
                 // Return to upright when arrived
+                this.currentTiltDirection = 'moving';
                 this.returnToUpright();
             } else {
                 // Move towards target
@@ -259,9 +285,9 @@ export class PlayerController {
             }
         }
 
-        // Keep ship within game boundaries
-        const clampedX = Phaser.Math.Clamp(this.ship.sprite.x, SCREEN_MARGIN, width - SCREEN_MARGIN);
-        const clampedY = Phaser.Math.Clamp(this.ship.sprite.y, SCREEN_MARGIN, height - SCREEN_MARGIN);
+        // Keep ship's origin within screen bounds (allows ship to visually extend beyond edge)
+        const clampedX = Phaser.Math.Clamp(this.ship.sprite.x, 0, width);
+        const clampedY = Phaser.Math.Clamp(this.ship.sprite.y, 0, height);
 
         if (this.ship.sprite.x !== clampedX || this.ship.sprite.y !== clampedY) {
             this.ship.sprite.setPosition(clampedX, clampedY);
@@ -281,9 +307,11 @@ export class PlayerController {
                     this.targetEffect.destroy();
                     this.targetEffect = null;
                 }
-
-                this.returnToUpright();
             }
+
+            // Always return to upright when hitting boundary (even without active target)
+            this.currentTiltDirection = 'moving';
+            this.returnToUpright();
         }
     }
 

@@ -13,7 +13,24 @@ vi.mock('phaser', () => {
             },
             Physics: {
                 Matter: {
-                    Image: class { }
+                    Image: class {
+                        setFrictionAir = vi.fn();
+                        setFixedRotation = vi.fn();
+                        setSleepThreshold = vi.fn();
+                        setMass = vi.fn();
+                        setCollisionCategory = vi.fn();
+                        setCollidesWith = vi.fn();
+                        setVelocity = vi.fn();
+                        setAngle = vi.fn();
+                        setDepth = vi.fn();
+                        destroy = vi.fn();
+                        thrustBack = vi.fn();
+                        setRotation = vi.fn();
+                        setScale = vi.fn();
+                        once = vi.fn();
+                        on = vi.fn();
+                        off = vi.fn();
+                    }
                 }
             },
             Utils: {
@@ -41,10 +58,10 @@ describe('Integration: BloodHuntersLevel', () => {
         mockScene = {
             time: {
                 delayedCall: vi.fn((delay, callback) => {
+                    // Use setTimeout so fake timers can trigger it
+                    setTimeout(callback, delay);
                     return {
-                        remove: vi.fn(),
-                        callback: callback,
-                        delay: delay
+                        remove: vi.fn()
                     };
                 }),
                 now: 0
@@ -104,7 +121,8 @@ describe('Integration: BloodHuntersLevel', () => {
                         startFollow: vi.fn()
                     }),
                     destroy: vi.fn()
-                })
+                }),
+                existing: vi.fn()
             },
             textures: {
                 exists: vi.fn().mockReturnValue(true),
@@ -166,6 +184,8 @@ describe('Integration: BloodHuntersLevel', () => {
     });
 
     it('should spawn Blood Hunters and move them downwards', () => {
+        vi.useFakeTimers();
+
         const collisionConfig = {
             category: 1,
             collidesWith: 2,
@@ -179,9 +199,8 @@ describe('Integration: BloodHuntersLevel', () => {
         const level = new Level(mockScene, BloodHuntersLevel, collisionConfig);
         level.start();
 
-        // Advance time to allow ships to spawn and move
-        // TacticRunner spawns immediately if startDelay is 0
-        // BloodHunters Level 1st step: SinusTactic has NO startDelay.
+        // Advance timers to trigger initial deferred spawn
+        vi.advanceTimersByTime(0);
 
         // Simulate update loop
         const dt = 16;
@@ -190,7 +209,11 @@ describe('Integration: BloodHuntersLevel', () => {
         for (let t = 0; t < totalTime; t += dt) {
             mockScene.time.now = t;
             level.update(t, dt);
+            // Advance timers each frame to handle any delayed calls
+            vi.advanceTimersByTime(dt);
         }
+
+        vi.useRealTimers();
 
         console.log(`Created ${createdSprites.length} sprites.`);
 

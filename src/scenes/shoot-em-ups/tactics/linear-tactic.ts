@@ -20,6 +20,47 @@ export class LinearTactic extends BaseTactic {
         this.config = config;
     }
 
+    initialize(
+        scene: Phaser.Scene,
+        formationType: any,
+        formationConfig: any,
+        shipClass: any,
+        shipConfigs: any[],
+        collisionConfig: any
+    ): void {
+        super.initialize(scene, formationType, formationConfig, shipClass, shipConfigs, collisionConfig);
+
+        // Auto-calculate angle if start/end width percentages are provided and angle is not manually set
+        if (this.config.angle === undefined &&
+            formationConfig.startWidthPercentage !== undefined &&
+            formationConfig.endWidthPercentage !== undefined) {
+
+            const { width, height } = scene.scale;
+            const startX = width * formationConfig.startWidthPercentage;
+            const endX = width * formationConfig.endWidthPercentage;
+
+            const dx = endX - startX;
+            // Total travel distance Y: Height + TopBuffer (200) + BottomBuffer (200) = Height + 400
+            // Actually, per user request "spawnbuffer should be fine", implies we care about visual travel through screen.
+            // If they spawn at -200 and fly to Height+200, travel Y is Height + 400.
+            // If we only consider "visible" part for the percentage... 
+            // Usually "start%" is at spawn Y, "end%" is at exit Y.
+            // So we use the full travel logic.
+            const spawnY = -200; // Assumption from formation constant
+            const exitY = height + 200; // Assumption
+            const dy = exitY - spawnY; // = Height + 400
+
+            this.config.angle = Math.atan2(dy, dx);
+
+            // Correction: atan2(y, x) gives angle from X axis (0 is Right, PI/2 is Down).
+            // We want (dx, dy) vector.
+            // Wait, if dx is positive (left to right), and dy is positive (down),
+            // Math.atan2(dy, dx) returns angle close to PI/2 (positive).
+            // Example: dx=0, dy=100 -> atan2(100, 0) = PI/2 (Down). Correct.
+            // Example: dx=100, dy=100 -> atan2(100, 100) = PI/4 (Diagonal Down-Right). Correct.
+        }
+    }
+
     protected updateFormation(formation: IFormation, time: number, _delta: number): void {
         const enemies = formation.getShips();
 

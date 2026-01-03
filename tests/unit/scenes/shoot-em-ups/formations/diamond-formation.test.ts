@@ -69,6 +69,9 @@ describe('DiamondFormation', () => {
         mockCollisionConfig = {};
 
         diamondFormation = new DiamondFormation(mockScene, mockShipClass, mockCollisionConfig, {
+            formationGrid: [1, 2, 3],
+            startWidthPercentage: 0.5,
+            endWidthPercentage: 0.5,
             shootingChance: 0 // Disable shooting for basic tests
         });
     });
@@ -156,7 +159,9 @@ describe('DiamondFormation', () => {
         // Create formation with custom grid [2, 4]
         diamondFormation = new DiamondFormation(mockScene, mockShipClass, mockCollisionConfig, {
             formationGrid: [2, 4],
-            shootingChance: 0
+            startWidthPercentage: 0.5,
+            endWidthPercentage: 0.5,
+            shootingChance: 0 // Disable shooting for basic tests
         });
 
         diamondFormation.spawn();

@@ -225,7 +225,12 @@ export class Ship {
 
             const absoluteX = this.sprite.x + rotatedX;
             const absoluteY = this.sprite.y + rotatedY;
-            const absoluteAngle = rotation + (module.angle || 0);
+            let absoluteAngle = rotation + (module.angle || 0);
+
+            // Override with fixed direction if specified (e.g. always fire UP)
+            if (weapon.fixedFireDirection) {
+                absoluteAngle = -Math.PI / 2;
+            }
 
             // Get ship velocity to add to projectile
             const shipBody = this.sprite.body as MatterJS.BodyType;

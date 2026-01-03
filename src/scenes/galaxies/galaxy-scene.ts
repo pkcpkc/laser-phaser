@@ -21,6 +21,7 @@ export default class GalaxyScene extends Phaser.Scene {
 
     private controlsEnabled: boolean = true;
     private introPending: boolean = false;
+    private autoStartLevel: boolean = false;
 
     private starfield!: WarpStarfield;
     private cursorKeys!: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -40,6 +41,7 @@ export default class GalaxyScene extends Phaser.Scene {
         // Store target planet to move to in create()
         if (data?.planetId) {
             this.currentPlanetId = data.planetId;
+            this.autoStartLevel = true;
         }
 
         // Store explicit galaxy to load in create
@@ -136,7 +138,15 @@ export default class GalaxyScene extends Phaser.Scene {
 
         this.introOverlay = new PlanetIntroOverlay(this);
 
-        this.moveToPlanet(this.currentPlanetId, true, 1500);
+        this.moveToPlanet(this.currentPlanetId, true, this.autoStartLevel ? 0 : 1500);
+
+        if (this.autoStartLevel) {
+            const planet = this.galaxy.getById(this.currentPlanetId);
+            if (planet) {
+                console.log(`Auto-starting level for planet: ${this.currentPlanetId}`);
+                this.interactions.launchLevelIfAvailable(planet);
+            }
+        }
 
         console.log('GalaxyScene: setting up resize handler');
         // Handle Resize

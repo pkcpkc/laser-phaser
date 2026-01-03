@@ -44,8 +44,10 @@ export default class BaseScene extends Phaser.Scene {
             (loot) => this.handleLootCollected(loot)
         );
 
-        // Set world bounds
-        this.matter.world.setBounds(0, 0, width, height);
+        // Set world bounds - expanded to allow ship to partially leave screen
+        // Player controller constrains the ship's origin to stay on-screen
+        const WORLD_MARGIN = 100;
+        this.matter.world.setBounds(-WORLD_MARGIN, -WORLD_MARGIN, width + WORLD_MARGIN * 2, height + WORLD_MARGIN * 2);
 
         // Create starfield
         this.starfield = new Starfield(this, this.backgroundTexture, this.backgroundFrame);
@@ -210,8 +212,9 @@ export default class BaseScene extends Phaser.Scene {
 
         const { width, height } = gameSize;
 
-        // Update world bounds
-        this.matter.world.setBounds(0, 0, width, height);
+        // Update world bounds - expanded to allow ship to partially leave screen
+        const WORLD_MARGIN = 100;
+        this.matter.world.setBounds(-WORLD_MARGIN, -WORLD_MARGIN, width + WORLD_MARGIN * 2, height + WORLD_MARGIN * 2);
 
         // Update Loot UI positions
         if (this.lootUI) {
@@ -224,13 +227,13 @@ export default class BaseScene extends Phaser.Scene {
     }
 
     update(time: number, _delta: number) {
-        if (!this.gameManager.isGameActive()) {
-            return;
-        }
-
-        // Update starfield
+        // Update starfield (keep animating even during RETRY screen)
         if (this.starfield) {
             this.starfield.update();
+        }
+
+        if (!this.gameManager.isGameActive()) {
+            return;
         }
 
         // Update player controller

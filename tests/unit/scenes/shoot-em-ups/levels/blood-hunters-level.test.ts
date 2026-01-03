@@ -27,28 +27,33 @@ describe('BloodHuntersLevel', () => {
     });
 
     it('should have valid formations', () => {
-        expect(BloodHuntersLevel.formations).toHaveLength(3);
+        expect(BloodHuntersLevel.formations).toHaveLength(6);
 
-        // First step: Sinus (LineFormation) + DiamondFormation (Fighter)
+        // First step: Sinus (LineFormation) - 2 enemies
         const step1 = BloodHuntersLevel.formations[0];
         expect(step1[0].formationType).toBe(LineFormation);
-        expect(step1[1].formationType).toBe(DiamondFormation);
         if (step1[0].shipConfigs) {
             expect(step1[0].shipConfigs[0]).toBe(BloodHunterRedLaserConfig);
         }
-        if (step1[1].shipConfigs) {
-            expect(step1[1].shipConfigs[0]).toBe(BloodFighterBigRedLaserConfig);
+
+        // Fourth step has LineFormation + DiamondFormation (Fighter)
+        const step4 = BloodHuntersLevel.formations[3];
+        expect(step4[0].formationType).toBe(LineFormation);
+        expect(step4[1].formationType).toBe(DiamondFormation);
+        if (step4[1].shipConfigs) {
+            expect(step4[1].shipConfigs[0]).toBe(BloodFighterBigRedLaserConfig);
         }
 
-        const step2 = BloodHuntersLevel.formations[1];
-        expect(step2).toBeDefined();
-        if (step2[0].shipConfigs) {
-            expect(step2[0].shipConfigs[0]).toBe(BloodBomberBloodRocketConfig);
+        // Fifth step: Bomber Formation
+        const step5 = BloodHuntersLevel.formations[4];
+        expect(step5).toBeDefined();
+        if (step5[0].shipConfigs) {
+            expect(step5[0].shipConfigs[0]).toBe(BloodBomberBloodRocketConfig);
         }
 
-        // Third step: DiamondFormation
-        const step3 = BloodHuntersLevel.formations[2];
-        expect(step3[0].formationType).toBe(DiamondFormation);
+        // Sixth step: DiamondFormation
+        const step6 = BloodHuntersLevel.formations[5];
+        expect(step6[0].formationType).toBe(DiamondFormation);
     });
 
 

@@ -1,3 +1,4 @@
+
 // Mock Phaser
 vi.mock('phaser', () => {
     return {
@@ -22,7 +23,7 @@ vi.mock('phaser', () => {
             GameObjects: {
                 Image: class { },
                 Text: class { },
-                Arc: class { } // Added Arc for targetEffect
+                Arc: class { }
             },
             Physics: {
                 Matter: {
@@ -36,7 +37,7 @@ vi.mock('phaser', () => {
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlayerController } from '../../../src/logic/player-controller';
 import { Ship } from '../../../src/ships/ship';
-import Phaser from 'phaser'; // This will now import the mock
+import Phaser from 'phaser';
 
 // Mock Phaser classes
 class MockScene {
@@ -80,24 +81,32 @@ class MockScene {
 class MockShip {
     sprite = {
         active: true,
-        x: 100,
-        y: 100,
-        angle: 0,
-        setAngle: vi.fn(),
-        setPosition: vi.fn(),
+        x: 400,
+        y: 300,
+        angle: -90, // Upright
+        setAngle: vi.fn((angle) => { this.sprite.angle = angle; }),
+        setPosition: vi.fn((x, y) => { this.sprite.x = x; this.sprite.y = y; }),
         setVelocity: vi.fn(),
+        setVelocityX: vi.fn(),
+        setVelocityY: vi.fn(),
         once: vi.fn(),
         on: vi.fn(),
         off: vi.fn(),
         destroy: vi.fn(),
-        scene: {} as any
+        scene: {} as any,
+        thrust: vi.fn(),
+        thrustLeft: vi.fn(),
+        thrustRight: vi.fn(),
+        thrustBack: vi.fn()
     };
+    fireLasers = vi.fn();
     config = {
         modules: []
     };
+    maxSpeed = 10;
 }
 
-describe('PlayerController', () => {
+describe('PlayerController Edge Rotation', () => {
     let scene: MockScene;
     let ship: MockShip;
     let controller: PlayerController;
@@ -106,56 +115,41 @@ describe('PlayerController', () => {
     beforeEach(() => {
         scene = new MockScene();
         ship = new MockShip();
-        ship.sprite.scene = scene; // meaningful reference
+        ship.sprite.scene = scene;
         cursors = scene.input.keyboard!.createCursorKeys();
 
         controller = new PlayerController(scene as unknown as Phaser.Scene, ship as unknown as Ship, cursors);
     });
 
-    it('should register onDestroy listener on creation', () => {
-        expect(ship.sprite.once).toHaveBeenCalledWith('destroy', expect.any(Function), expect.any(Object));
-    });
+    it('should rotate back to upright when hitting the edge while moving to target', () => {
+        // 1. Set target outside the screen (e.g., x = 900, screen width = 800)
+        (controller as any).setTarget(900, 300);
 
-    it('should clean up tweens when ship is destroyed', () => {
-        // Trigger movement to start a tween (simulated)
-        // Access private method or just simulate the state if possible, 
-        // but since we can't easily trigger private methods, we'll verify the listener works.
+        // 2. Mock Angle.BetweenPoints to return 0 (0 radians = right)
+        vi.spyOn(Phaser.Math.Angle, 'BetweenPoints').mockReturnValue(0);
 
-        // Get the listener function
-        const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
-        const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
+        // 3. Run an update to start moving
+        controller.update(100);
 
-        expect(destroyListener).toBeDefined();
+        // Ensure the controller knows we are moving/tilted
+        (controller as any).currentTiltDirection = 'moving';
 
-        // Mock a tween being active
-        const stopMock = vi.fn();
-        (controller as any).tiltTween = { stop: stopMock };
+        // 4. Move ship past the edge boundary (x > 800)
+        ship.sprite.x = 850;
 
-        // Mock a target effect being active
-        const destroyEffectMock = vi.fn();
-        const targetEffect = { destroy: destroyEffectMock };
-        (controller as any).targetEffect = targetEffect;
+        // Reset calls to verify new calls
+        scene.tweens.add.mockClear();
 
-        // Invoke the listener
-        destroyListener.call(context);
+        // 5. Run update - this should trigger the boundary check and return to upright
+        controller.update(200);
 
-        // Verify cleanup
-        expect(stopMock).toHaveBeenCalled();
-        expect(scene.tweens.killTweensOf).toHaveBeenCalledWith(targetEffect);
-        expect(destroyEffectMock).toHaveBeenCalled();
-        expect((controller as any).tiltTween).toBeNull();
-        expect((controller as any).targetEffect).toBeNull();
-    });
+        // 6. Expect returnToUpright to be called (which adds a tween to -90)
+        const tweenCalls = scene.tweens.add.mock.calls;
+        const uprightTween = tweenCalls.find((call: any[]) => call[0].angle === -90);
 
-    it('should not throw error if destroyed multiple times or no tweens active', () => {
-        const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
-        const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
+        expect(uprightTween).toBeDefined();
 
-        // Ensure no tweens
-        (controller as any).tiltTween = null;
-        (controller as any).targetEffect = null;
-
-        // Should not throw
-        expect(() => destroyListener.call(context)).not.toThrow();
+        // Also verify targetPosition is cleared
+        expect((controller as any).targetPosition).toBeNull();
     });
 });

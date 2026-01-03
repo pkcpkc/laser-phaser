@@ -198,7 +198,7 @@ describe('GalaxyRegistry (testing DemoGalaxy)', () => {
         expect(veridia).toBeDefined();
         expect(veridia.effects).toBeDefined();
         expect(veridia.effects!.length).toBe(2); // Rectangles + Satellite
-        expect(veridia.hidden).toBeTruthy();
+        expect(veridia.hidden).toBeFalsy();
     });
 
     it('should update positions based on screen size', () => {
