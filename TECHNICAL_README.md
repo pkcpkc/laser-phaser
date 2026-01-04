@@ -16,24 +16,11 @@ This document provides technical details for developers working on **Laser Phase
 *   **Dependency Injection**: [InversifyJS](https://inversify.io/) - A powerful and lightweight inversion of control container for JavaScript & Node.js apps.
     *   **Reflection**: `reflect-metadata` - Used for decorator metadata support.
 
-## 2. Testing Stack
-
-We maintain a high standard of code quality through a comprehensive testing suite.
-
-### Testing Frameworks
-*   **Unit Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework. Used for core logic, managers, and utility functions.
-    *   **Environment**: Uses `jsdom` to simulate a browser environment for DOM-related tests.
-*   **End-to-End (E2E) Testing**: [Playwright](https://playwright.dev/) - Reliable testing for modern web apps. Used to verify game interactions and scene transitions across different browsers.
-
-### Test Integrity & Automation
-*   **Test Check Script**: `scripts/check-tests.ts` - Ensures that every source file in `src/` has a corresponding test file in `tests/`, maintaining 100% file coverage.
-*   **Linter**: `tsc --noEmit` - Used for static type checking across the entire codebase.
-
-## 3. Architecture
+## 2. Architecture
 
 The game follows a modular, domain-driven architecture utilizing Dependency Injection (DI) to manage complexity. The flow starts with asset preloading and transitions through a centralized map-based navigation system to various gameplay modes.
 
-### Scene Flow & Transitions
+## 3. Scene Flow & Transitions
 
 ```mermaid
 graph TD
@@ -82,7 +69,7 @@ graph TD
     end
 ```
 
-### Key Components
+## 4. Key Components
 
 *   **Dependency Injection**: The core architecture relies on a DI container (`di/container.ts`) to manage dependencies. Scenes bind themselves to the container, and components (like `PlanetNavigator`, `PlayerShipController`) are injected, promoting loose coupling and easier testing.
 *   **Galaxy System**: A modular configuration-driven map. Each galaxy (e.g., *Blood Hunters*) defines its own physics, backgrounds, and planet layouts. The `GalaxyScene` has been decomposed into specialized managers (`PlanetVisuals`, `PlanetNavigator`, etc.) to avoid "God Class" issues.
@@ -91,7 +78,74 @@ graph TD
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
 *   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`.
 
-## 4. Asset Pipeline & Tooling
+### 4.1 Dependency Injection
+
+The game uses **InversifyJS** to manage dependencies between scenes, logic managers, and UI components. This promotes loose coupling and makes unit testing easier by allowing dependencies to be mocked.
+
+#### 4.1.1 Implicit Binding
+We utilize `autoBindInjectable: true` in our DI container. This means you **do not** need to manually bind classes in the container. As long as a class is decorated with `@injectable()`, implicit binding will automatically resolve it when requested.
+
+```typescript
+// No manual binding required!
+@injectable()
+export class LaserService { ... }
+
+// In another class:
+constructor(private laserService: LaserService) { ... }
+```
+
+#### 4.1.2 Custom Decorators
+We use custom decorators to handle specific scopes and lifecycle management.
+
+*   **`@SceneScoped()`**:
+    *   **Purpose**: Marks a service as "scoped" to the current Phaser Scene. This ensures that the service is re-instantiated whenever a new scene is started, preventing stale state from previous levels.
+    *   **Function**: Behind the scenes, it decorates the class as `@injectable()` and registers it in a `sceneServices` registry. When a scene starts, the `bindScene()` function iterates over this registry and rebinds these services in `SingletonScope` for the duration of that scene.
+    *   **Usage**:
+        ```typescript
+        @SceneScoped()
+        export class PlanetNavigator {
+            constructor(@inject('Scene') private scene: Phaser.Scene) {}
+        }
+        ```
+
+#### 4.1.3 Injection Tokens
+While classes are injected by their constructor type, some dependencies (like the Phaser Scene itself or configuration objects) use string tokens.
+
+*   `@inject('Scene')`: Injects the current active Phaser Scene.
+*   `@inject('PlayerCursorKeys')`: Injects the input cursor keys.
+
+### 4.2 Storyline Management
+
+Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
+The build process (`npm run build:storylines`) compiles these files into `src-generated/storylines/storylines.ts` for type-safe, synchronous access.
+
+**Format:**
+```markdown
+## [galaxy-id]
+### [planet-id]
+Text content...
+```
+
+### 4.3 Markers Setup
+
+Markers are special pixels defined directly in the ship's source image (`res/ships/*.png`) to define attachment points.
+
+| Type | Color (Hex) | RGB | Description |
+| :--- | :--- | :--- | :--- |
+| **Thruster** | `#FFA500` | `255, 165, 0` | Positioning for engine trails. |
+| **Laser** | `#00FF00` | `0, 255, 0` | Attachment point for laser cannons. |
+| **Rocket** | `#FFFFFF` | `255, 255, 255` | Attachment point for rocket launchers. |
+| **Origin** | `#0000FF` | `0, 0, 255` | Center point definition/Pivot. |
+
+#### Setting Orientation
+
+To define the rotation (angle) of a marker, place a **Red Pixel** (`#FF0000`) adjacent to the marker pixel. The generator calculates the angle from the vector `(Marker -> Red Pixel)`.
+
+#### Color Palette Analysis
+
+![Module Color Palette](./module-color-palette.png)
+
+## 5. Asset Pipeline & Tooling
 
 We use a custom asset pipeline and various tools to optimize game performance and help with asset creation:
 
@@ -109,36 +163,19 @@ We use a custom asset pipeline and various tools to optimize game performance an
 ### Generated Code
 *   `src-generated/`: Contains auto-generated source files (e.g., compiled storylines, marker data). These should not be edited manually.
 
-## 5. Storyline Management
+## 6. Testing Stack
 
-Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
-The build process (`npm run build:storylines`) compiles these files into `src-generated/storylines/storylines.ts` for type-safe, synchronous access.
+We maintain a high standard of code quality through a comprehensive testing suite.
 
-**Format:**
-```markdown
-## [galaxy-id]
-### [planet-id]
-Text content...
-```
+### Testing Frameworks
+*   **Unit Testing**: [Vitest](https://vitest.dev/) - Blazing fast unit test framework. Used for core logic, managers, and utility functions.
+    *   **Environment**: Uses `jsdom` to simulate a browser environment for DOM-related tests.
+*   **End-to-End (E2E) Testing**: [Playwright](https://playwright.dev/) - Reliable testing for modern web apps. Used to verify game interactions and scene transitions across different browsers.
 
-## 6. Markers Setup
-
-Markers are special pixels defined directly in the ship's source image (`res/ships/*.png`) to define attachment points.
-
-| Type | Color (Hex) | RGB | Description |
-| :--- | :--- | :--- | :--- |
-| **Thruster** | `#FFA500` | `255, 165, 0` | Positioning for engine trails. |
-| **Laser** | `#00FF00` | `0, 255, 0` | Attachment point for laser cannons. |
-| **Rocket** | `#FFFFFF` | `255, 255, 255` | Attachment point for rocket launchers. |
-| **Origin** | `#0000FF` | `0, 0, 255` | Center point definition/Pivot. |
-
-### Setting Orientation
-
-To define the rotation (angle) of a marker, place a **Red Pixel** (`#FF0000`) adjacent to the marker pixel. The generator calculates the angle from the vector `(Marker -> Red Pixel)`.
-
-### Color Palette Analysis
-
-![Module Color Palette](./module-color-palette.png)
+### Test Integrity & Automation
+*   **Test Check Script**: `scripts/check-tests.ts` - Ensures that every source file in `src/` has a corresponding test file in `tests/`, maintaining 100% file coverage.
+*   **Linter**: `tsc --noEmit` - Used for static type checking across the entire codebase.
+*   **Timer Safety**: `src/utils/time-utils.ts` - A wrapper class (`TimeUtils`) that manages `delayedCall` and `setTimeout`. It automatically switches to `setTimeout` in E2E environments (`TEST_E2E=true`) to prevent timeouts caused by browser background throttling, while maintaining safe scene access checks. Always use `TimeUtils.delayedCall` instead of `scene.time.delayedCall` for game logic.
 
 ## 7. Getting Started
 

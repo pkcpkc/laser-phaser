@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-data';
 import type { IPlanetEffect } from '../planet-effect';
+import { TimeUtils } from '../../../../utils/time-utils';
 
 export interface SolarFlareConfig {
     type: 'solar-flare';
@@ -119,7 +120,7 @@ class SolarFlare {
         this.timer.remove();
 
         // Destroy emitter after particles die
-        this.scene.time.delayedCall(2500, () => {
+        TimeUtils.delayedCall(this.scene, 2500, () => {
             this.emitters.forEach(e => e.destroy());
             this.emitters = [];
         });

@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TimeUtils } from '../utils/time-utils';
 
 interface WarpStar {
     x: number;
@@ -76,7 +77,7 @@ export default class WormholeScene extends Phaser.Scene {
         // 0. Static Start (0 -> 1.0s)
         // Hold static for 1 second
 
-        this.time.delayedCall(1000, () => {
+        TimeUtils.delayedCall(this, 1000, () => {
             // 1. Acceleration (1.0s -> 2.5s)
             this.tweens.add({
                 targets: this,
@@ -87,7 +88,7 @@ export default class WormholeScene extends Phaser.Scene {
         });
 
         // 2. Center Stability & Color (Start changes at 2.0s - overlapping end of accel)
-        this.time.delayedCall(2000, () => {
+        TimeUtils.delayedCall(this, 2000, () => {
             // Ramp up colors and movement
             this.tweens.add({
                 targets: this,
@@ -100,7 +101,7 @@ export default class WormholeScene extends Phaser.Scene {
 
         // 3. Return to White (At 5.0s)
         // Shifted phases by 1s due to static start
-        this.time.delayedCall(5000, () => {
+        TimeUtils.delayedCall(this, 5000, () => {
             this.tweens.add({
                 targets: this,
                 colorIntensity: 0, // Back to white
@@ -111,7 +112,7 @@ export default class WormholeScene extends Phaser.Scene {
         });
 
         // 4. Deceleration (4.5s -> 6.0s)
-        this.time.delayedCall(4500, () => {
+        TimeUtils.delayedCall(this, 4500, () => {
             // Smoothly recenter during deceleration
             this.tweens.add({
                 targets: this,

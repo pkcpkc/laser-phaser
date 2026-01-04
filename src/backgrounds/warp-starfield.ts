@@ -1,14 +1,14 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../di/decorators';
 import type { IWarpStarfield } from '../di/interfaces/galaxy';
 import Phaser from 'phaser';
 
-@injectable()
+@SceneScoped()
 export class WarpStarfield implements IWarpStarfield {
     private scene: Phaser.Scene;
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
-    constructor(@inject(TYPES.Scene) scene: Phaser.Scene) {
+    constructor(@inject('Scene') scene: Phaser.Scene) {
         this.scene = scene;
         const { width, height } = this.scene.scale;
         this.createTexture();

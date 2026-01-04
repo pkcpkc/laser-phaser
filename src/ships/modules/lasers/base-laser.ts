@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { Laser } from './types';
 import { WeaponBase } from '../weapon-base';
+import { TimeUtils } from '../../../utils/time-utils';
 
 // Trail Effect Constants
 const TRAIL_CIRCLE_RADIUS = 2;
@@ -49,7 +50,7 @@ export abstract class BaseLaser extends WeaponBase implements Laser {
 
         laser.once('destroy', () => {
             scene.events.off('update', updateListener);
-            scene.time.delayedCall(CLEANUP_DELAY, () => {
+            TimeUtils.delayedCall(scene, CLEANUP_DELAY, () => {
                 particles.destroy();
             });
         });

@@ -14,7 +14,7 @@ const TARGET_ANIMATION_DURATION = 500;
 const TARGET_FADE_THRESHOLD = 0.1;
 
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
+
 import type { IPlayerController } from '../di/interfaces/logic';
 
 /**
@@ -29,9 +29,9 @@ export class PlayerController implements IPlayerController {
     private targetEffect: Phaser.GameObjects.Arc | null = null;
 
     constructor(
-        @inject(TYPES.Scene) private readonly scene: Phaser.Scene,
-        @inject(TYPES.Ship) private readonly ship: Ship,
-        @inject(TYPES.PlayerCursorKeys) private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys
+        @inject('Scene') private readonly scene: Phaser.Scene,
+        @inject(Ship) private readonly ship: Ship,
+        @inject('PlayerCursorKeys') private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys
     ) {
         // Initialize components
         this.movement = new PlayerMovement(scene, ship);

@@ -30,6 +30,37 @@ const mockPostFX = {
     clear: vi.fn(),
 };
 
+// Create a factory for mock text to ensure unique instances
+const createMockText = () => {
+    const data = new Map();
+    const localColorMatrix = {
+        saturate: vi.fn().mockReturnThis(),
+        multiply: vi.fn().mockReturnThis(),
+    };
+    const localPostFX = {
+        clear: vi.fn(),
+        addColorMatrix: vi.fn().mockReturnValue(localColorMatrix),
+    };
+
+    return {
+        setOrigin: vi.fn().mockReturnThis(),
+        setInteractive: vi.fn().mockReturnThis(),
+        on: vi.fn().mockReturnThis(),
+        setPosition: vi.fn().mockReturnThis(),
+        setVisible: vi.fn().mockReturnThis(),
+        setText: vi.fn().mockReturnThis(),
+        setRotation: vi.fn().mockReturnThis(),
+        destroy: vi.fn(),
+        setData: vi.fn().mockImplementation((k, v) => { data.set(k, v); return this; }),
+        getData: vi.fn().mockImplementation((k) => data.get(k)),
+        postFX: localPostFX,
+        width: 100,
+        // Helper to check if style was applied
+        _colorMatrix: localColorMatrix
+    };
+};
+
+// Default mock text for simple tests
 const mockText = {
     setOrigin: vi.fn().mockReturnThis(),
     setInteractive: vi.fn().mockReturnThis(),
@@ -39,6 +70,8 @@ const mockText = {
     setText: vi.fn().mockReturnThis(),
     setRotation: vi.fn().mockReturnThis(),
     destroy: vi.fn(),
+    setData: vi.fn().mockReturnThis(),
+    getData: vi.fn(),
     postFX: mockPostFX,
     width: 100,
 };
@@ -94,6 +127,9 @@ describe('GalaxyInteractionManager', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockIsPlanetDefeated.mockReturnValue(false); // Default: not defeated
+        // Reset scene.add.text to default
+        mockScene.add.text.mockReturnValue(mockText);
+
         manager = new GalaxyInteractionManager(mockScene);
         manager.setGalaxyId('test-galaxy');
     });
@@ -178,32 +214,43 @@ describe('GalaxyInteractionManager', () => {
         expect(mockScene.add.text).toHaveBeenCalledWith(0, 0, '🌀', expect.any(Object));
     });
 
-    it('should apply grayscale and brightness to interaction icons', () => {
+    it('should apply grayscale and brightness to regular icons but NOT for Play icon', () => {
+        // Use unique mock objects for this test
+        const mockTexts: any[] = [];
+        mockScene.add.text.mockImplementation(() => {
+            const txt = createMockText();
+            mockTexts.push(txt);
+            return txt as any;
+        });
+
+        // Ensure defeated so Shipyard shows up
+        mockIsPlanetDefeated.mockReturnValue(true);
+
         const planetData = {
-            id: 'test-planet',
-            name: 'Test Planet',
-            x: 100,
-            y: 100,
+            id: 'hostile',
+            name: 'Hostile',
+            x: 0, y: 0,
             interaction: {
-                levelId: 'test-level',
+                levelId: 'some-level',
                 hasShipyard: true,
-            },
+            }
         };
 
         manager.showInteractionUI(planetData as any);
 
-        // Text is called for icons AND curved planet name letters
-        expect(mockScene.add.text).toHaveBeenCalled();
+        // Find icons based on setData
+        const playIcon = mockTexts.find(t => t.getData('iconType') === '🚀');
+        const shipyardIcon = mockTexts.find(t => t.getData('iconType') === '🛠️');
 
-        // PostFX is applied to the icons (3 icons)
-        expect(mockPostFX.clear).toHaveBeenCalled();
-        expect(mockPostFX.addColorMatrix).toHaveBeenCalled();
+        expect(playIcon).toBeDefined();
+        expect(shipyardIcon).toBeDefined();
 
-        // Check for saturate call
-        expect(mockColorMatrix.saturate).toHaveBeenCalledWith(-1);
+        // Play Icon: Should NOT have color matrix added (because we return early)
+        expect(playIcon.postFX.addColorMatrix).not.toHaveBeenCalled();
 
-        // Check for multiply (tint) call
-        expect(mockColorMatrix.multiply).toHaveBeenCalled();
+        // Shipyard Icon: SHOULD have color matrix added and saturated
+        expect(shipyardIcon.postFX.addColorMatrix).toHaveBeenCalled();
+        expect(shipyardIcon._colorMatrix.saturate).toHaveBeenCalledWith(-1);
     });
 
     it('should show UI for astra', () => {

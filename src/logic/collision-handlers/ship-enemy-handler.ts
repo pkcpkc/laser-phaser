@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { CollisionHandler } from './collision-handler.interface';
 import { Ship } from '../../ships/ship';
+import { TimeUtils } from '../../utils/time-utils';
 
 export class ShipEnemyHandler implements CollisionHandler {
     constructor(
@@ -30,7 +31,7 @@ export class ShipEnemyHandler implements CollisionHandler {
                 if (ship) {
                     ship.takeDamage(100); // Massive ramming damage to enemy
                 } else {
-                    scene.time.delayedCall(0, () => {
+                    TimeUtils.delayedCall(scene, 0, () => {
                         if (enemy.active) enemy.destroy();
                     });
                 }

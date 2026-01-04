@@ -3,6 +3,7 @@ import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
 import type { IFormation } from './types';
 import { isWeapon } from '../../../ships/modules/module-types';
+import { TimeUtils } from '../../../utils/time-utils';
 
 export interface BaseEnemyData {
     ship: Ship;
@@ -78,7 +79,7 @@ export abstract class BaseFormation implements IFormation {
                     config.shotDelay.max
                 ) + j * 500;
 
-                const timer = this.scene.time.delayedCall(delay, () => {
+                const timer = TimeUtils.delayedCall(this.scene, delay, () => {
                     if (enemy.active) {
                         this.fireEnemyLaser(ship);
                     }
@@ -140,7 +141,7 @@ export abstract class BaseFormation implements IFormation {
             effectiveDelay.max
         );
 
-        const timer = this.scene.time.delayedCall(delay, () => {
+        const timer = TimeUtils.delayedCall(this.scene, delay, () => {
             // Remove myself from the list
             this.timers = this.timers.filter(t => t !== timer);
 

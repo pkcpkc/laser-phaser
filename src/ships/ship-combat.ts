@@ -3,6 +3,7 @@ import type { ShipDefinition, ShipCollisionConfig, LootConfig } from './types';
 import { Explosion } from './effects/explosion';
 import { DustExplosion } from './effects/dust-explosion';
 import { Loot } from './loot';
+import { TimeUtils } from '../utils/time-utils';
 
 import { injectable } from 'inversify';
 
@@ -46,7 +47,7 @@ export class ShipCombat {
         } else {
             // Visual damage feedback
             this.sprite.setTint(0xff0000);
-            this.sprite.scene.time.delayedCall(100, () => {
+            TimeUtils.delayedCall(this.sprite.scene, 100, () => {
                 if (this.sprite?.active) {
                     this.sprite.clearTint();
                 }
@@ -62,7 +63,7 @@ export class ShipCombat {
         this.isExploding = true;
 
         // Defer to avoid physics world modification during collision
-        this.sprite.scene.time.delayedCall(0, () => {
+        TimeUtils.delayedCall(this.sprite.scene, 0, () => {
             if (!this.sprite.active) return;
 
             // Play explosion effect

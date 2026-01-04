@@ -16,7 +16,8 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
     protected scene: Phaser.Scene;
     protected planet: PlanetData;
     protected config: TConfig;
-    protected graphics: Phaser.GameObjects.Graphics;
+    protected graphics: Phaser.GameObjects.Graphics; // Back layer
+    protected graphicsFront: Phaser.GameObjects.Graphics; // Front layer
     protected items: TItem[] = [];
     protected updateListener: () => void;
     protected rotationAxis!: Phaser.Math.Vector3;
@@ -29,7 +30,11 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
         this.config = config;
 
         this.graphics = this.scene.add.graphics();
+        this.graphicsFront = this.scene.add.graphics();
+
+        // Default depths (will be overridden)
         this.graphics.setDepth(10);
+        this.graphicsFront.setDepth(12);
 
         this.initRotation();
         this.generateItems();
@@ -62,62 +67,18 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
             return;
         }
 
-        // Phase 0 = Full Moon (Front Lit)
-        // Cycle is 8 frames. 360 / 8 = 45 degrees.
-        // Rotation is clockwise (negative angle) from front?
-        // Let's deduce:
-        // 0: (0,0,1)
-        // 2: Left Lit (-1,0,0) -> Angle 270 (-90)?
-        // 4: Back Lit (0,0,-1) -> Angle 180?
-        // 6: Right Lit (1,0,0) -> Angle 90?
-
-        // Angle = -phase * 45 degrees
         const angleDeg = -this.planet.lightPhase * 45;
         const angleRad = Phaser.Math.DegToRad(angleDeg);
 
-        // Base vector (unrotated planet sprite)
-        // Z is cos, X is sin?
-        // 0 -> Z=1, X=0.
-        // -90 -> Z=0, X=-1. Correct.
         const bx = Math.sin(angleRad);
         const bz = Math.cos(angleRad);
-
-        // Planet sprite is rotated 45 degrees clockwise.
-        // We need to rotate the LIGHT vector by 45 degrees to match the coordinate system?
-        // Or rather, the "Left" of the sprite coincides with Top-Left on screen.
-        // So the vector (-1, 0, 0) should become (-0.7, -0.7, 0).
-        // Usage of rotation: X' = X*cos(45) - Y*sin(45).
-        // Since Y is 0 for our base vector (equatorial lighting), Y plays no part.
-        // Wait, we are rotating around Z axis (Screen).
-        // Light Vector is 3D (X, Y, Z).
-        // Rotation is 45 deg Clockwise? `setAngle(45)`.
-        // Clockwise rotation matrix:
-        // | cos  sin 0 |
-        // | -sin cos 0 |
-        // | 0    0   1 |
-        // angle = 45 deg.
-        // NewX = x*cos(45) + y*sin(45) ... wait, clockwise is negative usually?
-        // Phaser setAngle(45) is typically Clockwise.
-        // So we rotate the light vector by 45 degrees clockwise as well to align with the visual.
-        // Actually, if the sprite rotates, the "Light Source" relative to the sprite stays fixed?
-        // No, the light source is external (Sun). The moon phases represent the Sun moving relative to the Moon.
-        // But here we are simulating that logic.
-        // Let's just rotate -45 and +45 until it looks right if unsure, but derivation suggests:
-        // "Left" (-1, 0, 0) should align with "Top-Left" (-0.7, -0.7, 0).
-        // This is a -135 deg direction (from X axis).
-        // -180 is Left. -135 is Bottom-Left? No.
-        // Left is 180 deg?
-        // Top-Left is 225 deg?
-        // (-1, 0) -> (-0.7, -0.7) is a +45 deg rotation?
-        // If (-1, 0) is 180 deg. +45 = 225 (-135).
-        // Let's assume +45 deg rotation.
 
         const rot = Phaser.Math.DegToRad(45);
         const ca = Math.cos(rot);
         const sa = Math.sin(rot);
 
-        const lx = bx * ca; // - by * sa (by=0)
-        const ly = bx * sa; // + by * ca (by=0)
+        const lx = bx * ca;
+        const ly = bx * sa;
         const lz = bz;
 
         this.lightVector.set(lx, ly, lz);
@@ -129,13 +90,10 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
         const normalVec = new Phaser.Math.Vector3(nx, ny, nz);
         const dot = normalVec.dot(this.lightVector);
 
-        // Ambient light 0.2, full light 1.0
-        // Soft terminator between -0.2 and 0.2
         if (dot < 0.2) {
             if (dot < -0.2) {
-                return 0.2; // Shadow ambient
+                return 0.2;
             } else {
-                // Smooth transition
                 const t = (dot - (-0.2)) / 0.4;
                 return 0.2 + 0.8 * t;
             }
@@ -146,7 +104,6 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
     protected abstract generateItems(): void;
 
     protected onUpdate() {
-        // Skip update if planet is hidden
         if (this.planet.hidden ?? true) {
             return;
         }
@@ -154,33 +111,21 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
         if (!this.planet.gameObject) return;
 
         this.graphics.clear();
+        this.graphicsFront.clear();
 
         const scale = this.planet.visualScale || 1.0;
         const planetRadius = this.PLANET_RADIUS * scale;
         const cx = this.planet.x;
         const cy = this.planet.y;
 
-        // Rotation
         const rotSpeed = this.config.rotationSpeed ?? 0.005;
 
-        // Auto-update rotation axis from planet visual if not explicitly configured
         if (!this.config.rotationAxis && this.planet.gameObject) {
-            // Default axis (0, 1, 0)
-
-            // Apply planet rotation (Screen Z axis rotation)
-            // Note: Planet visual rotation is usually in radians
             const angle = this.planet.gameObject.rotation;
-
-            // Rotate (0, 1, 0) by angle around Z
-            // x' = x*cos - y*sin
-            // y' = x*sin + y*cos
             const sin = Math.sin(angle);
             const cos = Math.cos(angle);
-
-            // relative to (0,1,0):
-            const nx = -sin; // 0*cos - 1*sin
-            const ny = cos;  // 0*sin + 1*cos
-
+            const nx = -sin;
+            const ny = cos;
             this.rotationAxis.set(nx, ny, 0).normalize();
         }
 
@@ -190,47 +135,46 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
         this.updateLightVector();
 
         this.items.forEach(item => {
-            // Rotate position
             item.position.transformQuat(deltaRot);
-
-            // Optional: normalize to prevent drift
-            // item.position.normalize(); 
-
-            // Hook for subclass to transform extra properties (e.g. tangent for rectangles)
             this.transformItem(item, deltaRot);
         });
 
-        // Sorting items by Z-depth for correct rendering order
-        // Sort from back (low Z) to front (high Z)
-        // Assumption: View is looking down Z axis? Or Z is depth coming OUT?
-        // In the original code: 
-        // Spikes didn't sort explicitly? It just did forEach.
-        // Rectangles sorted: a.position.z - b.position.z.
-        // Let's implement sorting as it's generally good for depth effects.
-        // We might want to make this optional if performance is key and order doesn't matter (like thin lines).
-        // But for consistency let's sort.
+        // Determine back and front items
+        // Z > 0 is Front (towards viewer), Z < 0 is Back
+        // But coordinate system depends on projection.
+        // Assuming Standard Right Handed: Z comes OUT of screen? Or Goes IN?
+        // Phaser 3D/Mesh usually: Z is depth?
+        // In this custom sphere logic, let's look at RectanglesEffect fading:
+        // if (nz < fadeStart) -> when nz is small or negative?
+        // Let's assume Z positive is FRONT.
+
         const sortedItems = [...this.items].sort((a, b) => a.position.z - b.position.z);
 
         sortedItems.forEach(item => {
-            this.drawItem(item, cx, cy, planetRadius, scale);
+            // Pick graphics target based on Z
+            // Use a slight overlap to avoid clipping artifacts at exactly 0?
+            const targetGraphics = (item.position.z >= 0) ? this.graphicsFront : this.graphics;
+            this.drawItem(targetGraphics, item, cx, cy, planetRadius, scale);
         });
     }
 
     protected transformItem(item: TItem, deltaRot: Phaser.Math.Quaternion) {
-        // Override in subclass if needed
-        // Avoid lint errors for unused params in default implementation
         void item;
         void deltaRot;
     }
 
-    protected abstract drawItem(item: TItem, centerX: number, centerY: number, planetRadius: number, scale: number): void;
+    protected abstract drawItem(graphics: Phaser.GameObjects.Graphics, item: TItem, centerX: number, centerY: number, planetRadius: number, scale: number): void;
 
     public setVisible(visible: boolean) {
         this.graphics.setVisible(visible);
+        this.graphicsFront.setVisible(visible);
     }
 
     public setDepth(depth: number) {
+        // Base depth is for the BACK layer.
+        // Front layer is Base + 2 (to be in front of planet).
         this.graphics.setDepth(depth);
+        this.graphicsFront.setDepth(depth + 2);
     }
 
     public getDepth(): number {
@@ -238,11 +182,12 @@ export abstract class BaseSurfaceStructureEffect<TConfig extends BaseSurfaceStru
     }
 
     public getVisualElements(): Phaser.GameObjects.GameObject[] {
-        return [this.graphics];
+        return [this.graphics, this.graphicsFront];
     }
 
     public destroy() {
         this.scene.events.off('update', this.updateListener);
         this.graphics.destroy();
+        this.graphicsFront.destroy();
     }
 }

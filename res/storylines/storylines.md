@@ -11,14 +11,14 @@ Strange alien signals are piercing the static... and they don't sound friendly.
 
 But right now, the asteroids are the only thing that matters!
 
-Start game level with 🚀.
+Start game with 🚀
 
 ### vortex
 I try to hail the approaching ships... transmission rejected. The Blood Hunters don't negotiate.
 
 These evil scavengers are only interested in one thing: looting my ship.
 
-I see Fighters and Bombers on the scope. They are swarming the vortex. I must destroy them before they pick my bones clean!
+I see Fighters and Bombers on the scope, swarming the vortex. I must destroy them before they pick my bones clean!
 
 I'm intercepting strange reports in their comms... something about a warp gate on planet Halo. If it's true, that's my way out of this god forsaken galaxy!
 

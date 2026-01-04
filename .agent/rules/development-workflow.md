@@ -12,6 +12,7 @@ trigger: always_on
 3. **Cleanup**
    - Delete all unused code, dead imports, and obsolete test files.
    - Drop backward compatibility.
+   - Always cleanup generated log files (e.g. `npx vitest run --no-color > test_output.txt 2>&1`).
 4. **Validation Loop**
    - Fix all linting errors: `npx tsc --noEmit`
    - Check tests: `npm run test:check`

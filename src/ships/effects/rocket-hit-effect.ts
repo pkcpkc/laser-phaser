@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TimeUtils } from '../../utils/time-utils';
 
 // Cinematic Gas Explosion Constants
 const EXPLOSION_PARTICLE_COUNT = 30; // More volumetric
@@ -134,7 +135,7 @@ export class RocketHitEffect {
         this.coreEmitter.explode(CORE_PARTICLE_COUNT, x, y);
 
         // Cleanup
-        scene.time.delayedCall(CLEANUP_DELAY, () => {
+        TimeUtils.delayedCall(scene, CLEANUP_DELAY, () => {
             if (this.flashEmitter?.active) this.flashEmitter.destroy();
             if (this.shockwaveEmitter?.active) this.shockwaveEmitter.destroy();
             if (this.debrisEmitter?.active) this.debrisEmitter.destroy();

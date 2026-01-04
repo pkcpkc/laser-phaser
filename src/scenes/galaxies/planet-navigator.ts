@@ -1,5 +1,5 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../../di/decorators';
 import type { IPlanetNavigator } from '../../di/interfaces/galaxy';
 import { type PlanetData } from './planets/planet-data';
 import { PlayerShipController } from './player-ship-controller';
@@ -9,11 +9,12 @@ import { LootUI } from '../../ui/loot-ui';
 import { GameStatus } from '../../logic/game-status';
 import { StorylineManager } from '../../logic/storyline-manager';
 import { Galaxy } from './galaxy';
+import { TimeUtils } from '../../utils/time-utils';
 
 /**
  * Handles planet navigation, travel animation, arrival, and intro coordination.
  */
-@injectable()
+@SceneScoped()
 export class PlanetNavigator implements IPlanetNavigator {
     private currentPlanetId: string = '';
     private controlsEnabled: boolean = true;
@@ -22,10 +23,10 @@ export class PlanetNavigator implements IPlanetNavigator {
     private currentLocale: string = 'en';
 
     constructor(
-        @inject(TYPES.PlayerShipController) private shipController: PlayerShipController,
-        @inject(TYPES.GalaxyInteractionManager) private interactions: GalaxyInteractionManager,
-        @inject(TYPES.PlanetIntroOverlay) private introOverlay: PlanetIntroOverlay,
-        @inject(TYPES.LootUI) private lootUI: LootUI
+        @inject(PlayerShipController) private shipController: PlayerShipController,
+        @inject(GalaxyInteractionManager) private interactions: GalaxyInteractionManager,
+        @inject(PlanetIntroOverlay) private introOverlay: PlanetIntroOverlay,
+        @inject(LootUI) private lootUI: LootUI
     ) {
     }
 
@@ -215,7 +216,7 @@ export class PlanetNavigator implements IPlanetNavigator {
                 this.interactions.hide();
                 console.log('PlanetNavigator: Delaying controls. introPending=true');
 
-                this.galaxy.scene.time.delayedCall(introDelay, () => {
+                TimeUtils.delayedCall(this.galaxy.scene, introDelay, () => {
                     console.log('PlanetNavigator: Intro delay complete. Resuming controls.');
                     this.introPending = false;
                     this.controlsEnabled = true;

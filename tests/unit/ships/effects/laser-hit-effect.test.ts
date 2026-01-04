@@ -67,6 +67,9 @@ describe('LaserHitEffect', () => {
                     // Store callback for testing
                     (mockScene as any)._delayedCallback = callback;
                 })
+            },
+            sys: {
+                isActive: vi.fn().mockReturnValue(true)
             }
         };
     });
@@ -107,7 +110,9 @@ describe('LaserHitEffect', () => {
 
         expect(mockScene.time.delayedCall).toHaveBeenCalledWith(
             300,
-            expect.any(Function)
+            expect.any(Function),
+            undefined,
+            mockScene
         );
     });
 

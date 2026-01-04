@@ -50,7 +50,7 @@ export class BubbleEffect extends BaseSurfaceStructureEffect<BubbleConfig, Bubbl
         }
     }
 
-    protected drawItem(cell: BubbleCell, cx: number, cy: number, planetRadius: number, scale: number) {
+    protected drawItem(_graphics: Phaser.GameObjects.Graphics, cell: BubbleCell, cx: number, cy: number, planetRadius: number, scale: number) {
         const nx = cell.position.x;
         const ny = cell.position.y;
         const nz = cell.position.z;

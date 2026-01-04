@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
+
 import type { ICollisionManager } from '../di/interfaces/logic';
 import type { CollisionHandler } from './collision-handlers/collision-handler.interface';
 import { WallCollisionHandler } from './collision-handlers/wall-collision-handler';
@@ -17,7 +17,7 @@ export class CollisionManager implements ICollisionManager {
     private lootCategory: number;
     private handlers: CollisionHandler[] = [];
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
         this.shipCategory = 0x0002;
         this.laserCategory = 0x0004;
         this.enemyCategory = 0x0008;

@@ -6,6 +6,7 @@
     - Timers (`time.addEvent`)
     - Tweens
   - Prevent "Ghost" Logic: Ensure `update()` methods check if the object/scene is active before running logic.
+  - **Timer Safety**: ALWAYS use `TimeUtils.delayedCall` (from `src/utils/time-utils.ts`) instead of `this.time.delayedCall` or `window.setTimeout`. This ensures compatibility with E2E tests (preventing timeouts) and strictly checks for scene activity before execution to prevent crashes.
 - **Performance Optimization**:
   - **Object Pooling**: Use `Phaser.GameObjects.Group` with `classType` and `runChildUpdate` for high-frequency entities (bullets, particles, enemies). Reuse objects (`setActive(true).setVisible(true)`) instead of destroying and recreating them.
   - **Texture Atlases**: Prefer Texture Atlases over individual image loads to reduce draw calls and manage memory better.

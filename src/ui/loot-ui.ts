@@ -1,10 +1,10 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../di/decorators';
 import type { ILootUI } from '../di/interfaces/ui-effects';
 import { GameStatus } from '../logic/game-status';
 import { LootType } from '../ships/types';
 
-@injectable()
+@SceneScoped()
 export class LootUI implements ILootUI {
     private silverIcon?: Phaser.GameObjects.Text;
     private goldIcon?: Phaser.GameObjects.Text;
@@ -16,7 +16,7 @@ export class LootUI implements ILootUI {
     private gemText?: Phaser.GameObjects.Text;
     private mountText?: Phaser.GameObjects.Text;
 
-    constructor(@inject(TYPES.Scene) private readonly scene: Phaser.Scene) { }
+    constructor(@inject('Scene') private readonly scene: Phaser.Scene) { }
 
     public create(depth: number = 0): void {
         const { width } = this.scene.scale;

@@ -4,6 +4,7 @@ import Phaser from 'phaser';
 // import { GreenRocketCarrier } from '../ships/green-rocket-carrier';
 import { createFlareTexture } from '../ships/textures/flares-texture';
 // import { getSupportedLocales } from '../config/i18n';
+import { TimeUtils } from '../utils/time-utils';
 
 export default class PreloadScene extends Phaser.Scene {
     private startTime: number = 0;
@@ -88,7 +89,7 @@ export default class PreloadScene extends Phaser.Scene {
         };
 
         if (remainingTime > 0) {
-            this.time.delayedCall(remainingTime, onLoadingComplete);
+            TimeUtils.delayedCall(this, remainingTime, onLoadingComplete);
         } else {
             onLoadingComplete();
         }
@@ -183,7 +184,7 @@ export default class PreloadScene extends Phaser.Scene {
             const planetId = params.get('planetId');
             this.scene.start('GalaxyScene', { galaxyId, planetId });
         } else {
-            console.log('No galaxyId specified, starting with WormholeScene');
+            console.log('WormholeScene started');
             this.scene.start('WormholeScene');
         }
     }

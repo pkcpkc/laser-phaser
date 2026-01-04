@@ -3,6 +3,7 @@ import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
 import type { IFormation } from '../formations/types';
 import type { ITactic } from '../tactics/types';
+import { TimeUtils } from '../../../utils/time-utils';
 
 export interface IFormationConstructor {
     new(scene: Phaser.Scene, shipClass: any, collisionConfig: ShipCollisionConfig, config?: any, shipConfigs?: ShipConfig[]): IFormation;
@@ -59,12 +60,12 @@ class WaveRunner {
 
         const startDelay = config.startDelay || 0;
         if (startDelay > 0) {
-            this.timerEvent = this.scene.time.delayedCall(startDelay, () => {
+            this.timerEvent = TimeUtils.delayedCall(this.scene, startDelay, () => {
                 this.spawn();
             });
         } else {
             // Defer spawn to next update cycle to ensure time consistency
-            this.timerEvent = this.scene.time.delayedCall(0, () => {
+            this.timerEvent = TimeUtils.delayedCall(this.scene, 0, () => {
                 this.spawn();
             });
         }

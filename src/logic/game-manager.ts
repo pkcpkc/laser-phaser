@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
+
 import type { IGameManager } from '../di/interfaces/logic';
 
 @injectable()
@@ -9,7 +9,7 @@ export class GameManager implements IGameManager {
     private statusText: Phaser.GameObjects.Text;
     private restartText: Phaser.GameObjects.Text;
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
         const { width, height } = this.scene.scale;
 
         this.statusText = this.scene.add.text(width * 0.5, height * 0.4, '', {

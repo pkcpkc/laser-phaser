@@ -4,6 +4,7 @@ import { Ship } from '../../ships/ship';
 import { LaserHitEffect } from '../../ships/effects/laser-hit-effect';
 import { RocketHitEffect } from '../../ships/effects/rocket-hit-effect';
 import type { Projectile } from '../../ships/modules/lasers/projectile';
+import { TimeUtils } from '../../utils/time-utils';
 
 export class LaserEnemyHandler implements CollisionHandler {
     constructor(private laserCategory: number, private enemyCategory: number) { }
@@ -49,7 +50,7 @@ export class LaserEnemyHandler implements CollisionHandler {
                     ship.takeDamage(damage);
                 } else {
                     // Fallback for non-ship enemies (e.g. simple asteroids if any left old style)
-                    scene.time.delayedCall(0, () => {
+                    TimeUtils.delayedCall(scene, 0, () => {
                         if (categoryA === this.enemyCategory && gameObjectA.active) gameObjectA.destroy();
                         if (categoryB === this.enemyCategory && gameObjectB.active) gameObjectB.destroy();
                     });
@@ -57,7 +58,7 @@ export class LaserEnemyHandler implements CollisionHandler {
             }
 
             // Destroy Laser
-            scene.time.delayedCall(0, () => {
+            TimeUtils.delayedCall(scene, 0, () => {
                 if (categoryA === this.laserCategory && gameObjectA.active) gameObjectA.destroy();
                 if (categoryB === this.laserCategory && gameObjectB.active) gameObjectB.destroy();
             });

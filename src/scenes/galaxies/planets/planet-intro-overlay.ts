@@ -1,10 +1,10 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../../../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../../../di/decorators';
 import Phaser from 'phaser';
 import { type PlanetData } from './planet-data';
 import { type IPlanetEffect } from './planet-effect';
 
-@injectable()
+@SceneScoped()
 export class PlanetIntroOverlay {
     private container: Phaser.GameObjects.Container;
     private background: Phaser.GameObjects.Rectangle;
@@ -36,7 +36,7 @@ export class PlanetIntroOverlay {
     private originalEmitterDepth?: number;
     private originalEffectDepths: Map<IPlanetEffect, number> = new Map();
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
         this.container = scene.add.container(0, 0);
 
         const { width, height } = scene.scale;
@@ -592,9 +592,12 @@ export class PlanetIntroOverlay {
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {
-        if (!this.background) return; // Guard against resize during destruction
+        if (!this.background || !this.background.scene) return; // Guard against resize during destruction
         const { width, height } = gameSize;
-        this.background.setSize(width, height);
+
+        if (this.background.setSize) {
+            this.background.setSize(width, height);
+        }
 
         const textStartY = Math.max(180, height * 0.3) - 70;
         // const targetY = textStartY - 70; // Sync with show() logic (Unused here, planet pos handled by tween/state)

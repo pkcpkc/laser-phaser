@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BaseRocket } from './base-rocket';
+import { TimeUtils } from '../../../utils/time-utils';
 
 export class BloodRocket extends BaseRocket {
     readonly TEXTURE_KEY = 'blood-rocket';
@@ -86,7 +87,7 @@ export class BloodRocket extends BaseRocket {
             return fireLogic();
         }
 
-        scene.time.delayedCall(delay, fireLogic);
+        TimeUtils.delayedCall(scene, delay, fireLogic);
 
         // Return a dummy object to satisfy the Ship's "did we fire?" check so it updates the cooldown.
         // The actual ammo decrement happens when super.fire() is called in the callback.
@@ -152,7 +153,7 @@ export class BloodRocket extends BaseRocket {
                     const x = mountSprite.x + perpX * lateralOffset;
                     const y = mountSprite.y + perpY * lateralOffset;
 
-                    scene.time.delayedCall(Math.random() * 50, () => {
+                    TimeUtils.delayedCall(scene, Math.random() * 50, () => {
                         if (particles.scene) {
                             particles.emitParticleAt(x, y);
                         }
@@ -168,7 +169,7 @@ export class BloodRocket extends BaseRocket {
 
         mountSprite.once('destroy', () => {
             scene.events.off('update', updateListener);
-            scene.time.delayedCall(500, () => {
+            TimeUtils.delayedCall(scene, 500, () => {
                 particles.destroy();
             });
         });
@@ -238,7 +239,7 @@ export class BloodRocket extends BaseRocket {
                     const x = rocket.x + perpX * lateralOffset;
                     const y = rocket.y + perpY * lateralOffset;
 
-                    scene.time.delayedCall(Math.random() * 50, () => {
+                    TimeUtils.delayedCall(scene, Math.random() * 50, () => {
                         if (particles.scene) {
                             particles.emitParticleAt(x, y);
                         }
@@ -253,7 +254,7 @@ export class BloodRocket extends BaseRocket {
         rocket.once('destroy', () => {
             scene.events.off('update', updateListener);
             // Destroy the emitter
-            scene.time.delayedCall(500, () => {
+            TimeUtils.delayedCall(scene, 500, () => {
                 particles.destroy();
             });
         });

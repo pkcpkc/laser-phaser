@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { PlanetData } from '../planet-data';
 import { BaseOrbitEffect } from './base-orbit-effect';
+import { TimeUtils } from '../../../../utils/time-utils';
 
 export interface MiniMoonConfig {
     type: 'mini-moon';
@@ -68,7 +69,7 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         this.miniMoon.setPosition(px.x, px.y);
 
         // Defer tint application to ensure postFX is ready
-        this.scene.time.delayedCall(100, () => {
+        TimeUtils.delayedCall(this.scene, 100, () => {
             if (!this.miniMoon || !this.miniMoon.scene) return; // Safety check if destroyed
             this.applyTint();
 

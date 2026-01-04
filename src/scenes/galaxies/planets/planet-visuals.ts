@@ -1,5 +1,5 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../../../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../../../di/decorators';
 import type { IPlanetVisuals } from '../../../di/interfaces/galaxy';
 import type { PlanetData } from './planet-data';
 import { GameStatus } from '../../../logic/game-status';
@@ -173,10 +173,18 @@ export class PlanetVisual {
 
         // Apply color through matrix multiplication if tint defined, BUT ONLY if unlocked/revealed
         const isRevealed = !(this.planet.hidden ?? true);
-        if (this.planet.tint && isRevealed) {
-            const r = ((this.planet.tint >> 16) & 0xFF) / 255;
-            const g = ((this.planet.tint >> 8) & 0xFF) / 255;
-            const b = (this.planet.tint & 0xFF) / 255;
+
+
+        let tintToApply: number | undefined;
+
+        if (isRevealed) {
+            tintToApply = this.planet.tint;
+        }
+
+        if (tintToApply !== undefined) {
+            const r = ((tintToApply >> 16) & 0xFF) / 255;
+            const g = ((tintToApply >> 8) & 0xFF) / 255;
+            const b = (tintToApply & 0xFF) / 255;
 
             // Apply the tint
             tintMatrix.multiply([
@@ -234,8 +242,42 @@ export class PlanetVisual {
             if (!this.planet.usingOverlay) {
                 this.planet.gameObject.setAlpha(1);
             }
+            // Ensure emitter is hidden/destroyed if revealed? 
+            // The method addHiddenParticleEffect creates it if missing.
+            // If revealed, we probably shouldn't see the "hidden" effect.
+            // But current logic only creates it if hidden.
+            if (this.planet.emitter) {
+                this.planet.emitter.setVisible(false);
+            }
         } else {
             this.planet.gameObject.setAlpha(0.8);
+
+            // Ensure emitter exists for hidden planet
+            this.addHiddenParticleEffect();
+
+            if (this.planet.emitter) {
+                this.planet.emitter.setVisible(true);
+
+                if (!isLocked) {
+                    // Hidden but Unlocked -> SPARKLE BOOST (White)
+                    this.planet.emitter.setConfig({
+                        color: [0xffffff],
+                        scale: { start: 0.5, end: 0 },
+                        frequency: 50,
+                        speed: { min: 20, max: 40 },
+                        lifespan: 1200
+                    });
+                } else {
+                    // Standard Hidden
+                    this.planet.emitter.setConfig({
+                        color: [0xffffff],
+                        scale: { start: 0.3, end: 0 },
+                        frequency: 100,
+                        speed: { min: 10, max: 30 },
+                        lifespan: 1000
+                    });
+                }
+            }
         }
 
         this.animate();
@@ -338,13 +380,17 @@ export class PlanetVisual {
         }
         this.planet.emitter.setDepth(this.effectiveBaseDepth + 1);
     }
+    // Effects will be handled by updateVisibility/update loop.
+    // If we want them to pop in too, we'd need to tween them.
+    // For now, let's keep it simple.
+
 }
 
-@injectable()
+@SceneScoped()
 export class PlanetVisuals implements IPlanetVisuals {
     private visuals: Map<string, PlanetVisual> = new Map();
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
     }
 
     public createVisuals(planets: PlanetData[], galaxyId: string, onClick: (planet: PlanetData) => void) {
@@ -370,4 +416,5 @@ export class PlanetVisuals implements IPlanetVisuals {
     public update(time: number, delta: number) {
         this.visuals.forEach(visual => visual.update(time, delta));
     }
+
 }

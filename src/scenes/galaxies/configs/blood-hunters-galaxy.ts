@@ -1,5 +1,5 @@
 
-import type { GalaxyConfig } from './galaxy-config';
+import type { GalaxyConfig } from '../galaxy-config';
 
 export const BloodHuntersGalaxyConfig: GalaxyConfig = {
     id: 'blood-hunters-galaxy',
@@ -28,7 +28,7 @@ export const BloodHuntersGalaxyConfig: GalaxyConfig = {
             id: 'core',
             name: 'Core',
             hidden: true,
-            tint: 0xaa0033,
+            tint: 0xdddddd,
             visualScale: 1.8,
             requiredVictories: 3,
             interaction: { levelId: 'blood-hunters-level' }
@@ -54,16 +54,16 @@ export const BloodHuntersGalaxyConfig: GalaxyConfig = {
             requiredVictories: 3,
             interaction: { levelId: 'blood-hunters-level' },
             effects: [
-                { type: 'mini-moon', tint: 0x550000, tilt: -30, scale: 0.2 },
-                { type: 'mini-moon', tint: 0x440000, tilt: 20, scale: 0.3 },
-                { type: 'mini-moon', tint: 0x880000, tilt: 60, scale: 0.4 }
+                { type: 'mini-moon', tint: 0xffffff, tilt: -30, scale: 0.2 },
+                { type: 'mini-moon', tint: 0x222222, tilt: 20, scale: 0.3 },
+                { type: 'mini-moon', tint: 0xbbbbbb, tilt: 60, scale: 0.4 }
             ]
         },
         {
             id: 'halo',
             name: 'Halo',
             hidden: true,
-            tint: 0x660000,
+            tint: 0x333333,
             visualScale: 1.0,
             requiredVictories: 2,
             interaction: {

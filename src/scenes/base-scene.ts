@@ -7,11 +7,17 @@ import { LootType } from '../ships/types';
 import { Loot } from '../ships/loot';
 import { setupDebugKey } from '../logic/debug-utils';
 import { container, bindScene } from '../di/container';
-import { TYPES } from '../di/types';
+
 import type { IGameManager, ICollisionManager, IPlayerController } from '../di/interfaces/logic';
 import type { IShip } from '../di/interfaces/ship';
 import type { IStarfield } from '../backgrounds/starfield';
 import type { ILootUI } from '../di/interfaces/ui-effects';
+import { GameManager } from '../logic/game-manager';
+import { CollisionManager } from '../logic/collision-manager';
+import { PlayerController } from '../logic/player-controller';
+import { Starfield } from '../backgrounds/starfield';
+import { LootUI } from '../ui/loot-ui';
+import { TimeUtils } from '../utils/time-utils';
 
 
 export default class BaseScene extends Phaser.Scene {
@@ -41,8 +47,8 @@ export default class BaseScene extends Phaser.Scene {
         bindScene(this);
 
         // Resolve Managers from container
-        this.gameManager = container.get<IGameManager>(TYPES.GameManager);
-        this.collisionManager = container.get<ICollisionManager>(TYPES.CollisionManager);
+        this.gameManager = container.get<IGameManager>(GameManager);
+        this.collisionManager = container.get<ICollisionManager>(CollisionManager);
 
         // Configure Collision Manager with scene-specific callbacks
         this.collisionManager.config(
@@ -56,7 +62,7 @@ export default class BaseScene extends Phaser.Scene {
         this.matter.world.setBounds(-WORLD_MARGIN, -WORLD_MARGIN, width + WORLD_MARGIN * 2, height + WORLD_MARGIN * 2);
 
         // Create starfield
-        this.starfield = container.get<IStarfield>(TYPES.Starfield);
+        this.starfield = container.get<IStarfield>(Starfield);
         this.starfield.config(this.backgroundTexture, this.backgroundFrame);
 
         // Create Player Ship
@@ -96,10 +102,10 @@ export default class BaseScene extends Phaser.Scene {
         this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
 
         // Bind the specific ship instance to the container so PlayerController can inject it
-        if (container.isBound(TYPES.Ship)) {
-            container.rebind(TYPES.Ship).toConstantValue(this.ship);
+        if (container.isBound(Ship)) {
+            container.rebind(Ship).toConstantValue(this.ship as Ship);
         } else {
-            container.bind(TYPES.Ship).toConstantValue(this.ship);
+            container.bind(Ship).toConstantValue(this.ship as Ship);
         }
 
         // Enforce player ship physics properties overrides
@@ -125,7 +131,7 @@ export default class BaseScene extends Phaser.Scene {
         this.moduleCount = loot[LootType.MODULE];
 
         // Create Loot UI
-        this.lootUI = container.get<ILootUI>(TYPES.LootUI);
+        this.lootUI = container.get<ILootUI>(LootUI);
         this.lootUI.create();
 
 
@@ -199,7 +205,7 @@ export default class BaseScene extends Phaser.Scene {
         }
 
         // Defer destruction to avoid physics issues
-        this.time.delayedCall(0, () => {
+        TimeUtils.delayedCall(this, 0, () => {
             if (lootGameObject.active) {
                 lootGameObject.destroy();
             }
@@ -210,13 +216,13 @@ export default class BaseScene extends Phaser.Scene {
         this.cursors = this.input.keyboard!.createCursorKeys();
 
         // Bind cursors to the container for PlayerController injection
-        if (container.isBound(TYPES.PlayerCursorKeys)) {
-            container.rebind(TYPES.PlayerCursorKeys).toConstantValue(this.cursors);
+        if (container.isBound('PlayerCursorKeys')) {
+            container.rebind('PlayerCursorKeys').toConstantValue(this.cursors);
         } else {
-            container.bind(TYPES.PlayerCursorKeys).toConstantValue(this.cursors);
+            container.bind('PlayerCursorKeys').toConstantValue(this.cursors);
         }
 
-        this.playerController = container.get<IPlayerController>(TYPES.PlayerController);
+        this.playerController = container.get<IPlayerController>(PlayerController);
         this.playerController.setFireButton(this.fireButton);
     }
 

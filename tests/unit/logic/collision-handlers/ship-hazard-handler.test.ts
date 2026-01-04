@@ -32,6 +32,9 @@ describe('ShipHazardHandler', () => {
         time: {
             delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
         },
+        sys: {
+            isActive: vi.fn().mockReturnValue(true)
+        },
         add: {
             particles: vi.fn().mockReturnValue({
                 setDepth: vi.fn(),

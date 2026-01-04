@@ -4,6 +4,7 @@ import type { PlanetData } from '../../scenes/galaxies/planets/planet-data';
 export interface IPlanetVisuals {
     createVisuals(planets: PlanetData[], galaxyId: string, onClick: (planet: PlanetData) => void): void;
     updateVisibility(planets: PlanetData[]): void;
+
     update(time: number, delta: number): void;
 }
 
@@ -14,10 +15,10 @@ export interface IGalaxyInteractionManager {
 }
 
 export interface IPlayerShipController {
-    create(): void;
-    getShip(): Phaser.GameObjects.Sprite | null;
-    update(time: number, delta: number): void;
-    moveTo(x: number, y: number, duration?: number, onComplete?: () => void): void;
+    create(): Phaser.GameObjects.Image;
+    getShip(): Phaser.GameObjects.Image | null;
+    // update(time: number, delta: number): void; // Removed as not implemented/used
+    travelTo(x: number, y: number, onComplete?: () => void): void;
 }
 
 export interface IPlanetNavigator {

@@ -116,6 +116,9 @@ describe('Level', () => {
                     setTimeout(callback, delay);
                     return { remove: vi.fn() };
                 })
+            },
+            sys: {
+                isActive: vi.fn().mockReturnValue(true)
             }
         };
         mockCollisionConfig = {};

@@ -4,38 +4,49 @@ import { StorylineManager } from '../../../../src/logic/storyline-manager';
 import { GameStatus } from '../../../../src/logic/game-status';
 import { GalaxyFactory } from '../../../../src/scenes/galaxies/galaxy-factory';
 import { LocaleManager } from '../../../../src/config/locale-manager';
-
+import { PlanetVisuals } from '../../../../src/scenes/galaxies/planets/planet-visuals';
+import { GalaxyInteractionManager } from '../../../../src/scenes/galaxies/galaxy-interaction';
+import { PlayerShipController } from '../../../../src/scenes/galaxies/player-ship-controller';
+import { PlanetNavigator } from '../../../../src/scenes/galaxies/planet-navigator';
+import { WarpStarfield } from '../../../../src/backgrounds/warp-starfield';
+import { LootUI } from '../../../../src/ui/loot-ui';
+import { PlanetIntroOverlay } from '../../../../src/scenes/galaxies/planets/planet-intro-overlay';
+import { container } from '../../../../src/di/container';
 // Mock dependencies
 vi.mock('../../../../src/logic/storyline-manager');
 vi.mock('../../../../src/logic/game-status');
 vi.mock('../../../../src/scenes/galaxies/galaxy-factory');
 vi.mock('../../../../src/config/locale-manager');
-vi.mock('../../../../src/scenes/galaxies/galaxy-interaction', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+vi.mock('../../../../src/di/container', () => ({
+    container: {
+        get: vi.fn(),
+        bind: vi.fn().mockReturnThis(),
+        rebind: vi.fn().mockReturnThis(),
+        isBound: vi.fn().mockReturnValue(false),
+        toConstantValue: vi.fn()
+    },
+    bindScene: vi.fn()
+}));
+// Simple mocks without inversify logic since we mock the container
+vi.mock('../../../../src/scenes/galaxies/galaxy-interaction', () => ({
+    GalaxyInteractionManager: class {
         setGalaxyId = vi.fn();
         setStorylineCallback = vi.fn();
         showInteractionUI = vi.fn();
         hide = vi.fn();
         launchLevelIfAvailable = vi.fn();
-    };
-    injectable()(Mock);
-    return { GalaxyInteractionManager: Mock };
-});
-vi.mock('../../../../src/scenes/galaxies/player-ship-controller', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+    }
+}));
+vi.mock('../../../../src/scenes/galaxies/player-ship-controller', () => ({
+    PlayerShipController: class {
         create = vi.fn().mockReturnValue({ x: 0, y: 0 });
         getShip = vi.fn().mockReturnValue({ x: 0, y: 0 });
         setPosition = vi.fn();
         travelTo = vi.fn();
-    };
-    injectable()(Mock);
-    return { PlayerShipController: Mock };
-});
-vi.mock('../../../../src/scenes/galaxies/planet-navigator', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+    }
+}));
+vi.mock('../../../../src/scenes/galaxies/planet-navigator', () => ({
+    PlanetNavigator: class {
         getCurrentPlanetId = vi.fn().mockReturnValue('planet-1');
         setCurrentPlanetId = vi.fn();
         areControlsEnabled = vi.fn().mockReturnValue(true);
@@ -46,47 +57,36 @@ vi.mock('../../../../src/scenes/galaxies/planet-navigator', () => {
         showStoryline = vi.fn();
         checkAndShowIntro = vi.fn();
         config = vi.fn();
-    };
-    injectable()(Mock);
-    return { PlanetNavigator: Mock };
-});
-vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay', () => {
-    const { injectable } = require('inversify');
-    const Mock = class { };
-    injectable()(Mock);
-    return { PlanetIntroOverlay: Mock };
-});
-vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+    }
+}));
+vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay', () => ({
+    PlanetIntroOverlay: class {
+        constructor(_scene?: any) { }
+    }
+}));
+vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals', () => ({
+    PlanetVisuals: class {
         createVisuals = vi.fn();
         updateVisibility = vi.fn();
         update = vi.fn();
-    };
-    injectable()(Mock);
-    return { PlanetVisuals: Mock };
-});
-vi.mock('../../../../src/backgrounds/warp-starfield', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+        animateUnlock = vi.fn();
+    }
+}));
+vi.mock('../../../../src/backgrounds/warp-starfield', () => ({
+    WarpStarfield: class {
         resize = vi.fn();
         setSpeed = vi.fn();
-    };
-    injectable()(Mock);
-    return { WarpStarfield: Mock };
-});
-vi.mock('../../../../src/ui/loot-ui', () => {
-    const { injectable } = require('inversify');
-    const Mock = class {
+    }
+}));
+vi.mock('../../../../src/ui/loot-ui', () => ({
+    LootUI: class {
         create = vi.fn();
         updatePositions = vi.fn();
         updateCounts = vi.fn();
         setVisible = vi.fn();
         destroy = vi.fn();
-    };
-    injectable()(Mock);
-    return { LootUI: Mock };
-});
+    }
+}));
 
 // Mock Phaser
 vi.mock('phaser', () => {
@@ -256,12 +256,26 @@ describe('GalaxyScene', () => {
         scene.registry = { get: vi.fn(), set: vi.fn() } as any;
 
         // Initialize scene cache mocks
-        (scene as any).cache = {
-            json: {
-                exists: vi.fn().mockReturnValue(true),
-                get: vi.fn().mockReturnValue({})
-            }
-        };
+        // Mock instances
+        // Initialize scene cache mocks
+        // Mock instances
+        const mockVisuals = new PlanetVisuals(scene);
+        const mockInteractions = new GalaxyInteractionManager(scene);
+        const mockShipController = new PlayerShipController(scene);
+        const mockLootUI = new LootUI(scene);
+        const mockStarfield = new WarpStarfield(scene);
+        const mockIntroOverlay = new PlanetIntroOverlay(scene);
+        const mockNavigator = new PlanetNavigator(mockShipController, mockInteractions, mockIntroOverlay, mockLootUI);
+
+        (container.get as any).mockImplementation((type: any) => {
+            if (type === PlanetVisuals) return mockVisuals;
+            if (type === GalaxyInteractionManager) return mockInteractions;
+            if (type === PlayerShipController) return mockShipController;
+            if (type === LootUI) return mockLootUI;
+            if (type === WarpStarfield) return mockStarfield;
+            if (type === PlanetNavigator) return mockNavigator;
+            return null;
+        });
     });
 
     it('is defined', () => {

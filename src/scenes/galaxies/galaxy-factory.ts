@@ -1,7 +1,7 @@
 
 import { Galaxy } from './galaxy';
 import type { GalaxyConfig } from './galaxy-config';
-import { BloodHuntersGalaxyConfig } from './blood-hunters-galaxy';
+import { BloodHuntersGalaxyConfig } from './configs/blood-hunters-galaxy';
 
 export class GalaxyFactory {
     private static registry: Map<string, GalaxyConfig> = new Map();
@@ -23,10 +23,8 @@ export class GalaxyFactory {
 
     // Static initializer to load all galaxies
     public static initialize() {
-        // Look in the current directory for files exporting GalaxyConfig objects
-        // Exclude galaxy-factory, galaxy-config, galaxy-scene, planet-data, Galaxy etc.
-        // Better to target specific pattern or exclude known files.
-        const modules = import.meta.glob(['./*.ts', '!./galaxy-factory.ts', '!./galaxy-config.ts', '!./galaxy.ts', '!./galaxy-interaction.ts', '!./galaxy-scene.ts'], { eager: true });
+        // Look in the configs directory for files exporting GalaxyConfig objects
+        const modules = import.meta.glob('./configs/*.ts', { eager: true });
 
         for (const path in modules) {
             const module = modules[path] as any;

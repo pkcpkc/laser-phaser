@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TimeUtils } from '../../utils/time-utils';
 
 /**
  * Dust explosion effect - perfect for rocky asteroids
@@ -83,7 +84,7 @@ export class DustExplosion {
         this.debrisEmitter.explode(Math.floor(particleCount / 3), x, y);
 
         // Auto cleanup
-        scene.time.delayedCall(lifespan + 100, () => {
+        TimeUtils.delayedCall(scene, lifespan + 100, () => {
             this.dustEmitter.destroy();
             this.debrisEmitter.destroy();
         });

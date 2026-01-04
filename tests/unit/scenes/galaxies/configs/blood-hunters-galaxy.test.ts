@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { Galaxy } from '../../../../src/scenes/galaxies/galaxy';
-import { BloodHuntersGalaxyConfig } from '../../../../src/scenes/galaxies/blood-hunters-galaxy';
+import { Galaxy } from '../../../../../src/scenes/galaxies/galaxy';
+import { BloodHuntersGalaxyConfig } from '../../../../../src/scenes/galaxies/configs/blood-hunters-galaxy';
 // @ts-ignore
 import Phaser from 'phaser';
 

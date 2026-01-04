@@ -5,6 +5,7 @@ import type { Laser } from './modules/lasers/types';
 import type { Drive } from './modules/drives/types';
 import { isWeapon, type ShipModule } from './modules/module-types';
 import type { ShipConfig, ShipCollisionConfig, ShipMarker } from './types';
+import { TimeUtils } from '../utils/time-utils';
 
 export interface ActiveModule {
     x: number;
@@ -88,7 +89,7 @@ export class ModuleManager implements IModuleManager {
 
             // Initial + delayed update for race conditions
             this.update();
-            scene.time.delayedCall(100, () => this.update());
+            TimeUtils.delayedCall(scene, 100, () => this.update());
         }
     }
 

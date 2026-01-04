@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TimeUtils } from '../../utils/time-utils';
 
 export interface ExplosionConfig {
     type?: 'standard' | 'dust'; // Default: 'standard'
@@ -61,7 +62,7 @@ export class Explosion {
         this.sparkEmitter.start(0, 600); // Run for 600ms
 
         // Auto destroy emitter after explosion
-        scene.time.delayedCall(1000, () => {
+        TimeUtils.delayedCall(scene, 1000, () => {
             this.emitter.destroy();
             this.sparkEmitter.destroy();
             this.centerEmitter.destroy();

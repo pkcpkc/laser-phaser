@@ -95,7 +95,7 @@ export class RectanglesEffect extends BaseSurfaceStructureEffect<RectanglesConfi
         }
     }
 
-    protected drawItem(rect: RectangleItem, cx: number, cy: number, planetRadius: number, scale: number) {
+    protected drawItem(graphics: Phaser.GameObjects.Graphics, rect: RectangleItem, cx: number, cy: number, planetRadius: number, scale: number) {
         const nx = rect.position.x;
         const ny = rect.position.y;
         const nz = rect.position.z;
@@ -220,21 +220,21 @@ export class RectanglesEffect extends BaseSurfaceStructureEffect<RectanglesConfi
         const finalB = Math.floor(b * lightFactor);
         const finalColor = (finalR << 16) | (finalG << 8) | finalB;
 
-        this.graphics.fillStyle(finalColor, alpha);
+        graphics.fillStyle(finalColor, alpha);
 
-        this.graphics.beginPath();
+        graphics.beginPath();
 
         corners.forEach((c, index) => {
             // Apply scale
             const px = cx + c.x;
             const py = cy + c.y;
 
-            if (index === 0) this.graphics.moveTo(px, py);
-            else this.graphics.lineTo(px, py);
+            if (index === 0) graphics.moveTo(px, py);
+            else graphics.lineTo(px, py);
         });
 
-        this.graphics.closePath();
-        this.graphics.fillPath();
+        graphics.closePath();
+        graphics.fillPath();
 
         // City lights logic
         // Only draw if config is present and it is dark (lightFactor < threshold)
@@ -254,12 +254,12 @@ export class RectanglesEffect extends BaseSurfaceStructureEffect<RectanglesConfi
 
                 if (lightsAlpha > 0) {
                     // Draw lights at corners only
-                    this.graphics.fillStyle(this.config.lightsColor, lightsAlpha * alpha);
+                    graphics.fillStyle(this.config.lightsColor, lightsAlpha * alpha);
                     corners.forEach(c => {
                         const px = cx + c.x;
                         const py = cy + c.y;
                         // Small dot size 1.5 scaled
-                        this.graphics.fillCircle(px, py, 1.5 * scale); // 1.5 * scale radius
+                        graphics.fillCircle(px, py, 1.5 * scale); // 1.5 * scale radius
                     });
                 }
             }

@@ -1,5 +1,5 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../../di/decorators';
 import Phaser from 'phaser';
 import type { PlanetData } from './planets/planet-data';
 import { StorylineManager } from '../../logic/storyline-manager';
@@ -18,14 +18,14 @@ const ICON_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
     shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
 };
 
-@injectable()
+@SceneScoped()
 export class GalaxyInteractionManager {
     private interactionContainer!: Phaser.GameObjects.Container;
     private planetNameContainer!: Phaser.GameObjects.Container;
     private galaxyId?: string;
     private onShowStoryline?: (planet: PlanetData) => void;
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
         this.createInteractionUI();
     }
 
@@ -48,10 +48,13 @@ export class GalaxyInteractionManager {
     }
 
     private createIcon(icon: InteractionIcon, onClick: () => void): Phaser.GameObjects.Text {
-        return this.scene.add.text(0, 0, icon, ICON_STYLE)
+        const text = this.scene.add.text(0, 0, icon, ICON_STYLE)
             .setOrigin(0.5)
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', onClick);
+
+        text.setData('iconType', icon);
+        return text;
     }
 
     public showInteractionUI(planet: PlanetData) {
@@ -298,6 +301,11 @@ export class GalaxyInteractionManager {
     }
 
     private applyIconStyle(icon: Phaser.GameObjects.Text) {
+        // Skip styling for the Play/Rocket icon so it stays colored
+        if (icon.getData('iconType') === InteractionIcon.Play) {
+            return;
+        }
+
         if (icon.postFX) {
             icon.postFX.clear();
         }

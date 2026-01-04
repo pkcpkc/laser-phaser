@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+
 import { vi } from 'vitest';
 
 // Mock Canvas for Phaser

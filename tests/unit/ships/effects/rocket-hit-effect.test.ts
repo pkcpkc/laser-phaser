@@ -78,6 +78,9 @@ describe('RocketHitEffect', () => {
                 delayedCall: vi.fn((_delay: number, callback: () => void) => {
                     (mockScene as any)._delayedCallback = callback;
                 })
+            },
+            sys: {
+                isActive: vi.fn().mockReturnValue(true)
             }
         };
     });
@@ -143,7 +146,9 @@ describe('RocketHitEffect', () => {
 
         expect(mockScene.time.delayedCall).toHaveBeenCalledWith(
             1000,
-            expect.any(Function)
+            expect.any(Function),
+            undefined, // args
+            mockScene  // scope
         );
     });
 

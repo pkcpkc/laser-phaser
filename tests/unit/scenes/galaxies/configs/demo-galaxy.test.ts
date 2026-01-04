@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { Galaxy } from '../../../../src/scenes/galaxies/galaxy';
-import { DemoGalaxyConfig } from '../../../../src/scenes/galaxies/demo-galaxy';
+import { Galaxy } from '../../../../../src/scenes/galaxies/galaxy';
+import { DemoGalaxyConfig } from '../../../../../src/scenes/galaxies/configs/demo-galaxy';
 // @ts-ignore
 import Phaser from 'phaser';
 
@@ -267,8 +267,8 @@ describe('GalaxyRegistry (testing DemoGalaxy)', () => {
     });
 
     it('should initialize Blood Hunters Galaxy', async () => {
-        const { BloodHuntersGalaxyConfig: bloodHuntersGalaxyConfig } = await import('../../../../src/scenes/galaxies/blood-hunters-galaxy');
-        const { Galaxy } = await import('../../../../src/scenes/galaxies/galaxy');
+        const { BloodHuntersGalaxyConfig: bloodHuntersGalaxyConfig } = await import('../../../../../src/scenes/galaxies/configs/blood-hunters-galaxy');
+        const { Galaxy } = await import('../../../../../src/scenes/galaxies/galaxy');
         const bloodHunters = new Galaxy(bloodHuntersGalaxyConfig);
         bloodHunters.init(mockScene, 800, 600);
         const planets = bloodHunters.getAll();

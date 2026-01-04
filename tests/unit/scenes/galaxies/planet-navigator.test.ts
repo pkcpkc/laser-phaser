@@ -265,6 +265,7 @@ describe('PlanetNavigator', () => {
                     delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
                 }
             };
+            mockGalaxy.scene = mockScene;
             // Re-instantiate with scene
             navigator = new PlanetNavigator(
                 mockShipController,
@@ -284,7 +285,12 @@ describe('PlanetNavigator', () => {
             // instant=true, delay=1000
             navigator.moveToPlanet('p1', true, 1000);
 
-            expect(mockScene.time.delayedCall).toHaveBeenCalledWith(1000, expect.any(Function));
+            expect(mockScene.time.delayedCall).toHaveBeenCalledWith(
+                1000,
+                expect.any(Function),
+                undefined,
+                mockScene
+            );
         });
     });
 });

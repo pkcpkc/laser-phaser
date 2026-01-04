@@ -1,5 +1,5 @@
 
-import type { GalaxyConfig } from './galaxy-config';
+import type { GalaxyConfig } from '../galaxy-config';
 
 export const DemoGalaxyConfig: GalaxyConfig = {
     id: 'demo-galaxy',

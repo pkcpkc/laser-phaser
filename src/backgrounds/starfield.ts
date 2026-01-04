@@ -1,5 +1,4 @@
 import { injectable, inject } from 'inversify';
-import { TYPES } from '../di/types';
 
 export interface IStarfield {
     update(): void;
@@ -12,7 +11,7 @@ export class Starfield implements IStarfield {
     private stars: { sprite: Phaser.GameObjects.Image, speed: number }[] = [];
     private nebula!: Phaser.GameObjects.TileSprite;
 
-    constructor(@inject(TYPES.Scene) private readonly scene: Phaser.Scene) {
+    constructor(@inject('Scene') private readonly scene: Phaser.Scene) {
         this.createTexture();
     }
 

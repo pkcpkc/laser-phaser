@@ -9,7 +9,7 @@ import { Ship } from '../../../src/ships/ship';
 import { EngineTrail } from '../../../src/ships/effects/engine-trail';
 import { LootUI } from '../../../src/ui/loot-ui';
 import { LootType } from '../../../src/ships/types';
-import { TYPES } from '../../../src/di/types';
+
 import { container } from '../../../src/di/container';
 
 // Mock Phaser globally
@@ -143,11 +143,11 @@ describe('BaseScene', () => {
 
         // Setup container.get return values
         (container.get as any).mockImplementation((type: any) => {
-            if (type === TYPES.GameManager) return mockGameManager;
-            if (type === TYPES.CollisionManager) return mockCollisionManager;
-            if (type === TYPES.PlayerController) return mockPlayerController;
-            if (type === TYPES.Starfield) return mockStarfieldInstance;
-            if (type === TYPES.LootUI) return mockLootUIInstance;
+            if (type === GameManager) return mockGameManager;
+            if (type === CollisionManager) return mockCollisionManager;
+            if (type === PlayerController) return mockPlayerController;
+            if (type === Starfield) return mockStarfieldInstance;
+            if (type === LootUI) return mockLootUIInstance;
             return null;
         });
 
@@ -194,9 +194,9 @@ describe('BaseScene', () => {
 
     it('should initialize managers and create ship on create', () => {
         scene.create();
-        expect(container.get).toHaveBeenCalledWith(TYPES.GameManager);
-        expect(container.get).toHaveBeenCalledWith(TYPES.CollisionManager);
-        expect(container.get).toHaveBeenCalledWith(TYPES.Starfield);
+        expect(container.get).toHaveBeenCalledWith(GameManager);
+        expect(container.get).toHaveBeenCalledWith(CollisionManager);
+        expect(container.get).toHaveBeenCalledWith(Starfield);
 
         expect(Ship).toHaveBeenCalled();
         expect(EngineTrail).toHaveBeenCalled();
@@ -205,7 +205,7 @@ describe('BaseScene', () => {
     it('should setup controls and UI', () => {
         scene.create();
         expect(scene.input.keyboard!.createCursorKeys).toHaveBeenCalled();
-        expect(container.get).toHaveBeenCalledWith(TYPES.PlayerController);
+        expect(container.get).toHaveBeenCalledWith(PlayerController);
         expect(scene.add.text).toHaveBeenCalled();
     });
 
@@ -233,7 +233,12 @@ describe('BaseScene', () => {
         (scene as any).handleLootCollected(mockLoot);
 
         expect(mockLootUIInstance.updateCounts).toHaveBeenCalledWith(LootType.SILVER, 10);
-        expect(scene.time.delayedCall).toHaveBeenCalledWith(0, expect.any(Function));
+        expect(scene.time.delayedCall).toHaveBeenCalledWith(
+            0,
+            expect.any(Function),
+            undefined, // args
+            scene // scope
+        );
     });
 
     it('should handle game over', () => {

@@ -59,7 +59,7 @@ export class SpikesEffect extends BaseSurfaceStructureEffect<SpikesConfig, Build
         }
     }
 
-    protected drawItem(b: Building, cx: number, cy: number, planetRadius: number, scale: number) {
+    protected drawItem(graphics: Phaser.GameObjects.Graphics, b: Building, cx: number, cy: number, planetRadius: number, scale: number) {
         const nx = b.position.x;
         const ny = b.position.y;
         const nz = b.position.z;
@@ -109,7 +109,7 @@ export class SpikesEffect extends BaseSurfaceStructureEffect<SpikesConfig, Build
         const fb = Math.floor(blue * lightFactor);
         const finalColor = (fr << 16) | (fg << 8) | fb;
 
-        this.graphics.lineStyle(b.width * scale * sizeFactor, finalColor, alpha);
-        this.graphics.lineBetween(baseX, baseY, tipX, tipY);
+        graphics.lineStyle(b.width * scale * sizeFactor, finalColor, alpha);
+        graphics.lineBetween(baseX, baseY, tipX, tipY);
     }
 }

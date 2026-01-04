@@ -1,16 +1,16 @@
-import { injectable, inject } from 'inversify';
-import { TYPES } from '../../di/types';
+import { inject } from 'inversify';
+import { SceneScoped } from '../../di/decorators';
 import Phaser from 'phaser';
 
 /**
  * Manages the player ship game object in the galaxy scene.
  * Handles creation, positioning, and rotation.
  */
-@injectable()
+@SceneScoped()
 export class PlayerShipController {
     private ship!: Phaser.GameObjects.Image;
 
-    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+    constructor(@inject('Scene') private scene: Phaser.Scene) {
     }
 
     /**

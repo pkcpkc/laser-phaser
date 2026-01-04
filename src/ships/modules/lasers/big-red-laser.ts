@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BaseLaser } from './base-laser';
+import { TimeUtils } from '../../../utils/time-utils';
 
 export class BigRedLaser extends BaseLaser {
     readonly TEXTURE_KEY = 'big-red-laser';
@@ -26,7 +27,7 @@ export class BigRedLaser extends BaseLaser {
             return super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
         }
 
-        scene.time.delayedCall(delay, () => {
+        TimeUtils.delayedCall(scene, delay, () => {
             super.fire(scene, x, y, angle, category, collidesWith, shipVelocity);
         });
 

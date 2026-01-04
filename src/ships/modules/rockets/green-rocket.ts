@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BaseRocket } from './base-rocket';
+import { TimeUtils } from '../../../utils/time-utils';
 
 export class GreenRocket extends BaseRocket {
     readonly TEXTURE_KEY = 'green-rocket';
@@ -114,7 +115,7 @@ export class GreenRocket extends BaseRocket {
                 orbitingPixels.forEach(p => p.destroy());
                 scene.events.off('update', updateListener);
                 // Delay particle destruction to let trails fade out
-                scene.time.delayedCall(500, () => {
+                TimeUtils.delayedCall(scene, 500, () => {
                     particles.destroy();
                 });
                 return;
@@ -139,7 +140,7 @@ export class GreenRocket extends BaseRocket {
         rocket.once('destroy', () => {
             orbitingPixels.forEach(p => p.destroy());
             scene.events.off('update', updateListener);
-            scene.time.delayedCall(500, () => {
+            TimeUtils.delayedCall(scene, 500, () => {
                 particles.destroy();
             });
         });

@@ -24,10 +24,12 @@ vi.mock('../../../src/ships/effects/dust-explosion', () => ({
 }));
 
 vi.mock('../../../src/ships/loot', () => ({
-    Loot: vi.fn().mockImplementation(() => ({
-        setCollisionCategory: vi.fn(),
-        setCollidesWith: vi.fn()
-    }))
+    Loot: vi.fn().mockImplementation(function () {
+        return {
+            setCollisionCategory: vi.fn(),
+            setCollidesWith: vi.fn()
+        };
+    })
 }));
 
 import { Explosion } from '../../../src/ships/effects/explosion';

@@ -1,11 +1,18 @@
 import Phaser from 'phaser';
 import { container, bindScene } from '../../di/container';
-import { TYPES } from '../../di/types';
+
 import { Galaxy } from './galaxy';
 import { GalaxyFactory } from './galaxy-factory';
 import { LocaleManager } from '../../config/locale-manager';
 import type { IPlanetVisuals, IGalaxyInteractionManager, IPlayerShipController, IPlanetNavigator, IWarpStarfield } from '../../di/interfaces/galaxy';
 import type { ILootUI } from '../../di/interfaces/ui-effects';
+
+import { PlanetVisuals } from './planets/planet-visuals';
+import { GalaxyInteractionManager } from './galaxy-interaction';
+import { PlayerShipController } from './player-ship-controller';
+import { LootUI } from '../../ui/loot-ui';
+import { WarpStarfield } from '../../backgrounds/warp-starfield';
+import { PlanetNavigator } from './planet-navigator';
 
 export default class GalaxyScene extends Phaser.Scene {
     private galaxy!: Galaxy;
@@ -33,10 +40,15 @@ export default class GalaxyScene extends Phaser.Scene {
         if (data?.galaxyId) {
             this.registry.set('targetGalaxyId', data.galaxyId);
         }
+
+        if (data?.victory) {
+            this.registry.set('justWonLevel', true);
+        } else {
+            this.registry.set('justWonLevel', false);
+        }
     }
 
     create() {
-        console.log('GalaxyScene: create() started');
         const { width, height } = this.scale;
 
         // Bind this scene to the container
@@ -47,17 +59,18 @@ export default class GalaxyScene extends Phaser.Scene {
 
         try {
             // Resolve dependencies from container
-            this.visuals = container.get<IPlanetVisuals>(TYPES.PlanetVisuals);
-            this.interactions = container.get<IGalaxyInteractionManager>(TYPES.GalaxyInteractionManager);
-            this.shipController = container.get<IPlayerShipController>(TYPES.PlayerShipController);
-            this.lootUI = container.get<ILootUI>(TYPES.LootUI);
-            this.starfield = container.get<IWarpStarfield>(TYPES.WarpStarfield);
-            this.navigator = container.get<IPlanetNavigator>(TYPES.PlanetNavigator);
+            this.visuals = container.get<IPlanetVisuals>(PlanetVisuals);
+            this.interactions = container.get<IGalaxyInteractionManager>(GalaxyInteractionManager);
+            this.shipController = container.get<IPlayerShipController>(PlayerShipController);
+            this.lootUI = container.get<ILootUI>(LootUI);
+            this.starfield = container.get<IWarpStarfield>(WarpStarfield);
+            this.navigator = container.get<IPlanetNavigator>(PlanetNavigator);
 
             // Initialize Galaxy
             const distinctGalaxyId = this.registry.get('targetGalaxyId') as string || 'blood-hunters-galaxy';
             this.galaxy = GalaxyFactory.create(distinctGalaxyId);
             this.galaxy.init(this, width, height);
+            console.log(`GalaxyScene: create() started for ${distinctGalaxyId}`);
         } catch (e) {
             console.error('GalaxyScene: Failed to resolve dependencies or init galaxy', e);
             throw e;
@@ -89,6 +102,8 @@ export default class GalaxyScene extends Phaser.Scene {
 
         // Initial State (No forced call to animate needed as symbols are set in createVisuals)
         this.visuals.updateVisibility(this.galaxy.getAll());
+
+
 
         // Validate and set initial planet
         const initialPlanetId = this.registry.get('initialPlanetId') as string;

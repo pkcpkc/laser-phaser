@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { TimeUtils } from '../../utils/time-utils';
 
 // Hit effect constants - designed to be quick and subtle
 const HIT_PARTICLE_COUNT = 6;
@@ -32,7 +33,7 @@ export class LaserHitEffect {
         this.emitter.explode(HIT_PARTICLE_COUNT, x, y);
 
         // Auto-cleanup after effect completes
-        scene.time.delayedCall(HIT_CLEANUP_DELAY, () => {
+        TimeUtils.delayedCall(scene, HIT_CLEANUP_DELAY, () => {
             if (this.emitter && this.emitter.active) {
                 this.emitter.destroy();
             }

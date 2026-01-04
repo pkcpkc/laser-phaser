@@ -4,39 +4,43 @@ import { PlanetIntroOverlay } from '../../../../../src/scenes/galaxies/planets/p
 import { type PlanetData } from '../../../../../src/scenes/galaxies/planets/planet-data';
 
 // Mock Phaser
-const mockGameObject = {
-    setOrigin: vi.fn().mockReturnThis(),
-    setInteractive: vi.fn().mockReturnThis(),
-    setVisible: vi.fn(function (this: any, v: boolean) { this.visible = v; return this; }),
-    setDepth: vi.fn().mockReturnThis(),
-    setAlpha: vi.fn(function (this: any, v: number) { this.alpha = v; return this; }),
-    setText: vi.fn().mockReturnThis(),
-    setPosition: vi.fn().mockReturnThis(),
-    setSize: vi.fn().mockReturnThis(),
-    setRotation: vi.fn().mockReturnThis(),
-    setScale: vi.fn().mockReturnThis(),
-    scale: 1,
-    on: vi.fn().mockReturnThis(),
-    once: vi.fn().mockReturnThis(),
-    off: vi.fn().mockReturnThis(),
-    x: 0,
-    y: 0,
-    width: 100,
-    height: 100,
-    active: true,
-    destroy: vi.fn(),
-    input: { enabled: true },
-    setScrollFactor: vi.fn().mockReturnThis(),
-    scrollFactorX: 0
-};
+const { mockGameObject, mockContainer } = vi.hoisted(() => {
+    const mockGameObject = {
+        setOrigin: vi.fn().mockReturnThis(),
+        setInteractive: vi.fn().mockReturnThis(),
+        setVisible: vi.fn(function (this: any, v: boolean) { this.visible = v; return this; }),
+        setDepth: vi.fn().mockReturnThis(),
+        setAlpha: vi.fn(function (this: any, v: number) { this.alpha = v; return this; }),
+        setText: vi.fn().mockReturnThis(),
+        setPosition: vi.fn().mockReturnThis(),
+        setSize: vi.fn().mockReturnThis(),
+        setRotation: vi.fn().mockReturnThis(),
+        setScale: vi.fn().mockReturnThis(),
+        scale: 1,
+        on: vi.fn().mockReturnThis(),
+        once: vi.fn().mockReturnThis(),
+        off: vi.fn().mockReturnThis(),
+        x: 0,
+        y: 0,
+        width: 100,
+        height: 100,
+        active: true,
+        destroy: vi.fn(),
+        input: { enabled: true },
+        setScrollFactor: vi.fn().mockReturnThis(),
+        scrollFactorX: 0
+    };
 
-const mockContainer = {
-    ...mockGameObject,
-    add: vi.fn(),
-    removeAll: vi.fn(),
-    sort: vi.fn(),
-    getAt: vi.fn()
-};
+    const mockContainer = {
+        ...mockGameObject,
+        add: vi.fn(),
+        removeAll: vi.fn(),
+        sort: vi.fn(),
+        getAt: vi.fn()
+    };
+
+    return { mockGameObject, mockContainer };
+});
 
 const mockScene = {
     add: {
@@ -151,7 +155,7 @@ describe('PlanetIntroOverlay', () => {
         expect(scene.tweens.add).toHaveBeenCalled();
 
         // Verify Fixes
-        expect(overlay.setScrollFactor).toHaveBeenCalledWith(0);
+        expect((overlay as any).container.setScrollFactor).toHaveBeenCalledWith(0);
         expect((overlay as any).textContainer.setScrollFactor).toHaveBeenCalledWith(0);
         expect((overlay as any).textContainer.setAlpha).toHaveBeenCalledWith(1);
     });
