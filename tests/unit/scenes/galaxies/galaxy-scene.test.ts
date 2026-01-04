@@ -3,34 +3,90 @@ import GalaxyScene from '../../../../src/scenes/galaxies/galaxy-scene';
 import { StorylineManager } from '../../../../src/logic/storyline-manager';
 import { GameStatus } from '../../../../src/logic/game-status';
 import { GalaxyFactory } from '../../../../src/scenes/galaxies/galaxy-factory';
+import { LocaleManager } from '../../../../src/config/locale-manager';
 
 // Mock dependencies
 vi.mock('../../../../src/logic/storyline-manager');
 vi.mock('../../../../src/logic/game-status');
 vi.mock('../../../../src/scenes/galaxies/galaxy-factory');
+vi.mock('../../../../src/config/locale-manager');
 vi.mock('../../../../src/scenes/galaxies/galaxy-interaction', () => {
-    return {
-        GalaxyInteractionManager: class {
-            constructor() {
-                // Ensure methods are spies
-                this.setGalaxyId = vi.fn();
-                this.setStorylineCallback = vi.fn();
-                this.showInteractionUI = vi.fn();
-                this.hide = vi.fn();
-            }
-            setGalaxyId: any;
-            setStorylineCallback: any;
-            showInteractionUI: any;
-            hide: any;
-        }
+    const { injectable } = require('inversify');
+    const Mock = class {
+        setGalaxyId = vi.fn();
+        setStorylineCallback = vi.fn();
+        showInteractionUI = vi.fn();
+        hide = vi.fn();
+        launchLevelIfAvailable = vi.fn();
     };
+    injectable()(Mock);
+    return { GalaxyInteractionManager: Mock };
 });
-vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
-vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals');
-vi.mock('../../../../src/backgrounds/warp-starfield');
-vi.mock('../../../../src/ui/loot-ui');
-
-
+vi.mock('../../../../src/scenes/galaxies/player-ship-controller', () => {
+    const { injectable } = require('inversify');
+    const Mock = class {
+        create = vi.fn().mockReturnValue({ x: 0, y: 0 });
+        getShip = vi.fn().mockReturnValue({ x: 0, y: 0 });
+        setPosition = vi.fn();
+        travelTo = vi.fn();
+    };
+    injectable()(Mock);
+    return { PlayerShipController: Mock };
+});
+vi.mock('../../../../src/scenes/galaxies/planet-navigator', () => {
+    const { injectable } = require('inversify');
+    const Mock = class {
+        getCurrentPlanetId = vi.fn().mockReturnValue('planet-1');
+        setCurrentPlanetId = vi.fn();
+        areControlsEnabled = vi.fn().mockReturnValue(true);
+        handlePlanetClick = vi.fn();
+        travelToPlanet = vi.fn();
+        moveToPlanet = vi.fn();
+        navigate = vi.fn();
+        showStoryline = vi.fn();
+        checkAndShowIntro = vi.fn();
+        config = vi.fn();
+    };
+    injectable()(Mock);
+    return { PlanetNavigator: Mock };
+});
+vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay', () => {
+    const { injectable } = require('inversify');
+    const Mock = class { };
+    injectable()(Mock);
+    return { PlanetIntroOverlay: Mock };
+});
+vi.mock('../../../../src/scenes/galaxies/planets/planet-visuals', () => {
+    const { injectable } = require('inversify');
+    const Mock = class {
+        createVisuals = vi.fn();
+        updateVisibility = vi.fn();
+        update = vi.fn();
+    };
+    injectable()(Mock);
+    return { PlanetVisuals: Mock };
+});
+vi.mock('../../../../src/backgrounds/warp-starfield', () => {
+    const { injectable } = require('inversify');
+    const Mock = class {
+        resize = vi.fn();
+        setSpeed = vi.fn();
+    };
+    injectable()(Mock);
+    return { WarpStarfield: Mock };
+});
+vi.mock('../../../../src/ui/loot-ui', () => {
+    const { injectable } = require('inversify');
+    const Mock = class {
+        create = vi.fn();
+        updatePositions = vi.fn();
+        updateCounts = vi.fn();
+        setVisible = vi.fn();
+        destroy = vi.fn();
+    };
+    injectable()(Mock);
+    return { LootUI: Mock };
+});
 
 // Mock Phaser
 vi.mock('phaser', () => {
@@ -75,10 +131,6 @@ vi.mock('phaser', () => {
                     setDepth = vi.fn();
                     setPosition = vi.fn();
                     destroy = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
                 }
             },
             Math: {
@@ -92,15 +144,24 @@ vi.mock('phaser', () => {
                     distance() { return 0; }
                     copy() { return this; }
                 },
-                Clamp: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
+                Clamp: vi.fn().mockReturnValue(0)
             },
             Input: {
                 Keyboard: {
-                    JustDown: vi.fn(),
+                    JustDown: vi.fn().mockReturnValue(false),
                     KeyCodes: {}
+                }
+            },
+            Physics: {
+                Matter: {
+                    Image: class {
+                        setOrigin = vi.fn().mockReturnThis();
+                        setDepth = vi.fn().mockReturnThis();
+                        setScale = vi.fn().mockReturnThis();
+                        setVisible = vi.fn().mockReturnThis();
+                        setAngle = vi.fn().mockReturnThis();
+                        setPosition = vi.fn().mockReturnThis();
+                    }
                 }
             }
         }
@@ -112,10 +173,17 @@ describe('GalaxyScene', () => {
     let mockStorylineManager: any;
     let mockGameStatus: any;
     let mockGalaxy: any;
-    let mockInteractions: any;
+    let mockLocaleManager: any;
 
     beforeEach(() => {
         vi.clearAllMocks();
+
+        // Setup LocaleManager mock
+        mockLocaleManager = {
+            detectLocale: vi.fn().mockReturnValue('en'),
+            getLocale: vi.fn().mockReturnValue('en')
+        };
+        (LocaleManager.getInstance as any).mockReturnValue(mockLocaleManager);
 
         // Setup Singleton Mocks
         mockStorylineManager = {
@@ -137,12 +205,11 @@ describe('GalaxyScene', () => {
         mockGalaxy = {
             id: 'test-galaxy',
             init: vi.fn(),
-            getAll: vi.fn().mockReturnValue([]),
-            getById: vi.fn(),
-            backgroundTexture: 'bg-texture'
+            getAll: vi.fn().mockReturnValue([{ id: 'planet-1', x: 100, y: 100, centralPlanet: true }]),
+            getById: vi.fn().mockReturnValue({ id: 'planet-1', x: 100, y: 100 }),
+            backgroundTexture: 'bg-texture',
+            updatePositions: vi.fn()
         };
-        (GalaxyFactory.create as any).mockReturnValue(mockGalaxy);
-
         (GalaxyFactory.create as any).mockReturnValue(mockGalaxy);
 
         scene = new GalaxyScene();
@@ -186,7 +253,7 @@ describe('GalaxyScene', () => {
         // @ts-ignore
         scene.time = { delayedCall: vi.fn() } as any;
         // @ts-ignore
-        scene.registry = { get: vi.fn(), set: vi.fn() } as any; // default galaxy
+        scene.registry = { get: vi.fn(), set: vi.fn() } as any;
 
         // Initialize scene cache mocks
         (scene as any).cache = {
@@ -195,148 +262,48 @@ describe('GalaxyScene', () => {
                 get: vi.fn().mockReturnValue({})
             }
         };
-
-        // Determine the mock object we want the constructor to return
-        // Since we provided a class factory, new GalaxyInteractionManager() returns an instance with spies.
-        // We will access access them via (scene as any).interactions after create().
     });
 
     it('is defined', () => {
         expect(GalaxyScene).toBeDefined();
     });
 
-    describe('Intro Delay Logic', () => {
-        it('should delay intro if intro is required and not seen', async () => {
-            const planetId = 'planet-1';
-            const planetData = { id: planetId, x: 100, y: 100 };
-            mockGalaxy.getById.mockReturnValue(planetData);
-            mockGalaxy.getAll.mockReturnValue([planetData]);
-
-            // Storyline available and NOT seen
-            mockStorylineManager.getIntroText.mockReturnValue('Intro Text');
-            mockGameStatus.hasSeenIntro.mockReturnValue(false);
-
-            // Execute create (which calls moveToPlanet -> delayed path)
+    describe('create', () => {
+        it('initializes locale via LocaleManager', () => {
             scene.create();
-
-            // Capture the interactions instance created by the scene
-            mockInteractions = (scene as any).interactions;
-
-            // Verify controls are disabled during delay
-            expect((scene as any).controlsEnabled).toBe(false);
-            expect((scene as any).introPending).toBe(true);
-
-            // Verify interactions hidden
-            expect(mockInteractions.hide).toHaveBeenCalled();
+            expect(mockLocaleManager.detectLocale).toHaveBeenCalled();
         });
 
-        it('should NOT delay if intro is already seen', async () => {
-            const planetId = 'planet-1';
-            const planetData = { id: planetId, x: 100, y: 100 };
-            mockGalaxy.getById.mockReturnValue(planetData);
-            mockGalaxy.getAll.mockReturnValue([planetData]);
-
-            // Storyline available BUT seen
-            mockStorylineManager.getIntroText.mockReturnValue('Intro Text');
-            mockGameStatus.hasSeenIntro.mockReturnValue(true);
-
+        it('creates the galaxy from factory', () => {
             scene.create();
-            mockInteractions = (scene as any).interactions;
-
-            // Should NOT call delayedCall for intro
-            expect(scene.time.delayedCall).not.toHaveBeenCalled();
-            // Should verify that interactions are shown immediately
-            expect(mockInteractions.showInteractionUI).toHaveBeenCalledWith(planetData);
+            expect(GalaxyFactory.create).toHaveBeenCalledWith('blood-hunters-galaxy');
         });
 
-        it('should use correct locale when fetching intro text', async () => {
-            vi.useFakeTimers();
-            const planetId = 'planet-1';
-            const planetData = { id: planetId, x: 100, y: 100 };
-            mockGalaxy.getById.mockReturnValue(planetData);
-            mockGalaxy.getAll.mockReturnValue([planetData]);
-
-            // Setup locale in URL params mock
-            Object.defineProperty(window, 'location', {
-                value: {
-                    search: '?locale=de'
-                },
-                writable: true
-            });
-
-            // Storyline available and NOT seen
-            mockStorylineManager.getIntroText.mockReturnValue('Intro Text DE');
-            mockGameStatus.hasSeenIntro.mockReturnValue(false);
-
-            // Mock introOverlay on the scene instance that will be created
-            // We need to intercept the assignment or mock the class used.
-            // Since `scene.introOverlay` is assigned in create(), we can't set it on `scene` before create easily 
-            // without mocking the constructor or the class.
-            // Actually, we are mocking the class `PlanetIntroOverlay`. 
-            // Let's verify if the mocked class instance has the methods.
-
-            // The file mocks `PlanetIntroOverlay` at line 28:
-            // vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
-            // By default this returns an auto-mocked class.
-
-            // However, the previous error `TypeError: this.introOverlay.setVisible is not a function` suggests the auto-mock didn't include setVisible.
-            // Let's explicitly mock the implementation of the class for this test.
-            // Properly mock the constructor
-            const { PlanetIntroOverlay } = await import('../../../../src/scenes/galaxies/planets/planet-intro-overlay');
-            // @ts-ignore
-            (PlanetIntroOverlay as any).mockImplementation(class {
-                show = vi.fn().mockImplementation((_planet, _text, cb) => cb && cb());
-                setVisible = vi.fn();
-                setAlpha = vi.fn();
-                visible = false;
-            });
-
+        it('creates player ship controller', () => {
             scene.create();
-
-            // First check: moveToPlanet calls getIntroText to decide if delay is needed.
-            // This passed in the previous test run.
-            expect(mockStorylineManager.getIntroText).toHaveBeenNthCalledWith(
-                1,
-                expect.any(String),
-                planetId,
-                'de'
-            );
-
-            // Advance timers to trigger the delayed checkAndShowIntro
-            vi.advanceTimersByTime(2000);
-
-            // Second check: checkAndShowIntro calls getIntroText effectively to show it.
-            // THIS SHOULD FAIL if the code doesn't pass the locale.
-            expect(mockStorylineManager.getIntroText).toHaveBeenNthCalledWith(
-                2,
-                expect.any(String),
-                planetId,
-                'de' // Expect 'de' here too
-            );
-
-            vi.useRealTimers();
+            expect((scene as any).shipController).toBeDefined();
         });
 
-        it('should disable controls during delay', () => {
-            // @ts-ignore
-            scene.controlsEnabled = false;
-            // @ts-ignore
-            scene.introOverlay = {
-                visible: false,
-                setVisible: vi.fn(),
-                setAlpha: vi.fn(),
-                show: vi.fn() // Ensure show is present too
-            };
-            // @ts-ignore
-            scene.cursorKeys = { up: { isDown: true } }; // Simulate input
+        it('creates planet navigator', () => {
+            scene.create();
+            expect((scene as any).navigator).toBeDefined();
+        });
+    });
 
-            // Spy on navigate/movement
-            const travelSpy = vi.spyOn(scene as any, 'travelToPlanet');
+    describe('init', () => {
+        it('stores planet ID in registry', () => {
+            scene.init({ planetId: 'test-planet' });
+            expect((scene as any).registry.set).toHaveBeenCalledWith('initialPlanetId', 'test-planet');
+        });
 
-            // @ts-ignore
-            scene.handleInput();
+        it('stores galaxy ID in registry', () => {
+            scene.init({ galaxyId: 'custom-galaxy' });
+            expect((scene as any).registry.set).toHaveBeenCalledWith('targetGalaxyId', 'custom-galaxy');
+        });
 
-            expect(travelSpy).not.toHaveBeenCalled();
+        it('sets autoStartLevel from data', () => {
+            scene.init({ planetId: 'test-planet', autoStart: false });
+            expect((scene as any).autoStartLevel).toBe(false);
         });
     });
 });

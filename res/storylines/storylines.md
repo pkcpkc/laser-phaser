@@ -11,6 +11,8 @@ Strange alien signals are piercing the static... and they don't sound friendly.
 
 But right now, the asteroids are the only thing that matters!
 
+Start game level with 🚀.
+
 ### vortex
 I try to hail the approaching ships... transmission rejected. The Blood Hunters don't negotiate.
 

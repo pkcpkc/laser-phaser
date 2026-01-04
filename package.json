@@ -21,6 +21,7 @@
     "build:storylines": "tsx scripts/build-storylines.ts"
   },
   "devDependencies": {
+    "@0xbigboss/vite-console-forward-plugin": "^2.3.3",
     "@playwright/test": "^1.57.0",
     "@types/glob": "^8.1.0",
     "@types/pngjs": "^6.0.5",
@@ -30,11 +31,12 @@
     "tsx": "^4.20.6",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
-    "vite-plugin-terminal": "^1.3.0",
     "vitest": "^4.0.14"
   },
   "dependencies": {
     "free-tex-packer-core": "^0.3.5",
-    "phaser": "^3.90.0"
+    "inversify": "^6.0.2",
+    "phaser": "^3.90.0",
+    "reflect-metadata": "^0.2.2"
   }
 }

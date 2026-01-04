@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import type { Ship } from '../ship';
+import type { IShip } from '../../di/interfaces/ship';
 import type { ShipEffect } from './types';
 
 export class EngineTrail implements ShipEffect {
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
-    constructor(ship: Ship) {
+    constructor(ship: IShip) {
         const scene = ship.sprite.scene;
 
         this.emitter = scene.add.particles(0, 0, 'flare-white', {

@@ -1,15 +1,11 @@
 /// <reference types="vitest" />
 import { defineConfig } from 'vitest/config';
-import Terminal from 'vite-plugin-terminal';
+import { consoleForwardPlugin } from '@0xbigboss/vite-console-forward-plugin';
 
 export default defineConfig(({ command }) => ({
     plugins: [
-        // Only use Terminal plugin in dev mode (and NOT in E2E tests) to avoid log hijacking
-        // command === 'serve' means dev server.
-        // We also check !process.env.TEST_E2E to ensure we don't load it during Playwright runs
-        ...(command === 'serve' && !process.env.TEST_E2E ? [Terminal({
-            console: 'terminal',
-        })] : []),
+        // Only use plugin in dev mode (and NOT in E2E tests) to avoid log hijacking
+        ...(command === 'serve' && !process.env.TEST_E2E ? [consoleForwardPlugin()] : []),
     ],
     server: {
         host: true, // Listen on all local IPs

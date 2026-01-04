@@ -1,8 +1,12 @@
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../../di/types';
 import Phaser from 'phaser';
 import { type PlanetData } from './planet-data';
 import { type IPlanetEffect } from './planet-effect';
 
-export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
+@injectable()
+export class PlanetIntroOverlay {
+    private container: Phaser.GameObjects.Container;
     private background: Phaser.GameObjects.Rectangle;
     private planetContainer: Phaser.GameObjects.Container;
     private textContainer: Phaser.GameObjects.Text;
@@ -32,8 +36,8 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
     private originalEmitterDepth?: number;
     private originalEffectDepths: Map<IPlanetEffect, number> = new Map();
 
-    constructor(scene: Phaser.Scene) {
-        super(scene, 0, 0);
+    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
+        this.container = scene.add.container(0, 0);
 
         const { width, height } = scene.scale;
 
@@ -41,11 +45,11 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         this.background = scene.add.rectangle(0, 0, width, height, 0x000000, 1.0)
             .setOrigin(0)
             .setInteractive();
-        this.add(this.background);
+        this.container.add(this.background);
 
         // 2. Planet Container (Holds Text, Planet, Effects)
         this.planetContainer = scene.add.container(0, 0);
-        this.add(this.planetContainer);
+        this.container.add(this.planetContainer);
 
         // 3. Typewriter Text
         const presetWidth = Math.min(600, width * 0.8);
@@ -70,13 +74,12 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
             color: '#aaaaaa'
         }).setOrigin(0.5);
         this.promptText.setVisible(false);
-        this.add(this.promptText);
+        this.container.add(this.promptText);
 
         // Initially hidden, High Depth
         this.setVisible(false);
         this.setDepth(2000);
         this.setScrollFactor(0); // FIX: Lock container to camera
-        scene.add.existing(this);
 
         // Resize handler
         scene.scale.on('resize', this.handleResize, this);
@@ -84,14 +87,14 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         // Critical: Hook into scene postupdate to force sort AFTER effects have updated their properties
         // This is the clean, non-hacky way to ensure container respects dynamic depth changes
         this.scene.events.on('postupdate', this.updateSorting, this);
-        this.on('destroy', () => {
-            this.scene.events.off('postupdate', this.updateSorting, this);
-            this.scene.scale.off('resize', this.handleResize, this);
-            if (this.timerEvent) this.timerEvent.remove();
-        });
     }
 
-
+    public destroy() {
+        this.scene.events.off('postupdate', this.updateSorting, this);
+        this.scene.scale.off('resize', this.handleResize, this);
+        if (this.timerEvent) this.timerEvent.remove();
+        this.container.destroy();
+    }
 
     private updateSorting() {
         if (this.visible && this.borrowedPlanet) {
@@ -99,8 +102,31 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         }
     }
 
-    public show(planet: PlanetData, text: string, onComplete: () => void) {
+    public setVisible(visible: boolean) {
+        this.container.setVisible(visible);
+    }
 
+    public get visible(): boolean {
+        return this.container.visible;
+    }
+
+    public get alpha(): number {
+        return this.container.alpha;
+    }
+
+    public setAlpha(alpha: number) {
+        this.container.setAlpha(alpha);
+    }
+
+    public setDepth(depth: number) {
+        this.container.setDepth(depth);
+    }
+
+    public setScrollFactor(scrollFactor: number) {
+        this.container.setScrollFactor(scrollFactor);
+    }
+
+    public show(planet: PlanetData, text: string, onComplete: () => void) {
         // Reset state first
         this.fullText = "";  // Clear first to ensure no old content
         this.currentText = "";
@@ -177,36 +203,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         // Target Positions (Screen Space)
         const targetX = width / 2;
 
-        // Calculate layout:
-        // User requested equal 40px spacing above and below the planet.
-        // Planet center Y = Top Margin + Planet Visual Size/2? 
-        // Let's assume a reasonable top margin of 80px for the planet center (approx 40px above matching visual top).
-        // Then Text Start = Planet Center + Planet Radius + 40px.
-
-        // Let's base it on a screen percentage minimum to ensure it doesn't overlap header/UI on small screens, 
-        // but prioritize the specific spacing request.
-
-        // Approximate visual radius (accounting for effects/rings) can be estimated. 
-        // Base planet visual radius is ~30px. With scale ~1.0. 
-        // So 40px gap -> Center is at 40 (gap) + 30 (radius) = 70px from relevant top.
-        // But visuals have "The Belt" header above? 
-        // Let's stick to the previous relative logic but shift the text closer.
-
-        // Current: textStartY = height * 0.3. Planet = textStartY / 2.
-        // If height=800, text=240. Planet=120. 
-        // Gap Top = 120 - 30(rad) = 90. Gap Bottom = 120 - 30 = 90. 
-        // User sees 40 / 80. This means the visual center is different or text starts lower visually.
-
-        // Let's move the text UP closer to the planet.
-        // Instead of splitting the space evenly (targetY = textStartY/2), let's push the text up.
-
         const textStartY = Math.max(180, height * 0.3) - 70;
-
-        // Move planet down relative to the space center, OR move text up.
-        // User wants LESS space below planet.
-        // So planet should be closer to text. 
-        // targetY = textStartY - 50 (was 70, moved 20 down).
-
         const targetY = textStartY - 50;
 
         // Start Positions (Screen Space)
@@ -530,9 +527,7 @@ export class PlanetIntroOverlay extends Phaser.GameObjects.Container {
         });
 
         // Ensure timer is cleaned up on destroy
-        this.once('destroy', () => {
-            if (this.timerEvent) this.timerEvent.remove();
-        });
+        // Since we are not a GameObject, we rely on the scene shutdown
     }
 
     private forceFinishTyping() {

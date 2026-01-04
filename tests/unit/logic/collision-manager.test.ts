@@ -49,7 +49,8 @@ describe('CollisionManager', () => {
 
         mockOnGameOver = vi.fn();
 
-        collisionManager = new CollisionManager(mockScene, mockOnGameOver);
+        collisionManager = new CollisionManager(mockScene);
+        collisionManager.config(mockOnGameOver);
     });
 
     it('should initialize categories correctly', () => {

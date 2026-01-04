@@ -1,14 +1,15 @@
-import Phaser from 'phaser';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../di/types';
+import type { IGameManager } from '../di/interfaces/logic';
 
-export class GameManager {
-    private scene: Phaser.Scene;
+@injectable()
+export class GameManager implements IGameManager {
     private isGameOver: boolean = false;
     private isVictory: boolean = false;
     private statusText: Phaser.GameObjects.Text;
     private restartText: Phaser.GameObjects.Text;
 
-    constructor(scene: Phaser.Scene) {
-        this.scene = scene;
+    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
         const { width, height } = this.scene.scale;
 
         this.statusText = this.scene.add.text(width * 0.5, height * 0.4, '', {
@@ -33,6 +34,10 @@ export class GameManager {
     public handleVictory(color: string) {
         this.isVictory = true;
         this.showStatus('VICTORY', color, true);
+    }
+
+    public setVictoryState(victory: boolean) {
+        this.isVictory = victory;
     }
 
     private showStatus(text: string, color: string, pulsate: boolean = false) {

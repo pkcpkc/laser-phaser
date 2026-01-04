@@ -1,400 +1,144 @@
+import { injectable } from 'inversify';
+import type { IShip } from '../di/interfaces/ship';
 import Phaser from 'phaser';
-import type { Laser } from './modules/lasers/types';
 import type { Drive } from './modules/drives/types';
 import type { ShipEffect } from './effects/types';
-import { Explosion } from './effects/explosion';
-import { DustExplosion } from './effects/dust-explosion';
-import { isWeapon, type ShipModule } from './modules/module-types';
-
-export * from './types';
+import { ModuleManager } from './module-manager';
+import { ShipCombat } from './ship-combat';
 import type { ShipConfig, ShipCollisionConfig } from './types';
+export * from './types';
 
-import { Loot } from './loot';
-
-interface ActiveModule {
-    x: number;
-    y: number;
-    angle: number;
-    module: Laser | Drive;
-    lastFired?: number;
-}
-
-export class Ship {
+/**
+ * Main ship entity using composition for cleaner separation of concerns.
+ */
+@injectable()
+export class Ship implements IShip {
     readonly sprite: Phaser.Physics.Matter.Image;
-    public currentHealth: number = 0;
-    private activeModules: ActiveModule[] = [];
-    private moduleSprites: Map<ActiveModule, Phaser.GameObjects.Image> = new Map();
+    private modules: ModuleManager;
+    private combat: ShipCombat;
     private effect?: ShipEffect;
-    private updateListener?: () => void;
     private hasEnteredScreen: boolean = false;
     private originalCollidesWith: number = 0;
+    private isDestroyed = false;
 
     constructor(
         scene: Phaser.Scene,
         x: number,
         y: number,
         public readonly config: ShipConfig,
-        private readonly collisionConfig: ShipCollisionConfig
+        collisionConfig: ShipCollisionConfig
     ) {
-        // Use definition for asset loading
+        // Validate texture
         if (!scene.textures.exists(config.definition.assetKey)) {
             console.error(`Ship ${config.definition.id}: Texture '${config.definition.assetKey}' not found!`);
         } else if (config.definition.frame && !scene.textures.get(config.definition.assetKey).has(config.definition.frame)) {
             console.error(`Ship ${config.definition.id}: Frame '${config.definition.frame}' not found in texture '${config.definition.assetKey}'!`);
         }
 
+        // Create sprite
         this.sprite = scene.matter.add.image(x, y, config.definition.assetKey, config.definition.frame);
         this.sprite.setData('ship', this);
 
-        this.currentHealth = config.definition.gameplay.health;
-
+        // Apply physics config
         const phys = config.definition.physics;
-        // Apply Physics Config
         this.sprite.setAngle(phys.initialAngle || 0);
         if (phys.fixedRotation) this.sprite.setFixedRotation();
         if (phys.frictionAir !== undefined) this.sprite.setFrictionAir(phys.frictionAir);
         if (phys.mass) this.sprite.setMass(phys.mass);
-
         this.sprite.setSleepThreshold(-1);
 
-        // Initial mass set
         if (this.mass) {
             this.sprite.setMass(this.mass);
         }
 
-        // Apply Collision Config
+        // Apply collision config
         this.sprite.setCollisionCategory(collisionConfig.category);
 
-        // Origin Handling
+        // Apply origin from markers
         const originMarker = config.definition.markers.find(m => m.type === 'origin');
         if (originMarker) {
-            // Normalize coordinates to 0-1 range relative to texture dimensions
             this.sprite.setOrigin(
                 originMarker.x / this.sprite.width,
                 originMarker.y / this.sprite.height
             );
         } else {
-            // Default to center if no origin marker specified
             this.sprite.setOrigin(0.5, 0.5);
         }
 
-        // Spawn protection: enemy ships start with no collision until they've entered the screen
-        // This prevents instant death from ships that spawn mid-screen due to timing/looping
+        // Spawn protection for enemies spawning off-screen
         if (collisionConfig.isEnemy && y < 0) {
             this.originalCollidesWith = collisionConfig.collidesWith;
-            this.sprite.setCollidesWith(0); // No collision until entered screen
+            this.sprite.setCollidesWith(0);
             this.hasEnteredScreen = false;
         } else {
             this.sprite.setCollidesWith(collisionConfig.collidesWith);
-            this.hasEnteredScreen = true; // Player ships or ships already on-screen
+            this.hasEnteredScreen = true;
         }
 
-        // Initialize Modules
-        this.activeModules = [];
-        if (config.modules) {
-            this.activeModules = config.modules.map(m => {
-                // Determine relative position based on sprite origin (pivot)
-                const originX = originMarker ? originMarker.x : (this.sprite.width * 0.5);
-                const originY = originMarker ? originMarker.y : (this.sprite.height * 0.5);
+        // Initialize module manager
+        this.modules = new ModuleManager(
+            scene,
+            this.sprite,
+            config.modules,
+            collisionConfig,
+            originMarker
+        );
 
-                const moduleX = m.marker.x - originX;
-                const moduleY = m.marker.y - originY;
-                const moduleAngle = m.marker.angle * (Math.PI / 180);
+        // Initialize combat system
+        this.combat = new ShipCombat(
+            this.sprite,
+            config.definition,
+            collisionConfig,
+            config.loot,
+            () => this.destroy()
+        );
 
-                const moduleData = {
-                    x: moduleX,
-                    y: moduleY,
-                    angle: moduleAngle,
-                    module: new m.module()
-                };
-
-                // Create texture if needed/possible
-                if (moduleData.module.createTexture) {
-                    moduleData.module.createTexture(scene);
+        // Setup spawn protection check if needed
+        if (!this.hasEnteredScreen) {
+            const checkSpawn = () => {
+                if (!this.hasEnteredScreen && this.sprite.active && this.sprite.y > 0) {
+                    this.hasEnteredScreen = true;
+                    this.sprite.setCollidesWith(this.originalCollidesWith);
                 }
-
-                // Create sprite if visible on mount
-                if (moduleData.module.visibleOnMount) {
-                    // Create a visual-only sprite (no physics)
-                    // Use the mountTextureKey if available, otherwise TEXTURE_KEY
-                    const shipModule = moduleData.module as ShipModule;
-                    const textureKey = shipModule.mountTextureKey || shipModule.TEXTURE_KEY;
-
-                    if (textureKey) {
-                        const moduleSprite = scene.add.image(x + moduleX, y + moduleY, textureKey);
-
-                        // Initial rotation
-                        moduleSprite.setRotation(this.sprite.rotation + moduleAngle);
-                        moduleSprite.setDepth(this.sprite.depth + 1); // Ensure on top
-                        // Inherit scale if present
-                        if (moduleData.module.scale) {
-                            moduleSprite.setScale(moduleData.module.scale);
-                        }
-                        this.moduleSprites.set(moduleData, moduleSprite);
-
-                        // Add mount effect if weapon provides one
-                        if (moduleData.module.addMountEffect) {
-                            moduleData.module.addMountEffect(scene, moduleSprite);
-                        }
-                    } else {
-                        console.warn('No texture key for visible mount module');
-                    }
-                }
-
-                return moduleData;
-            });
-        }
-
-        // Setup update listener to sync mount sprites and check spawn protection
-        const needsUpdateListener = this.moduleSprites.size > 0 || !this.hasEnteredScreen;
-
-        if (needsUpdateListener) {
-            this.updateListener = () => {
-                this.updateModules();
-                this.checkSpawnProtection();
             };
-            // Use postupdate to ensure ship physics/movement has finished for the frame
-            this.sprite.scene.events.on('postupdate', this.updateListener);
-
-            // cleanup on destroy is important
-            this.sprite.once('destroy', () => {
-                this.destroy();
-            });
-            // Force initial update to set correct position and visibility
-            this.updateModules();
-
-            // Checking for load race conditions: Update again after a short delay to ensure dimensions are loaded
-            scene.time.delayedCall(100, () => {
-                this.updateModules();
-            });
+            scene.events.on('postupdate', checkSpawn);
+            this.sprite.once('destroy', () => scene.events.off('postupdate', checkSpawn));
         }
+
+        // Cleanup on destroy
+        this.sprite.once('destroy', () => this.destroy());
     }
 
-    private checkSpawnProtection() {
-        // Once ship has entered screen, enable collision
-        if (!this.hasEnteredScreen && this.sprite.active) {
-            // Check if ship is now visible on screen (y > 0 means partly visible)
-            if (this.sprite.y > 0) {
-                this.hasEnteredScreen = true;
-                this.sprite.setCollidesWith(this.originalCollidesWith);
-            }
-        }
+    // === Delegated Combat Methods ===
+
+    get currentHealth(): number {
+        return this.combat.currentHealth;
     }
 
-    setEffect(effect: ShipEffect) {
+    takeDamage(amount: number): void {
+        this.combat.takeDamage(amount);
+    }
+
+    explode(): void {
+        this.combat.explode();
+    }
+
+    // === Delegated Module Methods ===
+
+    fireLasers(): void {
+        this.modules.fireLasers();
+    }
+
+    // === Ship-specific Methods ===
+
+    setEffect(effect: ShipEffect): void {
         if (this.effect) {
             this.effect.destroy();
         }
         this.effect = effect;
     }
 
-    fireLasers() {
-        if (!this.sprite.active) return;
-
-        let totalRecoil = 0;
-        const now = this.sprite.scene.time.now;
-
-
-        for (const module of this.activeModules) {
-            // Type guard: Check if module is a weapon (has fire method)
-            if (!isWeapon(module.module)) continue;
-            const weapon = module.module;
-
-            // Check reload cooldown
-            if (weapon.reloadTime && module.lastFired) {
-                if (now - module.lastFired < weapon.reloadTime) {
-                    continue; // Still reloading
-                }
-            }
-
-            // Check ammo (skip for enemies - unlimited ammo)
-            if (!this.collisionConfig.isEnemy) {
-                if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
-                    continue; // Out of ammo
-                }
-            }
-
-            const rotation = this.sprite.rotation;
-
-            // Rotate mount point offset
-            const cos = Math.cos(rotation);
-            const sin = Math.sin(rotation);
-
-            const rotatedX = module.x * cos - module.y * sin;
-            const rotatedY = module.x * sin + module.y * cos;
-
-            const absoluteX = this.sprite.x + rotatedX;
-            const absoluteY = this.sprite.y + rotatedY;
-            let absoluteAngle = rotation + (module.angle || 0);
-
-            // Override with fixed direction if specified (e.g. always fire UP)
-            if (weapon.fixedFireDirection) {
-                absoluteAngle = -Math.PI / 2;
-            }
-
-            // Get ship velocity to add to projectile
-            const shipBody = this.sprite.body as MatterJS.BodyType;
-            const shipVelocity = { x: shipBody.velocity.x, y: shipBody.velocity.y };
-
-            const projectile = weapon.fire(
-                this.sprite.scene,
-                absoluteX,
-                absoluteY,
-                absoluteAngle,
-                this.collisionConfig.laserCategory,
-                this.collisionConfig.laserCollidesWith,
-                shipVelocity
-            );
-
-            if (projectile) {
-                module.lastFired = now; // Mark time fired
-
-                // Refill ammo for enemies (unlimited ammo)
-                if (this.collisionConfig.isEnemy && weapon.currentAmmo !== undefined) {
-                    if (weapon.maxAmmo) {
-                        weapon.currentAmmo = weapon.maxAmmo;
-                    }
-                }
-            }
-
-            if (weapon.recoil) {
-                totalRecoil += weapon.recoil;
-            }
-        }
-
-        // Apply average or total recoil? Usually concurrent fire adds up.
-        // If getting too crazy, might want to damp it, but let's try sum first.
-        if (totalRecoil > 0) {
-            this.sprite.thrustBack(totalRecoil / (this.activeModules.length || 1)); // Averaging recoil for stability for now
-        }
-    }
-
-    private updateModules() {
-        // If ship is not active or not visible, hide all mounts
-        if (!this.sprite.active || !this.sprite.visible) {
-            this.moduleSprites.forEach(sprite => sprite.setVisible(false));
-            return;
-        }
-
-        const rotation = this.sprite.rotation;
-        const cos = Math.cos(rotation);
-        const sin = Math.sin(rotation);
-
-        this.moduleSprites.forEach((sprite, module) => {
-            // Check ammo visibility
-            const now = this.sprite.scene.time.now;
-
-            // Only check usage stats for weapons
-            if (isWeapon(module.module)) {
-                const weapon = module.module;
-                // 1. Check Ammo
-                if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
-                    sprite.setVisible(false);
-                    return;
-                }
-
-                // 2. Check Reload State
-                if (weapon.reloadTime && module.lastFired) {
-                    if (now - module.lastFired < weapon.reloadTime) {
-                        sprite.setVisible(false); // Reloading -> Hide
-                        return;
-                    }
-                }
-            }
-
-            // Default: Visible
-            sprite.setVisible(true);
-
-            // Sync position
-            const rotatedX = module.x * cos - module.y * sin;
-            const rotatedY = module.x * sin + module.y * cos;
-
-            const absoluteX = this.sprite.x + rotatedX;
-            const absoluteY = this.sprite.y + rotatedY;
-            const absoluteAngle = rotation + (module.angle || 0);
-
-            sprite.setPosition(absoluteX, absoluteY);
-            sprite.setRotation(absoluteAngle);
-        });
-    }
-
-    private isExploding = false;
-    private isDestroyed = false;
-
-    takeDamage(amount: number) {
-        if (this.isDestroyed || !this.sprite.active) return;
-
-        this.currentHealth -= amount;
-
-        if (this.currentHealth <= 0) {
-            this.explode();
-        } else {
-            // Visual feedback can come here (flash, shake)
-            this.sprite.setTint(0xff0000);
-            this.sprite.scene.time.delayedCall(100, () => {
-                if (this.sprite && this.sprite.active) {
-                    this.sprite.clearTint();
-                }
-            });
-        }
-    }
-
-    explode() {
-        if (!this.sprite.active || this.isExploding) return;
-        this.isExploding = true;
-
-        // Defer explosion logic to avoid modifying physics world during collision step
-        this.sprite.scene.time.delayedCall(0, () => {
-            // console.log('Ship exploding deferred execution');
-            if (!this.sprite.active) return; // Double check in case already destroyed
-
-            const explosionConfig = this.config.definition.explosion;
-            if (explosionConfig) {
-                try {
-                    if (explosionConfig.type === 'dust') {
-                        new DustExplosion(this.sprite.scene, this.sprite.x, this.sprite.y, {
-                            lifespan: explosionConfig.lifespan,
-                            speed: explosionConfig.speed,
-                            scale: explosionConfig.scale,
-                            color: explosionConfig.color,
-                            particleCount: explosionConfig.particleCount,
-                            radius: this.sprite.displayWidth * 0.5
-                        });
-                    } else {
-                        new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
-                    }
-                } catch (e) {
-                    console.error('Failed to play explosion effect:', e);
-                }
-            }
-
-            // Loot Spawning Logic - fully controlled by ship's loot config
-            if (this.config.loot) {
-                this.config.loot.forEach(lootItem => {
-                    try {
-                        const chance = lootItem.dropChance ?? 1;
-                        if (Math.random() <= chance) {
-                            const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
-
-                            if (this.collisionConfig.lootCategory) {
-                                loot.setCollisionCategory(this.collisionConfig.lootCategory);
-                            }
-                            if (this.collisionConfig.lootCollidesWith) {
-                                loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Failed to spawn loot:', e);
-                    }
-                });
-            }
-
-
-            this.destroy();
-        });
-    }
-
-    destroy() {
+    destroy(): void {
         if (this.isDestroyed) return;
         this.isDestroyed = true;
 
@@ -403,20 +147,15 @@ export class Ship {
             this.effect = undefined;
         }
 
-        // Clean up mount sprites
-        if (this.updateListener) {
-            this.sprite?.scene?.events?.off('postupdate', this.updateListener);
-            this.updateListener = undefined;
-        }
-        this.moduleSprites.forEach(sprite => sprite.destroy());
-        this.moduleSprites.clear();
+        this.modules.destroy();
+        this.combat.destroy();
 
-        if (this.sprite && this.sprite.active) {
+        if (this.sprite?.active) {
             this.sprite.destroy();
         }
     }
 
-    // --- Physics Properties ---
+    // === Physics Properties ===
 
     get mass(): number {
         return this.config.definition.physics.mass || 1;
@@ -426,23 +165,18 @@ export class Ship {
         let totalThrust = 0;
         let driveCount = 0;
 
-        for (const m of this.activeModules) {
+        for (const m of this.modules.getActiveModules()) {
             if ('thrust' in m.module) {
                 totalThrust += (m.module as Drive).thrust;
                 driveCount++;
             }
         }
 
-        // Acceleration = (Sum(Drive.thrust)) / Ship.mass
-        // If no drives, fallback to defined speed or 0
         if (totalThrust > 0) {
             let acc = totalThrust / this.mass;
-
-            // If multiple drives are installed, reduce total by 30%
             if (driveCount > 1) {
-                acc *= 0.7;
+                acc *= 0.7; // Diminishing returns for multiple drives
             }
-
             return acc;
         }
 
@@ -450,8 +184,7 @@ export class Ship {
     }
 
     get maxSpeed(): number {
-        // Max Speed = Acceleration / FrictionAir (physics-accurate terminal velocity)
-        const frictionAir = this.config.definition.physics.frictionAir || 0.01; // Default low friction
+        const frictionAir = this.config.definition.physics.frictionAir || 0.01;
         return this.acceleration / frictionAir;
     }
 }

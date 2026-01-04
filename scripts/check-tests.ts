@@ -24,6 +24,11 @@ async function checkTests() {
 
     // 2. Check for Missing Tests
     for (const srcFile of allSrcFiles) {
+        // Skip pure interface files
+        if (isPureInterfaceFile(srcFile)) {
+            continue;
+        }
+
         // Construct expected test file path
         // src/foo/bar.ts -> tests/foo/bar.test.ts
         // scripts/foo.ts -> tests/scripts/foo.test.ts
@@ -60,6 +65,18 @@ async function checkTests() {
         }
 
         if (!fs.existsSync(expectedSrcPath)) {
+            // Check if it's an orphaned test because the source is a pure interface
+            // (which we now exclude from needing tests, so having a test is technicaly "orphaned"
+            // relative to our "required tests" logic, but maybe we should allow it?
+            // The user request was to "ignore pure interfaces files - where it does not make sense to enforce a test".
+
+            // If the source file EXISTS but is ignored, we shouldn't flagging the test as orphaned strictly speaking,
+            // OR we might want to say "hey you have a test for an interface file, do you need it?".
+
+            // However, strictly speaking "orphaned" means the source file does NOT exist.
+            // If the source file exists, it's not orphaned in the traditional sense.
+            // But my logic below uses `expectedSrcPath` existence check.
+
             orphanedTests.push(testFile);
         }
     }
@@ -89,6 +106,54 @@ async function checkTests() {
         process.exit(1);
     } else {
         console.log('\n✨ Test check passed!');
+    }
+}
+
+/**
+ * Checks if a file contains only interfaces or types and no runtime code.
+ */
+function isPureInterfaceFile(filePath: string): boolean {
+    try {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        // Remove comments
+        const cleanContent = content.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '');
+
+        // Check for runtime keywords
+        // We look for 'class', 'function' (top level), 'const', 'let', 'var'
+        // But we need to be careful. 'export interface' is fine. 'export type' is fine.
+        // 'export const enum' is runtime? Enums ARE runtime objects in TS.
+
+        // Simple heuristic: if it has 'class ', 'function ', 'const ', 'let ', 'var ', it has runtime code.
+        // Note: 'export const' defines a value.
+        // Note: 'import ...' is compile time mostly, but side-effects exist. We assume imports are for types if the rest is types.
+
+        // Exclude strictly type-only keywords
+        // If we find these, it is NOT a pure interface file:
+        const runtimeKeywords = [
+            /\bclass\s+/,
+            /\bfunction\s+/,
+            /\bconst\s+/,
+            /\blet\s+/,
+            /\bvar\s+/,
+            /\bnew\s+/,
+            // Enums are runtime objects in TypeScript unless const enums (which are erased but still can involve values)
+            // But often enums are treated as data/types. 
+            // For this specific user request "pure interfaces files", usually implies data structures.
+            // Let's assume Enums might need tests if they have logic? No, enums are just definitions.
+            // But let's verify if user considers enums "pure interface". Usually yes.
+            // Let's stick to the main actionable blocks.
+        ];
+
+        for (const regex of runtimeKeywords) {
+            if (regex.test(cleanContent)) {
+                return false;
+            }
+        }
+
+        return true;
+    } catch (err) {
+        console.error(`Error reading file ${filePath}:`, err);
+        return false; // Assume it needs test if we can't read it
     }
 }
 

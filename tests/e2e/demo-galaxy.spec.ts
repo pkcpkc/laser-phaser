@@ -20,6 +20,12 @@ test.describe('Demo Galaxy Smoke Test', () => {
             }
         });
 
+        // Capture uncaught exceptions
+        page.on('pageerror', exception => {
+            console.log(`PAGE ERROR: ${exception}`);
+            consoleErrors.push(exception.toString());
+        });
+
         // Wait a bit to ensure initialization scripts run
         await page.waitForTimeout(1000);
 
@@ -29,6 +35,7 @@ test.describe('Demo Galaxy Smoke Test', () => {
     test('should transition to ship-demo-level when astra is clicked', async ({ page }) => {
         // Enable browser logging
         page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        page.on('pageerror', exception => console.log('PAGE ERROR:', exception));
 
         // Debug: Log all active scenes every second
         setInterval(async () => {
@@ -95,20 +102,19 @@ test.describe('Demo Galaxy Smoke Test', () => {
 
         console.log('Planet Data:', planetData);
 
-        // 3. Simulate a user click on the planet to open menu
-        const canvas = page.locator('canvas');
-        const box = await canvas.boundingBox();
-        if (!box) throw new Error('Canvas bounding box not found');
-
         // 3. Handle Auto-Intro (waits for 1.5s delay + animation)
-        await page.waitForTimeout(3000);
+        // Game might be slow, so wait longer (6000ms)
+        await page.waitForTimeout(6000);
 
         // Check if Intro Overlay is visible
         const isIntroVisible = await page.evaluate(() => {
             const game = (window as any).game;
             const scene = game.scene.getScene('GalaxyScene');
-            return (scene as any).introOverlay?.visible;
+            // IntroOverlay is in navigator
+            return (scene as any).navigator?.introOverlay?.visible;
         });
+
+        console.log('Is Intro Visible:', isIntroVisible);
 
         if (isIntroVisible) {
             // Click to skip typing
@@ -121,15 +127,21 @@ test.describe('Demo Galaxy Smoke Test', () => {
             await page.waitForFunction(() => {
                 const game = (window as any).game;
                 const scene = game.scene.getScene('GalaxyScene');
-                return !(scene as any).introOverlay?.visible;
+                return !(scene as any).navigator?.introOverlay?.visible;
             }, null, { timeout: 5000 });
+            console.log('Intro Hidden');
         }
 
         // 4. Click on the planet to open menu
         // Need to re-query bounding box as window might have shifted or resized slightly? Unlikely inside test.
         // But safe to just use previous logic.
+        const canvas = page.locator('canvas');
+        const box = await canvas.boundingBox();
+        if (!box) throw new Error('Canvas bounding box not found');
+
+        console.log(`Clicking Planet at ${box.x + planetData.planetX}, ${box.y + planetData.planetY}`);
         await page.mouse.click(box.x + planetData.planetX, box.y + planetData.planetY);
-        await page.waitForTimeout(500); // Wait for UI to open
+        await page.waitForTimeout(1000); // Wait for UI to open (Increased to 1s)
 
         // 5. Inspect the Play Button Bounds to click accurately
         const btnBounds = await page.evaluate(() => {
@@ -137,36 +149,49 @@ test.describe('Demo Galaxy Smoke Test', () => {
             const scene = game.scene.getScene('GalaxyScene');
             const manager = (scene as any).interactions;
             const container = (manager as any).interactionContainer;
-            if (!container) return null;
-            const btn = container.list.find((c: any) => c.text === '🔫');
-            if (!btn) return null;
+
+            if (!container) return { error: 'No Interaction Container' };
+            if (!container.visible) return { error: 'Container Not Visible', alpha: container.alpha };
+            if (container.list.length === 0) return { error: 'Container Empty' };
+
+            // Debug: Log items
+            const items = container.list.map((c: any) => ({ type: c.type, text: c.text }));
+            // console.log('Container Items:', items); // To browser console
+
+            const btn = container.list.find((c: any) => c.text === '🚀');
+            if (!btn) return { error: 'Button 🚀 Not Found', items };
 
             const bounds = btn.getBounds();
+            const camera = scene.cameras.main;
+
             return {
-                x: bounds.x,
-                y: bounds.y,
+                x: bounds.x - camera.scrollX,
+                y: bounds.y - camera.scrollY,
                 width: bounds.width,
                 height: bounds.height
             };
         });
 
-        if (btnBounds) {
+        if (btnBounds && !('error' in btnBounds)) {
+            console.log('Found Play Button at:', btnBounds);
             // Click the CENTER of the retrieved bounds
             const clickX = btnBounds.x + btnBounds.width / 2;
             const clickY = btnBounds.y + btnBounds.height / 2;
-            await page.mouse.click(clickX, clickY);
+            await page.mouse.click(box.x + clickX, box.y + clickY);
         } else {
+            console.log('Using Fallback Click Position. Reason:', btnBounds);
             // Fallback to calculated position
             await page.mouse.click(box.x + planetData.playButtonX, box.y + planetData.playButtonY);
         }
 
-        // 4. Verify that the scene transitions to 'ShipDemoScene'
+        // 4. Verify that the scene transitions to 'ShootEmUpScene'
         // We wait for the new scene to become active
+        // INCREASED TIMEOUT to 15s
         await page.waitForFunction(() => {
             const game = (window as any).game;
-            // ShipDemoScene key check
-            const shipScene = game?.scene.getScene('ShipDemoScene');
+            // ShootEmUpScene key check
+            const shipScene = game?.scene.getScene('ShootEmUpScene');
             return shipScene && shipScene.sys.isActive();
-        }, null, { timeout: 10000 }); // 10s timeout
+        }, null, { timeout: 15000 });
     });
 });

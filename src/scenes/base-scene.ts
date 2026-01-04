@@ -1,28 +1,29 @@
 import Phaser from 'phaser';
 import { BigCruiserWhiteLaserConfig } from '../ships/configurations/big-cruiser-white-laser';
-import { Starfield } from '../backgrounds/starfield';
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
-import { CollisionManager } from '../logic/collision-manager';
-import { PlayerController } from '../logic/player-controller';
-import { GameManager } from '../logic/game-manager';
 import { GameStatus } from '../logic/game-status';
-import { LootUI } from '../ui/loot-ui';
 import { LootType } from '../ships/types';
 import { Loot } from '../ships/loot';
 import { setupDebugKey } from '../logic/debug-utils';
+import { container, bindScene } from '../di/container';
+import { TYPES } from '../di/types';
+import type { IGameManager, ICollisionManager, IPlayerController } from '../di/interfaces/logic';
+import type { IShip } from '../di/interfaces/ship';
+import type { IStarfield } from '../backgrounds/starfield';
+import type { ILootUI } from '../di/interfaces/ui-effects';
 
 
 export default class BaseScene extends Phaser.Scene {
-    protected ship!: Ship;
+    protected ship!: IShip;
     protected cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-    protected starfield!: Starfield;
+    protected starfield!: IStarfield;
     protected fireButton!: Phaser.GameObjects.Text;
 
-    protected collisionManager!: CollisionManager;
-    protected playerController!: PlayerController;
-    protected gameManager!: GameManager;
-    protected lootUI!: LootUI;
+    protected collisionManager!: ICollisionManager;
+    protected playerController!: IPlayerController;
+    protected gameManager!: IGameManager;
+    protected lootUI!: ILootUI;
 
     protected backgroundTexture: string = 'nebula';
     protected backgroundFrame: string | undefined = undefined;
@@ -36,10 +37,15 @@ export default class BaseScene extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
 
-        // Initialize Managers
-        this.gameManager = new GameManager(this);
-        this.collisionManager = new CollisionManager(
-            this,
+        // Bind this scene to the container for injection
+        bindScene(this);
+
+        // Resolve Managers from container
+        this.gameManager = container.get<IGameManager>(TYPES.GameManager);
+        this.collisionManager = container.get<ICollisionManager>(TYPES.CollisionManager);
+
+        // Configure Collision Manager with scene-specific callbacks
+        this.collisionManager.config(
             () => this.handleGameOver(),
             (loot) => this.handleLootCollected(loot)
         );
@@ -50,7 +56,8 @@ export default class BaseScene extends Phaser.Scene {
         this.matter.world.setBounds(-WORLD_MARGIN, -WORLD_MARGIN, width + WORLD_MARGIN * 2, height + WORLD_MARGIN * 2);
 
         // Create starfield
-        this.starfield = new Starfield(this, this.backgroundTexture, this.backgroundFrame);
+        this.starfield = container.get<IStarfield>(TYPES.Starfield);
+        this.starfield.config(this.backgroundTexture, this.backgroundFrame);
 
         // Create Player Ship
         this.createPlayerShip();
@@ -88,6 +95,13 @@ export default class BaseScene extends Phaser.Scene {
 
         this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
 
+        // Bind the specific ship instance to the container so PlayerController can inject it
+        if (container.isBound(TYPES.Ship)) {
+            container.rebind(TYPES.Ship).toConstantValue(this.ship);
+        } else {
+            container.bind(TYPES.Ship).toConstantValue(this.ship);
+        }
+
         // Enforce player ship physics properties overrides
         this.ship.sprite.setFixedRotation();
         this.ship.sprite.setAngle(-90);
@@ -111,7 +125,7 @@ export default class BaseScene extends Phaser.Scene {
         this.moduleCount = loot[LootType.MODULE];
 
         // Create Loot UI
-        this.lootUI = new LootUI(this);
+        this.lootUI = container.get<ILootUI>(TYPES.LootUI);
         this.lootUI.create();
 
 
@@ -194,7 +208,15 @@ export default class BaseScene extends Phaser.Scene {
 
     protected setupControls() {
         this.cursors = this.input.keyboard!.createCursorKeys();
-        this.playerController = new PlayerController(this, this.ship, this.cursors);
+
+        // Bind cursors to the container for PlayerController injection
+        if (container.isBound(TYPES.PlayerCursorKeys)) {
+            container.rebind(TYPES.PlayerCursorKeys).toConstantValue(this.cursors);
+        } else {
+            container.bind(TYPES.PlayerCursorKeys).toConstantValue(this.cursors);
+        }
+
+        this.playerController = container.get<IPlayerController>(TYPES.PlayerController);
         this.playerController.setFireButton(this.fireButton);
     }
 
@@ -213,6 +235,7 @@ export default class BaseScene extends Phaser.Scene {
         const { width, height } = gameSize;
 
         // Update world bounds - expanded to allow ship to partially leave screen
+        // Player controller constrains the ship's origin to stay on-screen
         const WORLD_MARGIN = 100;
         this.matter.world.setBounds(-WORLD_MARGIN, -WORLD_MARGIN, width + WORLD_MARGIN * 2, height + WORLD_MARGIN * 2);
 

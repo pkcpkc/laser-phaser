@@ -1,25 +1,26 @@
-import Phaser from 'phaser';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../di/types';
 
-export class Starfield {
-    private scene: Phaser.Scene;
+export interface IStarfield {
+    update(): void;
+    destroy(): void;
+    config(texture: string, frame?: string): void;
+}
+
+@injectable()
+export class Starfield implements IStarfield {
     private stars: { sprite: Phaser.GameObjects.Image, speed: number }[] = [];
-
     private nebula!: Phaser.GameObjects.TileSprite;
 
-    private backgroundTexture: string;
-    private backgroundFrame?: string;
-
-    constructor(scene: Phaser.Scene, texture: string = 'nebula', frame?: string) {
-        this.scene = scene;
-        this.backgroundTexture = texture;
-        this.backgroundFrame = frame;
-
-        // if (texture === 'backgrounds' && !frame) {
-        //     this.backgroundFrame = 'nebula';
-        // }
-
+    constructor(@inject(TYPES.Scene) private readonly scene: Phaser.Scene) {
         this.createTexture();
-        this.createNebula();
+    }
+
+    public config(texture: string = 'nebula', frame?: string) {
+        const backgroundTexture = texture;
+        const backgroundFrame = frame;
+
+        this.createNebula(backgroundTexture, backgroundFrame);
         this.createStars();
     }
 
@@ -33,9 +34,9 @@ export class Starfield {
         }
     }
 
-    private createNebula() {
+    private createNebula(texture: string, frame?: string) {
         const { width, height } = this.scene.scale;
-        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, this.backgroundTexture, this.backgroundFrame);
+        this.nebula = this.scene.add.tileSprite(width / 2, height / 2, width, height, texture, frame);
         this.nebula.setOrigin(0.5, 0.5);
         this.nebula.setDepth(-2); // Behind stars
         this.nebula.setAlpha(0.5); // Slightly transparent

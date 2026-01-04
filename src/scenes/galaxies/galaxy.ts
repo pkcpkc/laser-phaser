@@ -12,6 +12,7 @@ export class Galaxy {
 
     private config: GalaxyConfig;
     protected planets: PlanetData[] = [];
+    public scene?: Phaser.Scene;
 
     // Constructor now takes the pure config
     constructor(config: GalaxyConfig) {
@@ -22,6 +23,7 @@ export class Galaxy {
     }
 
     public init(scene: Phaser.Scene, width: number, height: number) {
+        this.scene = scene;
         // Cleanup existing if any
         this.cleanup();
 

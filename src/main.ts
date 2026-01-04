@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import Phaser from 'phaser';
 console.log('Main.ts: initializing game...');
 import BootScene from './scenes/boot-scene';
@@ -42,5 +43,9 @@ if (existingGame) {
 
 const game = new Phaser.Game(config);
 (window as any).game = game;
+
+// Prevent game from pausing when window loses focus (critical for background e2e tests)
+game.events.off('blur');
+game.events.off('focus');
 
 export default game;

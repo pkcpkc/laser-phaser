@@ -1,4 +1,6 @@
-import Phaser from 'phaser';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../di/types';
+import type { ICollisionManager } from '../di/interfaces/logic';
 import type { CollisionHandler } from './collision-handlers/collision-handler.interface';
 import { WallCollisionHandler } from './collision-handlers/wall-collision-handler';
 import { LaserEnemyHandler } from './collision-handlers/laser-enemy-handler';
@@ -6,8 +8,8 @@ import { ShipEnemyHandler } from './collision-handlers/ship-enemy-handler';
 import { ShipHazardHandler } from './collision-handlers/ship-hazard-handler';
 import { ShipLootHandler } from './collision-handlers/ship-loot-handler';
 
-export class CollisionManager {
-    private scene: Phaser.Scene;
+@injectable()
+export class CollisionManager implements ICollisionManager {
     private shipCategory: number;
     private laserCategory: number;
     private enemyCategory: number;
@@ -15,25 +17,16 @@ export class CollisionManager {
     private lootCategory: number;
     private handlers: CollisionHandler[] = [];
 
-    constructor(scene: Phaser.Scene, onGameOver: () => void, onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void) {
-        this.scene = scene;
-
+    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
         this.shipCategory = 0x0002;
         this.laserCategory = 0x0004;
         this.enemyCategory = 0x0008;
         this.enemyLaserCategory = 0x0010;
         this.lootCategory = 0x0020;
+    }
 
-        console.log('CollisionManager Initialized. Categories:', {
-            wall: 0x0001,
-            ship: this.shipCategory,
-            laser: this.laserCategory,
-            enemy: this.enemyCategory,
-            enemyLaser: this.enemyLaserCategory,
-            loot: this.lootCategory
-        });
-
-        // Initialize Handlers
+    public config(onGameOver: () => void, onLootCollected?: (loot: Phaser.GameObjects.GameObject) => void) {
+        this.handlers = [];
         this.handlers.push(
             new WallCollisionHandler(this.laserCategory, this.enemyLaserCategory),
             new LaserEnemyHandler(this.laserCategory, this.enemyCategory),

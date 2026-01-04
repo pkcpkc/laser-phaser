@@ -1,11 +1,16 @@
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../di/types';
+import type { IWarpStarfield } from '../di/interfaces/galaxy';
 import Phaser from 'phaser';
 
-export class WarpStarfield {
+@injectable()
+export class WarpStarfield implements IWarpStarfield {
     private scene: Phaser.Scene;
     private emitter: Phaser.GameObjects.Particles.ParticleEmitter;
 
-    constructor(scene: Phaser.Scene, width: number, height: number) {
+    constructor(@inject(TYPES.Scene) scene: Phaser.Scene) {
         this.scene = scene;
+        const { width, height } = this.scene.scale;
         this.createTexture();
         this.emitter = this.createEmitter(width, height);
     }
@@ -24,17 +29,15 @@ export class WarpStarfield {
         const emitter = this.scene.add.particles(width / 2, height / 2, 'star', {
             lifespan: 3000,
             speed: { min: 100, max: 250 },
-            scale: { start: 0.5, end: 1.5 }, // Increased scale since base is 2x2 px
-            alpha: { start: 0, end: 1, ease: 'Sine.easeInOut' }, // Fade in then stay
+            scale: { start: 0.5, end: 1.5 },
+            alpha: { start: 0, end: 1, ease: 'Sine.easeInOut' },
             angle: { min: 0, max: 360 },
             blendMode: 'ADD',
             frequency: 50,
             quantity: 2
         });
 
-        // Background depth
         emitter.setDepth(-90);
-
         return emitter;
     }
 
@@ -52,11 +55,6 @@ export class WarpStarfield {
 
     public setSpeed(speedFactor: number) {
         if (this.emitter) {
-            // Use timeScale to speed up the simulation (movement and lifespan)
-            // 1.0 is default.
-            // speedFactor 0 => timeScale 1
-            // speedFactor 5 => timeScale 6 (or whatever feels right)
-
             this.emitter.timeScale = 1 + (speedFactor * 2);
         }
     }

@@ -1,3 +1,5 @@
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../di/types';
 import Phaser from 'phaser';
 import type { PlanetData } from './planets/planet-data';
 import { StorylineManager } from '../../logic/storyline-manager';
@@ -16,15 +18,14 @@ const ICON_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
     shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
 };
 
+@injectable()
 export class GalaxyInteractionManager {
-    private scene: Phaser.Scene;
     private interactionContainer!: Phaser.GameObjects.Container;
     private planetNameContainer!: Phaser.GameObjects.Container;
     private galaxyId?: string;
     private onShowStoryline?: (planet: PlanetData) => void;
 
-    constructor(scene: Phaser.Scene) {
-        this.scene = scene;
+    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
         this.createInteractionUI();
     }
 

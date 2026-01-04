@@ -1,4 +1,6 @@
-import Phaser from 'phaser';
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../../../di/types';
+import type { IPlanetVisuals } from '../../../di/interfaces/galaxy';
 import type { PlanetData } from './planet-data';
 import { GameStatus } from '../../../logic/game-status';
 
@@ -338,12 +340,11 @@ export class PlanetVisual {
     }
 }
 
-export class PlanetVisuals {
-    private scene: Phaser.Scene;
+@injectable()
+export class PlanetVisuals implements IPlanetVisuals {
     private visuals: Map<string, PlanetVisual> = new Map();
 
-    constructor(scene: Phaser.Scene) {
-        this.scene = scene;
+    constructor(@inject(TYPES.Scene) private scene: Phaser.Scene) {
     }
 
     public createVisuals(planets: PlanetData[], galaxyId: string, onClick: (planet: PlanetData) => void) {

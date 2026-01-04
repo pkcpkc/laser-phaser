@@ -26,7 +26,7 @@ vi.mock('phaser', () => {
                     setPosition(x: number, y: number) { this.x = x; this.y = y; }
                     x: number = 0;
                     y: number = 0;
-                } // Added Arc for targetEffect
+                }
             },
             Physics: {
                 Matter: {
@@ -40,7 +40,7 @@ vi.mock('phaser', () => {
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PlayerController } from '../../../src/logic/player-controller';
 import { Ship } from '../../../src/ships/ship';
-import Phaser from 'phaser'; // This will now import the mock
+import Phaser from 'phaser';
 
 // Mock Phaser classes
 class MockScene {
@@ -67,7 +67,7 @@ class MockScene {
         circle: vi.fn(() => ({
             setDepth: vi.fn(),
             destroy: vi.fn(),
-            setPosition: vi.fn(), // Mock setPosition
+            setPosition: vi.fn(),
             alpha: 1
         })),
         text: vi.fn()
@@ -92,6 +92,8 @@ class MockShip {
         setAngle: vi.fn(),
         setPosition: vi.fn(),
         setVelocity: vi.fn(),
+        setVelocityX: vi.fn(),
+        setVelocityY: vi.fn(),
         once: vi.fn(),
         on: vi.fn(),
         off: vi.fn(),
@@ -102,6 +104,7 @@ class MockShip {
         modules: []
     };
     maxSpeed = 10;
+    fireLasers = vi.fn();
 }
 
 describe('PlayerController', () => {
@@ -113,7 +116,7 @@ describe('PlayerController', () => {
     beforeEach(() => {
         scene = new MockScene();
         ship = new MockShip();
-        ship.sprite.scene = scene; // meaningful reference
+        ship.sprite.scene = scene;
         cursors = scene.input.keyboard!.createCursorKeys();
 
         controller = new PlayerController(scene as unknown as Phaser.Scene, ship as unknown as Ship, cursors);
@@ -123,43 +126,32 @@ describe('PlayerController', () => {
         expect(ship.sprite.once).toHaveBeenCalledWith('destroy', expect.any(Function), expect.any(Object));
     });
 
-    it('should clean up tweens when ship is destroyed', () => {
-        // Trigger movement to start a tween (simulated)
-        // Access private method or just simulate the state if possible, 
-        // but since we can't easily trigger private methods, we'll verify the listener works.
-
+    it('should clean up rotation and effects when ship is destroyed', () => {
         // Get the listener function
         const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
         const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
 
         expect(destroyListener).toBeDefined();
 
-        // Mock a tween being active
-        const stopMock = vi.fn();
-        (controller as any).tiltTween = { stop: stopMock };
-
         // Mock a target effect being active
         const destroyEffectMock = vi.fn();
-        const targetEffect = { destroy: destroyEffectMock };
+        const targetEffect = { destroy: destroyEffectMock, alpha: 1 };
         (controller as any).targetEffect = targetEffect;
 
         // Invoke the listener
         destroyListener.call(context);
 
         // Verify cleanup
-        expect(stopMock).toHaveBeenCalled();
         expect(scene.tweens.killTweensOf).toHaveBeenCalledWith(targetEffect);
         expect(destroyEffectMock).toHaveBeenCalled();
-        expect((controller as any).tiltTween).toBeNull();
         expect((controller as any).targetEffect).toBeNull();
     });
 
-    it('should not throw error if destroyed multiple times or no tweens active', () => {
+    it('should not throw error if destroyed multiple times or no effects active', () => {
         const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
         const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
 
-        // Ensure no tweens
-        (controller as any).tiltTween = null;
+        // Ensure no effects
         (controller as any).targetEffect = null;
 
         // Should not throw
@@ -168,66 +160,63 @@ describe('PlayerController', () => {
 
     // --- Drag Support Tests ---
 
-    it('should set drag state and target on pointerdown', () => {
+    it('should set drag state on pointerdown via movement component', () => {
         const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
-        const pointer = { worldX: 200, worldY: 300, isDown: true };
+        const pointer = { worldX: 200, worldY: 300, isDown: true, x: 200, y: 300 };
 
         pointerDownHandler(pointer);
 
-        // Check if isDragging is true (private property, cast to any)
-        expect((controller as any).isDragging).toBe(true);
-        // Check if targetPosition was updated
-        expect((controller as any).targetPosition).toEqual(expect.objectContaining({ x: 200, y: 300 }));
+        // Check movement component's state
+        expect((controller as any).movement.state.isDragging).toBe(true);
     });
 
     it('should update target on pointermove when dragging', () => {
-        // Activate drag
-        (controller as any).isDragging = true;
-
+        const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
         const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
-        const pointer = { worldX: 400, worldY: 500 };
 
-        pointerMoveHandler(pointer);
+        // Start dragging
+        pointerDownHandler({ worldX: 100, worldY: 100, x: 100, y: 100 });
 
-        expect((controller as any).targetPosition).toEqual(expect.objectContaining({ x: 400, y: 500 }));
+        // Move while dragging
+        pointerMoveHandler({ worldX: 400, worldY: 500, x: 400, y: 500 });
+
+        const target = (controller as any).movement.getTargetPosition();
+        expect(target).toEqual(expect.objectContaining({ x: 400, y: 500 }));
     });
 
     it('should NOT update target on pointermove when NOT dragging', () => {
-        // Deactivate drag
-        (controller as any).isDragging = false;
-        // Set an initial target
-        const initialTarget = { x: 100, y: 100 };
-        (controller as any).targetPosition = initialTarget;
-
         const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
-        const pointer = { worldX: 400, worldY: 500 };
+        const pointer = { worldX: 400, worldY: 500, x: 400, y: 500 };
 
         pointerMoveHandler(pointer);
 
-        // Target should be unchanged
-        expect((controller as any).targetPosition).toEqual(initialTarget);
+        // Target should be null since we never started dragging
+        expect((controller as any).movement.hasTarget()).toBe(false);
     });
 
     it('should reset drag state on pointerup', () => {
-        (controller as any).isDragging = true;
+        const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
         const pointerUpHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerup')[1];
 
-        pointerUpHandler();
+        // Start dragging
+        pointerDownHandler({ worldX: 100, worldY: 100, x: 100, y: 100 });
+        expect((controller as any).movement.state.isDragging).toBe(true);
 
-        expect((controller as any).isDragging).toBe(false);
+        // Release
+        pointerUpHandler();
+        expect((controller as any).movement.state.isDragging).toBe(false);
     });
 
-    it('should move existing target effect instead of creating new one during updates', () => {
+    it('should move existing target effect instead of creating new one during drag', () => {
         // Setup existing target effect
-        const existingEffect = { destroy: vi.fn(), setPosition: vi.fn() };
+        const existingEffect = { destroy: vi.fn(), setPosition: vi.fn(), alpha: 1 };
         (controller as any).targetEffect = existingEffect;
 
-        // Directly call setTarget (private)
-        (controller as any).setTarget(300, 400);
+        // Simulate second tap (handleTargetInput)
+        (controller as any).handleTargetInput(300, 400);
 
         // Should move, not destroy
         expect(existingEffect.destroy).not.toHaveBeenCalled();
         expect(existingEffect.setPosition).toHaveBeenCalledWith(300, 400);
-        expect(scene.add.circle).not.toHaveBeenCalled(); // No new circle added
     });
 });

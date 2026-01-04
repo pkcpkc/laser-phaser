@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { Ship } from '../ships/ship';
-import { isWeapon } from '../ships/modules/module-types';
-
+import { PlayerMovement } from './player-movement';
+import { PlayerRotation } from './player-rotation';
+import { PlayerFiring } from './player-firing';
 
 // Target Effect Constants
 const TARGET_RADIUS = 5;
@@ -12,40 +13,30 @@ const TARGET_ANIMATION_SCALE = 4;
 const TARGET_ANIMATION_DURATION = 500;
 const TARGET_FADE_THRESHOLD = 0.1;
 
-// Movement Constants
-const STOP_THRESHOLD = 5;
-const TAP_SPEED_MULTIPLIER = 3; // Tap movement is 3x faster than base ship speed
-const ACCELERATION = 2.0; // Fast acceleration for tap movement
-const DECELERATION = 3.0; // Quick deceleration for snappy stops
-const MIN_SPEED = 0.5;
+import { injectable, inject } from 'inversify';
+import { TYPES } from '../di/types';
+import type { IPlayerController } from '../di/interfaces/logic';
 
-
-const KEYBOARD_THRUST = 0.04;
-
-// Tilt Effect Constants
-const TILT_OUT_DURATION = 80; // Duration to return to upright (ms)
-
-export class PlayerController {
-    private scene: Phaser.Scene;
-    private ship: Ship;
-    private cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-    private fireButton: Phaser.GameObjects.Text | null = null;
-    private isFiring: boolean = false;
-    private lastFired: number = 0;
-
-    private targetPosition: Phaser.Math.Vector2 | null = null;
+/**
+ * Orchestrates player ship control using composition.
+ * Handles input, target effects, and boundary clamping.
+ */
+@injectable()
+export class PlayerController implements IPlayerController {
+    private movement: PlayerMovement;
+    private rotation: PlayerRotation;
+    private firing: PlayerFiring;
     private targetEffect: Phaser.GameObjects.Arc | null = null;
-    private currentSpeed: number = 0;
-    private isDragging: boolean = false; // Add drag state
 
-    // Tilt effect state
-    private currentTiltDirection: 'left' | 'right' | 'none' | 'moving' = 'none';
-    private tiltTween: Phaser.Tweens.Tween | null = null;
-
-    constructor(scene: Phaser.Scene, ship: Ship, cursors: Phaser.Types.Input.Keyboard.CursorKeys) {
-        this.scene = scene;
-        this.ship = ship;
-        this.cursors = cursors;
+    constructor(
+        @inject(TYPES.Scene) private readonly scene: Phaser.Scene,
+        @inject(TYPES.Ship) private readonly ship: Ship,
+        @inject(TYPES.PlayerCursorKeys) private readonly cursors: Phaser.Types.Input.Keyboard.CursorKeys
+    ) {
+        // Initialize components
+        this.movement = new PlayerMovement(scene, ship);
+        this.rotation = new PlayerRotation(scene, ship.sprite);
+        this.firing = new PlayerFiring(scene, ship, cursors);
 
         // Clean up when ship is destroyed
         this.ship.sprite.once('destroy', this.onDestroy, this);
@@ -53,33 +44,27 @@ export class PlayerController {
         // Setup input for movement
         this.scene.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (!this.ship.sprite.active) return;
-            const isUIInteraction = this.isClickingUI(pointer);
-            if (!isUIInteraction) {
-                this.isDragging = true;
-                this.setTarget(pointer.worldX, pointer.worldY);
+            if (!this.isClickingUI(pointer)) {
+                this.movement.setDragging(true);
+                this.handleTargetInput(pointer.worldX, pointer.worldY);
             }
         });
 
         this.scene.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
             if (!this.ship.sprite.active) return;
-            if (this.isDragging) {
-                this.setTarget(pointer.worldX, pointer.worldY);
+            if (this.movement.state.isDragging) {
+                this.handleTargetInput(pointer.worldX, pointer.worldY);
             }
         });
 
         this.scene.input.on('pointerup', () => {
-            this.isDragging = false;
+            this.movement.setDragging(false);
         });
     }
 
-    private onDestroy() {
-        // Stop any active tweens
-        if (this.tiltTween) {
-            this.tiltTween.stop();
-            this.tiltTween = null;
-        }
+    public onDestroy(): void {
+        this.rotation.destroy();
 
-        // Clean up target effect
         if (this.targetEffect) {
             this.scene.tweens.killTweensOf(this.targetEffect);
             this.targetEffect.destroy();
@@ -87,104 +72,35 @@ export class PlayerController {
         }
     }
 
-    // Helper to check if clicking UI (specifically firebutton for now)
     private isClickingUI(pointer: Phaser.Input.Pointer): boolean {
-        if (this.fireButton && this.fireButton.getBounds().contains(pointer.x, pointer.y)) {
-            return true;
-        }
-        return false;
+        return this.firing.isClickingFireButton(pointer);
     }
 
-    public setFireButton(fireButton: Phaser.GameObjects.Text) {
-        this.fireButton = fireButton;
-        this.fireButton.on('pointerdown', () => { this.isFiring = true; })
-            .on('pointerup', () => { this.isFiring = false; })
-            .on('pointerout', () => { this.isFiring = false; });
+    public setFireButton(fireButton: Phaser.GameObjects.Text): void {
+        this.firing.setFireButton(fireButton);
     }
 
-    private setTarget(x: number, y: number) {
-        const { width, height } = this.scene.scale;
+    private handleTargetInput(x: number, y: number): void {
+        this.movement.setTarget(x, y);
 
-        // Clamp target to screen bounds - ship's origin can reach anywhere from 0 to width/height
-        const clampedX = Phaser.Math.Clamp(x, 0, width);
-        const clampedY = Phaser.Math.Clamp(y, 0, height);
-
-        this.targetPosition = new Phaser.Math.Vector2(clampedX, clampedY);
-
-        // Only show/restart effect if NOT replacing an existing one during drag
-        // Actually, for drag, we might want to move the effect? 
-        // Logic: if effect exists, just move it. If not, create it.
-        if (this.targetEffect) {
-            this.targetEffect.setPosition(clampedX, clampedY);
-            // If we are starting a new tap (not dragging continuously), maybe restart animation? 
-            // But simplify: just move the target reticle.
-        } else {
-            this.showTargetEffect(clampedX, clampedY);
+        const target = this.movement.getTargetPosition();
+        if (target) {
+            if (this.targetEffect) {
+                this.targetEffect.setPosition(target.x, target.y);
+            } else {
+                this.showTargetEffect(target.x, target.y);
+            }
         }
     }
 
-    /**
-     * Set the ship's rotation to point toward the movement direction.
-     * Uses smooth interpolation (lerp) for continuous updates.
-     */
-    private pointToAngle(angleRadians: number) {
-        if (!this.ship.sprite.active) return; // Skip if ship is destroyed
-
-        // Stop any return-to-upright tween that might be running
-        if (this.tiltTween) {
-            this.tiltTween.stop();
-            this.tiltTween = null;
-        }
-
-        // Convert to degrees (no offset needed - ship sprite is already oriented correctly)
-        const targetAngleDegrees = Phaser.Math.RadToDeg(angleRadians);
-
-        // Smooth interpolation toward target angle
-        const currentAngle = this.ship.sprite.angle;
-
-        // Handle angle wrapping to avoid spinning the long way around
-        let diff = targetAngleDegrees - currentAngle;
-        if (diff > 180) diff -= 360;
-        if (diff < -180) diff += 360;
-
-        // Lerp factor - higher = faster rotation (0.15 = smooth but responsive)
-        const lerpFactor = 0.15;
-        this.ship.sprite.setAngle(currentAngle + diff * lerpFactor);
-    }
-
-    /**
-     * Return the ship to upright position (pointing up).
-     */
-    private returnToUpright() {
-        if (this.currentTiltDirection === 'none') return;
-        if (!this.ship.sprite.active) return; // Skip if ship is destroyed
-        this.currentTiltDirection = 'none';
-
-        // Stop any existing tilt tween
-        if (this.tiltTween) {
-            this.tiltTween.stop();
-            this.tiltTween = null;
-        }
-
-        this.tiltTween = this.scene.tweens.add({
-            targets: this.ship.sprite,
-            angle: -90, // -90 = pointing up (ship sprite orientation)
-            duration: TILT_OUT_DURATION,
-            ease: 'Power2'
-        });
-    }
-
-    private showTargetEffect(x: number, y: number) {
-        // Destroy existing effect if active to "redirect"
+    private showTargetEffect(x: number, y: number): void {
         if (this.targetEffect) {
             this.targetEffect.destroy();
         }
 
-        // Create a visual marker
         this.targetEffect = this.scene.add.circle(x, y, TARGET_RADIUS, TARGET_COLOR, TARGET_ALPHA);
         this.targetEffect.setDepth(TARGET_EFFECT_DEPTH);
 
-        // Simple animation: Expand and fade
         this.scene.tweens.add({
             targets: this.targetEffect,
             scale: TARGET_ANIMATION_SCALE,
@@ -197,113 +113,42 @@ export class PlayerController {
                 }
             }
         });
-
-        // Also keep a persistent small marker or just rely on the pulse?
-        // User asked: "visualize the target point with a short effect"
-        // So a pulse is good.
     }
 
-    public update(time: number) {
+    private clearTargetEffect(): void {
+        if (this.targetEffect) {
+            this.targetEffect.destroy();
+            this.targetEffect = null;
+        }
+    }
+
+    public update(time: number): void {
         if (!this.ship.sprite.active) return;
 
         const { width, height } = this.scene.scale;
 
-        // Keyboard Movement override (optional? keeping it for now as fallback or removing? User said "instead implement point and click")
-        // User said "remove the joystick ... instead implement point and click". 
-        // I will keep keyboard as debug/alternative but prioritize click.
-        // Actually, let's prioritize the target movement.
+        // Keyboard movement
+        const movingWithKeys = this.movement.updateKeyboard(this.cursors);
 
-        let movingWithKeys = false;
+        // Target movement
+        if (!movingWithKeys && this.movement.hasTarget()) {
+            const result = this.movement.updateTargetMovement();
 
-        if (this.cursors.left.isDown) {
-            this.ship.sprite.thrustLeft(KEYBOARD_THRUST);
-            movingWithKeys = true;
-        } else if (this.cursors.right.isDown) {
-            this.ship.sprite.thrustRight(KEYBOARD_THRUST);
-            movingWithKeys = true;
-        }
-        if (this.cursors.up.isDown) {
-            this.ship.sprite.thrust(KEYBOARD_THRUST);
-            movingWithKeys = true;
-        } else if (this.cursors.down.isDown) {
-            this.ship.sprite.thrustBack(KEYBOARD_THRUST);
-            movingWithKeys = true;
-        }
-
-        // If keys are pressed, cancel target
-        if (movingWithKeys) {
-            this.targetPosition = null;
-        }
-
-        // Target Movement
-        if (this.targetPosition && !movingWithKeys) {
-            const shipPos = new Phaser.Math.Vector2(this.ship.sprite.x, this.ship.sprite.y);
-            const dist = shipPos.distance(this.targetPosition);
-
-            if (dist < STOP_THRESHOLD) {
-                // Arrived
-                this.ship.sprite.setPosition(this.targetPosition.x, this.targetPosition.y);
-                this.ship.sprite.setVelocity(0, 0);
-                this.targetPosition = null;
-                this.currentSpeed = 0;
-
-                // Clear effect immediately
-                if (this.targetEffect) {
-                    this.targetEffect.destroy();
-                    this.targetEffect = null;
-                }
-
-                // Return to upright when arrived
-                this.currentTiltDirection = 'moving';
-                this.returnToUpright();
-            } else {
-                // Move towards target
-                const angle = Phaser.Math.Angle.BetweenPoints(shipPos, this.targetPosition);
-
-                // 1. Calculate Braking Distance needed to stop from current speed
-                // d = (v^2) / (2 * a)
-                const brakingDistance = (this.currentSpeed * this.currentSpeed) / (2 * DECELERATION);
-
-                const isDecelerating = dist <= brakingDistance;
-
-                if (isDecelerating) {
-                    // Deceleration Phase - return to upright
-                    this.currentSpeed -= DECELERATION;
-                    if (this.currentSpeed < MIN_SPEED) this.currentSpeed = MIN_SPEED;
-                    this.returnToUpright();
-                } else {
-                    // Acceleration Phase - point toward target
-                    const maxSpeed = this.ship.maxSpeed * TAP_SPEED_MULTIPLIER;
-                    if (this.currentSpeed < maxSpeed) {
-                        this.currentSpeed += ACCELERATION;
-                        if (this.currentSpeed > maxSpeed) this.currentSpeed = maxSpeed;
-                    }
-                    // Point ship nose toward movement direction
-                    this.currentTiltDirection = 'moving'; // Mark as moving to allow pointToAngle
-                    this.pointToAngle(angle);
-                }
-
-                const velX = Math.cos(angle) * this.currentSpeed;
-                const velY = Math.sin(angle) * this.currentSpeed;
-
-                this.ship.sprite.setVelocity(velX, velY);
+            if (result.arrived) {
+                this.clearTargetEffect();
+                this.rotation.setMoving();
+                this.rotation.returnToUpright();
+            } else if (result.isDecelerating) {
+                this.rotation.returnToUpright();
+            } else if (result.angle !== null) {
+                this.rotation.pointToAngle(result.angle);
             }
         }
 
         // Fire logic
-        const firingInterval = this.getEffectiveFiringInterval();
-        if (this.scene.input.keyboard!.checkDown(this.cursors.space, firingInterval)) {
-            this.fireLaser();
-        }
+        this.firing.update(time);
 
-        if (this.isFiring || this.autoFire) {
-            if (time > this.lastFired + firingInterval) {
-                this.fireLaser();
-                this.lastFired = time;
-            }
-        }
-
-        // Keep ship's origin within screen bounds (allows ship to visually extend beyond edge)
+        // Keep ship's origin within screen bounds
         const clampedX = Phaser.Math.Clamp(this.ship.sprite.x, 0, width);
         const clampedY = Phaser.Math.Clamp(this.ship.sprite.y, 0, height);
 
@@ -317,46 +162,14 @@ export class PlayerController {
             }
 
             // Stop target movement if we hit a wall
-            if (this.targetPosition) {
-                this.targetPosition = null;
-                this.currentSpeed = 0;
-
-                if (this.targetEffect) {
-                    this.targetEffect.destroy();
-                    this.targetEffect = null;
-                }
+            if (this.movement.hasTarget()) {
+                this.movement.clearTarget();
+                this.clearTargetEffect();
             }
 
-            // Always return to upright when hitting boundary (even without active target)
-            this.currentTiltDirection = 'moving';
-            this.returnToUpright();
+            // Return to upright when hitting boundary
+            this.rotation.setMoving();
+            this.rotation.returnToUpright();
         }
-    }
-
-    private autoFire: boolean = true;
-
-    /**
-     * Get the effective firing interval based on mounted weapons.
-     * Uses the slowest (highest) weapon firingDelay.min to respect weapon limits.
-     * If no weapon defines firingDelay, fires as fast as possible.
-     */
-    private getEffectiveFiringInterval(): number {
-        let maxInterval = 0; // No limit by default - fire as fast as possible
-
-        for (const module of this.ship.config.modules) {
-            const shipModule = new module.module();
-            if (isWeapon(shipModule) && shipModule.firingDelay) {
-                // Use the minimum delay for maximum fire rate, but respect weapon limits
-                maxInterval = Math.max(maxInterval, shipModule.firingDelay.min);
-            }
-        }
-
-        return maxInterval;
-    }
-
-    private fireLaser() {
-        if (!this.ship.sprite.active) return;
-        this.ship.fireLasers();
     }
 }
-

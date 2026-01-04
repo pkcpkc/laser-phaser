@@ -13,8 +13,8 @@ This document provides technical details for developers working on **Laser Phase
     *   **Physics**: Uses the integrated **Matter.js** engine for complex collision detection and body simulations.
 *   **Language**: [TypeScript](https://www.typescriptlang.org/) - For type-safe, maintainable code.
 *   **Build Tool**: [Vite](https://vitejs.dev/) - Next Generation Frontend Tooling for lightning-fast development servers and optimized builds.
-
-
+*   **Dependency Injection**: [InversifyJS](https://inversify.io/) - A powerful and lightweight inversion of control container for JavaScript & Node.js apps.
+    *   **Reflection**: `reflect-metadata` - Used for decorator metadata support.
 
 ## 2. Testing Stack
 
@@ -31,7 +31,7 @@ We maintain a high standard of code quality through a comprehensive testing suit
 
 ## 3. Architecture
 
-The game follows a modular, domain-driven architecture. The flow starts with asset preloading and transitions through a centralized map-based navigation system to various gameplay modes.
+The game follows a modular, domain-driven architecture utilizing Dependency Injection (DI) to manage complexity. The flow starts with asset preloading and transitions through a centralized map-based navigation system to various gameplay modes.
 
 ### Scene Flow & Transitions
 
@@ -40,23 +40,28 @@ graph TD
     %% Global Initial Flow
     BootScene --> PreloadScene
     PreloadScene --> GalaxyScene
-    
+
     %% Main Navigation
     GalaxyScene <--> |"Explore / Mission Select"| ShootEmUpScene
     GalaxyScene <--> |"Customize Ship"| ShipyardScene
     GalaxyScene <--> |"Tactical Defense"| TowerDefenseScene
-    
+
     %% Warp Mechanics
     ShootEmUpScene --> |"Victory Warp"| WormholeScene
     WormholeScene --> |"Transition"| GalaxyScene
-    
-    subgraph "Galaxy Navigation Architecture"
-        GalaxyScene --> |"Configures"| GalaxyFactory
+
+    subgraph "Galaxy Navigation Architecture (DI)"
+        GalaxyScene --> |"Resolves"| Container
+        Container --> |"Injects"| GalaxyFactory
+        Container --> |"Injects"| PlanetVisuals
+        Container --> |"Injects"| GalaxyInteractionManager
+        Container --> |"Injects"| PlayerShipController
+        Container --> |"Injects"| PlanetNavigator
+        Container --> |"Injects"| LootUI
+        
         GalaxyFactory --> |"Creates"| Galaxy
-        GalaxyScene --> |"Visualizes"| PlanetVisual
-        PlanetVisual --> |"Has many"| PlanetEffect
-        GalaxyScene --> |"Manages"| GalaxyInteractionManager
-        GalaxyScene --> |"UI"| LootUI
+        PlanetVisuals --> |"Visualizes"| Galaxy
+        PlanetNavigator --> |"Manipulates"| Galaxy
         GalaxyInteractionManager --> |"Triggers"| PlanetIntroOverlay
         PlanetIntroOverlay --> |"Fetches Text"| StorylineManager
     end
@@ -79,29 +84,35 @@ graph TD
 
 ### Key Components
 
-*   **Galaxy System**: A modular configuration-driven map. Each galaxy (e.g., *Blood Hunters*) defines its own physics, backgrounds, and planet layouts.
+*   **Dependency Injection**: The core architecture relies on a DI container (`di/container.ts`) to manage dependencies. Scenes bind themselves to the container, and components (like `PlanetNavigator`, `PlayerShipController`) are injected, promoting loose coupling and easier testing.
+*   **Galaxy System**: A modular configuration-driven map. Each galaxy (e.g., *Blood Hunters*) defines its own physics, backgrounds, and planet layouts. The `GalaxyScene` has been decomposed into specialized managers (`PlanetVisuals`, `PlanetNavigator`, etc.) to avoid "God Class" issues.
 *   **Wormhole Transition**: A cinematic transition scene used when jumping between galaxies, ensuring a smooth visual bridge.
-*   **Storyline & Intros**: Managed by `StorylineManager` (parsing markdown data) and visualized via `PlanetIntroOverlay` to provide immersive briefings.
+*   **Storyline & Intros**: Managed by `StorylineManager`. Markdown storylines are **compiled to TypeScript** (`src-generated/storylines/storylines.ts`) during build, eliminating runtime parsing overhead.
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
-*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`, which in turn instantiates and drives one or more `Formations`.
+*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`.
 
 ## 4. Asset Pipeline & Tooling
 
 We use a custom asset pipeline and various tools to optimize game performance and help with asset creation:
 
 *   **[Nano Banana](https://gemini.google/overview/image-generation/)**: The creative engine behind pimping hand-drawn ship assets for the digital realm.
-*   **Meta SAM 3**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation during asset preparation.
+*   **Meta SAM 3**: [Segment Anything Model](https://aidemos.meta.com/segment-anything/gallery) - Used for high-precision image segmentation.
 *   **Texture Atlases**: Automatically generated from `public/assets` folders using `free-tex-packer-core`.
 *   **Marker Generation**: Ship attachment points (markers) are extracted from ship PNGs to define where thrusters, lasers, and rockets attached.
 *   **Custom Build Scripts**: Written in TypeScript/JavaScript, executed via `tsx` or `node`:
     *   `scripts/generate-markers.ts`: Extracts marker data from ship PNGs.
     *   `scripts/generate-atlases.js`: Orchestrates texture packing.
     *   `scripts/generate-color-palette.ts`: Analyzes assets for UI color matching.
+    *   `scripts/build-storylines.ts`: Compiles Markdown storylines to TypeScript.
 *   **Image Processing**: Uses `pngjs` for low-level pixel analysis during marker and palette generation.
+
+### Generated Code
+*   `src-generated/`: Contains auto-generated source files (e.g., compiled storylines, marker data). These should not be edited manually.
 
 ## 5. Storyline Management
 
 Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
+The build process (`npm run build:storylines`) compiles these files into `src-generated/storylines/storylines.ts` for type-safe, synchronous access.
 
 **Format:**
 ```markdown
@@ -145,7 +156,7 @@ To fire up the engines and start developing, use the following commands:
 *   `npm run build`: Full production build (generates atlases, markers, and bundles the app).
 *   `npm run build:atlases`: Manually regenerate texture atlases from `public/assets`.
 *   `npm run build:markers`: Manually extract marker data from ship PNGs.
-*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to JSON in `public/assets/storylines/`.
+*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to TypeScript in `src-generated/`.
 *   `npm run build:colors`: Analyze assets for UI color matching.
 
 #### Testing & Quality Commands

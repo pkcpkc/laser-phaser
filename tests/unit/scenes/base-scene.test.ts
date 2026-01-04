@@ -1,64 +1,65 @@
+import 'reflect-metadata';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// Mock Phaser globally
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class { },
-            GameObjects: {
-                Text: class { },
-                Image: class { },
-                Sprite: class { }
-            },
-            Math: {
-                Vector2: class { },
-                Clamp: vi.fn()
-            },
-            Physics: {
-                Matter: {
-                    Sprite: class { },
-                    Image: class { }
-                }
-            },
-            Structs: {
-                Size: class {
-                    constructor(public width = 0, public height = 0) { }
-                }
-            }
-        }
-    };
-});
-
 import BaseScene from '../../../src/scenes/base-scene';
 import { GameManager } from '../../../src/logic/game-manager';
 import { CollisionManager } from '../../../src/logic/collision-manager';
 import { PlayerController } from '../../../src/logic/player-controller';
 import { Starfield } from '../../../src/backgrounds/starfield';
-import { BigCruiserWhiteLaserConfig } from '../../../src/ships/configurations/big-cruiser-white-laser';
 import { Ship } from '../../../src/ships/ship';
 import { EngineTrail } from '../../../src/ships/effects/engine-trail';
 import { LootUI } from '../../../src/ui/loot-ui';
 import { LootType } from '../../../src/ships/types';
+import { TYPES } from '../../../src/di/types';
+import { container } from '../../../src/di/container';
 
-// Mocks
-vi.mock('../../../src/logic/game-manager', () => ({
-    GameManager: vi.fn()
+// Mock Phaser globally
+vi.mock('phaser', () => ({
+    default: {
+        Scene: class { },
+        GameObjects: {
+            Text: class { },
+            Image: class { },
+            Sprite: class { }
+        },
+        Math: {
+            Vector2: class { },
+            Clamp: vi.fn()
+        },
+        Physics: {
+            Matter: {
+                Sprite: class { },
+                Image: class { }
+            }
+        },
+        Structs: {
+            Size: class {
+                constructor(public width = 0, public height = 0) { }
+            }
+        }
+    }
 }));
-vi.mock('../../../src/logic/collision-manager', () => ({
-    CollisionManager: vi.fn()
+
+// Mock DI Container
+vi.mock('../../../src/di/container', () => ({
+    container: {
+        get: vi.fn(),
+        bind: vi.fn().mockReturnThis(),
+        toConstantValue: vi.fn(),
+        isBound: vi.fn().mockReturnValue(false),
+        rebind: vi.fn().mockReturnThis()
+    },
+    bindScene: vi.fn()
 }));
-vi.mock('../../../src/logic/player-controller', () => ({
-    PlayerController: vi.fn()
-}));
-vi.mock('../../../src/backgrounds/starfield', () => ({
-    Starfield: vi.fn()
-}));
-vi.mock('../../../src/ships/ship', () => ({
-    Ship: vi.fn()
-}));
-vi.mock('../../../src/ships/effects/engine-trail', () => ({
-    EngineTrail: vi.fn()
-}));
+
+// Mock Logic & Systems
+vi.mock('../../../src/logic/game-manager', () => ({ GameManager: vi.fn() }));
+vi.mock('../../../src/logic/collision-manager', () => ({ CollisionManager: vi.fn() }));
+vi.mock('../../../src/logic/player-controller', () => ({ PlayerController: vi.fn() }));
+vi.mock('../../../src/backgrounds/starfield', () => ({ Starfield: vi.fn() }));
+vi.mock('../../../src/ships/ship', () => ({ Ship: vi.fn() }));
+vi.mock('../../../src/ships/effects/engine-trail', () => ({ EngineTrail: vi.fn() }));
+vi.mock('../../../src/ui/loot-ui', () => ({ LootUI: vi.fn() }));
+
 vi.mock('../../../src/logic/game-status', () => ({
     GameStatus: {
         getInstance: vi.fn().mockReturnValue({
@@ -69,17 +70,13 @@ vi.mock('../../../src/logic/game-status', () => ({
         })
     }
 }));
-vi.mock('../../../src/ui/loot-ui', () => ({
-    LootUI: vi.fn()
+
+vi.mock('phaser3-rex-plugins/plugins/virtualjoystick.js', () => ({
+    default: class {
+        setVisible = vi.fn();
+        setPosition = vi.fn();
+    }
 }));
-vi.mock('phaser3-rex-plugins/plugins/virtualjoystick.js', () => {
-    return {
-        default: class {
-            setVisible = vi.fn();
-            setPosition = vi.fn();
-        }
-    };
-});
 
 class ConcreteBaseScene extends BaseScene {
     constructor() {
@@ -91,11 +88,72 @@ describe('BaseScene', () => {
     let scene: ConcreteBaseScene;
     let mockGameObject: any;
 
+    const mockGameManager = {
+        isGameActive: vi.fn().mockReturnValue(true),
+        isVictoryState: vi.fn().mockReturnValue(false),
+        handleGameOver: vi.fn(),
+        handleResize: vi.fn(),
+    };
+
+    const mockCollisionManager = {
+        getCategories: vi.fn().mockReturnValue({ shipCategory: 1 }),
+        setupCollisions: vi.fn(),
+        config: vi.fn(),
+    };
+
+    const mockPlayerController = {
+        setFireButton: vi.fn(),
+        update: vi.fn(),
+    };
+
+    const mockStarfieldInstance = {
+        config: vi.fn(),
+        update: vi.fn(),
+    };
+
+    const mockLootUIInstance = {
+        create: vi.fn(),
+        updateCounts: vi.fn(),
+        updatePositions: vi.fn(),
+        destroy: vi.fn(),
+    };
+
+    const mockShipInstance = {
+        setEffect: vi.fn(),
+        sprite: {
+            active: true,
+            x: 100,
+            y: 100,
+            setFixedRotation: vi.fn(),
+            setAngle: vi.fn(),
+        },
+        explode: vi.fn(),
+    };
+
     beforeEach(() => {
         vi.clearAllMocks();
+
+        // Setup mock implementations
+        (GameManager as any).mockImplementation(function () { return mockGameManager; });
+        (CollisionManager as any).mockImplementation(function () { return mockCollisionManager; });
+        (PlayerController as any).mockImplementation(function () { return mockPlayerController; });
+        (Starfield as any).mockImplementation(function () { return mockStarfieldInstance; });
+        (LootUI as any).mockImplementation(function () { return mockLootUIInstance; });
+        (Ship as any).mockImplementation(function () { return mockShipInstance; });
+
+        // Setup container.get return values
+        (container.get as any).mockImplementation((type: any) => {
+            if (type === TYPES.GameManager) return mockGameManager;
+            if (type === TYPES.CollisionManager) return mockCollisionManager;
+            if (type === TYPES.PlayerController) return mockPlayerController;
+            if (type === TYPES.Starfield) return mockStarfieldInstance;
+            if (type === TYPES.LootUI) return mockLootUIInstance;
+            return null;
+        });
+
         scene = new ConcreteBaseScene();
 
-        // Mock Phaser Scene stuff
+        // Mock Phaser Scene properties manually
         mockGameObject = {
             setOrigin: vi.fn().mockReturnThis(),
             setVisible: vi.fn().mockReturnThis(),
@@ -124,89 +182,30 @@ describe('BaseScene', () => {
             keyboard: {
                 once: vi.fn(),
                 on: vi.fn(),
-                createCursorKeys: vi.fn(),
+                createCursorKeys: vi.fn().mockReturnValue({}),
             },
         } as any;
 
-        scene.game = {
-            canvas: { style: {} }
-        } as any;
-
-        scene.matter = {
-            world: {
-                setBounds: vi.fn(),
-            }
-        } as any;
-
-        scene.sys = {
-            isActive: vi.fn().mockReturnValue(true)
-        } as any;
-
-        scene.time = {
-            delayedCall: vi.fn((_delay, cb) => cb()),
-        } as any;
-
-        // Setup mock implementations for managers
-        (GameManager as any).mockImplementation(function () {
-            return {
-                isGameActive: vi.fn().mockReturnValue(true),
-                handleGameOver: vi.fn(),
-                handleResize: vi.fn(),
-            };
-        });
-
-        (CollisionManager as any).mockImplementation(function () {
-            return {
-                getCategories: vi.fn().mockReturnValue({ shipCategory: 1 }),
-                setupCollisions: vi.fn(),
-            };
-        });
-
-        (PlayerController as any).mockImplementation(function () {
-            return {
-                setFireButton: vi.fn(),
-                update: vi.fn(),
-            };
-        });
-
-        // Mock LootUI
-        (LootUI as any).mockImplementation(function () {
-            return {
-                create: vi.fn(),
-                updateCounts: vi.fn(),
-                updatePositions: vi.fn(),
-                destroy: vi.fn(),
-            };
-        });
-
-        (Ship as any).mockImplementation(function () {
-            return {
-                setEffect: vi.fn(),
-                sprite: {
-                    active: true,
-                    x: 100,
-                    y: 100,
-                    setFixedRotation: vi.fn(),
-                    setAngle: vi.fn(),
-                },
-                explode: vi.fn(),
-            };
-        });
+        scene.game = { canvas: { style: {} } } as any;
+        scene.matter = { world: { setBounds: vi.fn() } } as any;
+        scene.sys = { isActive: vi.fn().mockReturnValue(true) } as any;
+        scene.time = { delayedCall: vi.fn((_delay, cb) => cb()) } as any;
     });
 
     it('should initialize managers and create ship on create', () => {
         scene.create();
-        expect(GameManager).toHaveBeenCalledWith(scene);
-        expect(CollisionManager).toHaveBeenCalledWith(scene, expect.any(Function), expect.any(Function));
-        expect(Starfield).toHaveBeenCalledWith(scene, 'nebula', undefined);
-        expect(Ship).toHaveBeenCalledWith(expect.any(Object), expect.any(Number), expect.any(Number), BigCruiserWhiteLaserConfig, expect.any(Object));
+        expect(container.get).toHaveBeenCalledWith(TYPES.GameManager);
+        expect(container.get).toHaveBeenCalledWith(TYPES.CollisionManager);
+        expect(container.get).toHaveBeenCalledWith(TYPES.Starfield);
+
+        expect(Ship).toHaveBeenCalled();
         expect(EngineTrail).toHaveBeenCalled();
     });
 
     it('should setup controls and UI', () => {
         scene.create();
         expect(scene.input.keyboard!.createCursorKeys).toHaveBeenCalled();
-        expect(PlayerController).toHaveBeenCalled();
+        expect(container.get).toHaveBeenCalledWith(TYPES.PlayerController);
         expect(scene.add.text).toHaveBeenCalled();
     });
 
@@ -214,15 +213,10 @@ describe('BaseScene', () => {
         scene.create();
         (scene.matter.world.setBounds as any).mockClear();
 
-        // Invoke resize manually via the callback registered
-        // Or directly call protected method if casted
         (scene as any).handleResize({ width: 1000, height: 800 });
 
-        // World bounds are expanded by 100px on each side to allow ship to partially leave screen
         expect(scene.matter.world.setBounds).toHaveBeenCalledWith(-100, -100, 1200, 1000);
-        // Verify lootUI.updatePositions was called
-        const lootUIInstance = (LootUI as any).mock.instances[0];
-        expect(lootUIInstance.updatePositions).toHaveBeenCalled();
+        expect(mockLootUIInstance.updatePositions).toHaveBeenCalled();
     });
 
     it('should handle loot collection - silver', () => {
@@ -236,33 +230,19 @@ describe('BaseScene', () => {
             destroy: vi.fn(),
         };
 
-        // Invoke directly to test logic
         (scene as any).handleLootCollected(mockLoot);
 
-        // Verify lootUI.updateCounts was called with accumulated count
-        const lootUIInstance = (LootUI as any).mock.instances[0];
-        // Since silverCount starts at 0 (from GameStatus mock), it should be 10
-        expect(lootUIInstance.updateCounts).toHaveBeenCalledWith(LootType.SILVER, 10);
-
-
-        // Verify delayed call
+        expect(mockLootUIInstance.updateCounts).toHaveBeenCalledWith(LootType.SILVER, 10);
         expect(scene.time.delayedCall).toHaveBeenCalledWith(0, expect.any(Function));
     });
 
     it('should handle game over', () => {
         scene.create();
 
-        // Extract handleGameOver callback passed to CollisionManager
-        const gameOverCallback = (CollisionManager as any).mock.calls[0][1];
-
+        const gameOverCallback = mockCollisionManager.config.mock.calls[0][0];
         gameOverCallback();
 
-        // Expect ship explode
-        const shipInstance = (Ship as any).mock.instances[0];
-        expect(shipInstance.explode).toHaveBeenCalled();
-
-        // Expect game manager handle game over
-        const gameManagerInstance = (GameManager as any).mock.instances[0];
-        expect(gameManagerInstance.handleGameOver).toHaveBeenCalled();
+        expect(mockShipInstance.explode).toHaveBeenCalled();
+        expect(mockGameManager.handleGameOver).toHaveBeenCalled();
     });
 });

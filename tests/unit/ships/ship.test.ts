@@ -21,16 +21,20 @@ vi.mock('phaser', () => {
                         setOrigin = vi.fn();
                         destroy = vi.fn();
                         active = true;
+                        visible = true;
                         x = 100;
                         y = 100;
                         rotation = 0;
                         scene = {};
                         width = 32;
                         height = 32;
+                        depth = 0;
+                        displayWidth = 32;
                         setData = vi.fn();
                         setBounce = vi.fn();
                         setSensor = vi.fn();
                         on = vi.fn();
+                        once = vi.fn();
                         setTint = vi.fn();
                         clearTint = vi.fn();
                         body = { velocity: { x: 0, y: 0 } };
@@ -106,6 +110,14 @@ describe('Ship', () => {
             add: {
                 existing: vi.fn(),
                 sprite: vi.fn().mockReturnThis(),
+                image: vi.fn().mockReturnValue({
+                    setRotation: vi.fn(),
+                    setDepth: vi.fn(),
+                    setScale: vi.fn(),
+                    setVisible: vi.fn(),
+                    setPosition: vi.fn(),
+                    destroy: vi.fn()
+                }),
                 particles: vi.fn().mockReturnValue({
                     createEmitter: vi.fn().mockReturnValue({
                         setPosition: vi.fn(),
@@ -134,6 +146,10 @@ describe('Ship', () => {
                 values: {
                     levelConfigs: {}
                 }
+            },
+            events: {
+                on: vi.fn(),
+                off: vi.fn()
             }
         };
 
@@ -317,9 +333,11 @@ describe('Ship', () => {
     });
 
     it('should have unlimited ammo if isEnemy is true', () => {
+        // Create a shared mock instance to track calls
+        const fireMock = vi.fn().mockReturnValue(true);
         const mockWeapon = class {
-            fire = vi.fn().mockReturnValue(true); // Return truthy to simulate successful fire
-            currentAmmo = 10;
+            fire = fireMock;
+            currentAmmo = 1;  // Start with just 1 ammo
             maxAmmo = 10;
             createTexture = vi.fn();
             visibleOnMount = false;
@@ -334,67 +352,62 @@ describe('Ship', () => {
         const enemyShip = new Ship(mockScene, 100, 100, enemyConfig, enemyCollisionConfig);
         (enemyShip.sprite as any).scene = mockScene;
 
+        // Fire multiple times - enemies should have unlimited ammo (refilled to max)
+        enemyShip.fireLasers();
+        enemyShip.fireLasers();
         enemyShip.fireLasers();
 
-        // Access the instantiated weapon
-        const weaponInstance = (enemyShip as any).activeModules[0].module;
-
-        // Should be refilled to max
-        expect(weaponInstance.currentAmmo).toBe(10);
-        expect(weaponInstance.fire).toHaveBeenCalled();
+        // All three should have fired (proving ammo was refilled)
+        expect(fireMock).toHaveBeenCalledTimes(3);
     });
 
     it('should consume ammo if isEnemy is false', () => {
-        // Create a weapon class that actually simulates ammo consumption if the Ship logic doesn't decrease it automatically?
-        // Wait, Ship logic DOES NOT decrease ammo. The Weapon.fire method typically does, or the ship handles it?
-        // Checking logic: Ship.ts line 238 just REFILLS it if isEnemy.
-        // It does NOT seem to look like Ship.ts decrements ammo.
-        // That implies the Weapon.fire method is responsible for decrementing.
-        // So for this test, we just need to verify that REFILL does NOT happen.
-
-        const mockWeapon = class {
-            fire = vi.fn().mockImplementation(() => {
-                // Simulate decrementing ammo
-                this.instance.currentAmmo--;
+        // For player ships, ammo is NOT refilled after firing
+        // The weapon's fire method is expected to decrement ammo itself
+        // We simulate this behavior in the mock
+        let ammoCount = 2;
+        const fireMock = vi.fn().mockImplementation(() => {
+            if (ammoCount > 0) {
+                ammoCount--; // Weapon decrements its own ammo
                 return true;
-            });
+            }
+            return null; // No projectile when out of ammo
+        });
+
+        class MockPlayerWeapon {
+            fire = fireMock;
+            get currentAmmo() { return ammoCount; }
+            set currentAmmo(val) { ammoCount = val; }
+            maxAmmo = 2;
             createTexture = vi.fn();
             visibleOnMount = false;
-            currentAmmo = 10;
-            maxAmmo = 10;
-            // Hack to access instance from test if needed, or just let fire do it
-            get instance() { return this; }
-        };
+        }
 
         const playerConfig = {
             ...mockConfig,
-            modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: mockWeapon }]
+            modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: MockPlayerWeapon }]
         };
         const playerCollisionConfig = { ...mockCollisionConfig, isEnemy: false };
 
         const playerShip = new Ship(mockScene, 100, 100, playerConfig, playerCollisionConfig);
         (playerShip.sprite as any).scene = mockScene;
 
-        // Manually decrement to simulate what fire() would do, since our mock fire above is tricky with "this" in class expression vs instance
-        // Actually, let's just assert that currentAmmo is NOT reset to maxAmmo if we manually lower it and call fireLasers
-
-        // Re-approach:
-        // Ship.ts logic for enemies: if fired -> currentAmmo = maxAmmo.
-        // So valid test for player: Set ammo to 9. Fire. Assert it stays 9 (or becomes 8 if fire decrements), but DEFINITELY not 10.
-
-        const weaponInstance = (playerShip as any).activeModules[0].module;
-        weaponInstance.currentAmmo = 9;
-        // Mock fire to return projectile so ship logic proceeds
-        weaponInstance.fire = vi.fn().mockReturnValue(true);
-
+        // First two shots should work
+        playerShip.fireLasers();
         playerShip.fireLasers();
 
-        expect(weaponInstance.currentAmmo).toBe(9); // Should NOT be reset to 10
+        // After 2 shots, ammo is 0, so further calls should skip firing
+        playerShip.fireLasers();
+        playerShip.fireLasers();
+
+        // Only 2 successful fires for player (no refill)
+        expect(fireMock).toHaveBeenCalledTimes(2);
     });
 
     it('should fire with fixed direction if fixedFireDirection is true', () => {
+        const fireMock = vi.fn().mockReturnValue(true);
         const mockWeapon = class {
-            fire = vi.fn().mockReturnValue(true);
+            fire = fireMock;
             createTexture = vi.fn();
             visibleOnMount = false;
             fixedFireDirection = true;
@@ -405,15 +418,14 @@ describe('Ship', () => {
             modules: [{ marker: { x: 0, y: 0, angle: 0 }, module: mockWeapon }]
         };
 
-        const ship = new Ship(mockScene, 100, 100, config, mockCollisionConfig);
-        (ship.sprite as any).scene = mockScene;
-        ship.sprite.rotation = Math.PI; // Ship facing down
+        const testShip = new Ship(mockScene, 100, 100, config, mockCollisionConfig);
+        (testShip.sprite as any).scene = mockScene;
+        testShip.sprite.rotation = Math.PI; // Ship facing down
 
-        ship.fireLasers();
+        testShip.fireLasers();
 
-        const weaponInstance = (ship as any).activeModules[0].module;
         // Should ignore ship rotation (PI) and fire upright (-PI/2)
-        expect(weaponInstance.fire).toHaveBeenCalledWith(
+        expect(fireMock).toHaveBeenCalledWith(
             expect.anything(),
             expect.anything(),
             expect.anything(),
@@ -443,17 +455,23 @@ describe('Ship', () => {
         });
 
         it('should explode when health reaches 0', () => {
-            const explodeSpy = vi.spyOn(ship, 'explode');
+            // Clear any previous calls
+            vi.mocked(Explosion).mockClear();
+
             ship.takeDamage(100);
             expect(ship.currentHealth).toBe(0);
-            expect(explodeSpy).toHaveBeenCalled();
+            // Verify explosion effect was created
+            expect(Explosion).toHaveBeenCalled();
         });
 
         it('should explode when health drops below 0', () => {
-            const explodeSpy = vi.spyOn(ship, 'explode');
+            // Clear any previous calls
+            vi.mocked(Explosion).mockClear();
+
             ship.takeDamage(150);
             expect(ship.currentHealth).toBe(-50);
-            expect(explodeSpy).toHaveBeenCalled();
+            // Verify explosion effect was created
+            expect(Explosion).toHaveBeenCalled();
         });
 
         it('should not take damage if destroyed', () => {
