@@ -13,8 +13,8 @@ import './style.css';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 900,
+  height: 1200,
   parent: 'app',
   scale: {
     mode: Phaser.Scale.RESIZE,

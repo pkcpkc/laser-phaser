@@ -3,9 +3,7 @@
 ## blood-hunters-galaxy
 
 ### belt
-Me despierto sobresaltado por el grito de las alarmas. Estoy a la deriva, indefenso en el pozo gravitatorio de THE BELT.
-
-Necesito abrirme camino a disparos o esquivar estas rocas para sobrevivir.
+Las alarmas gritan, despertándome de golpe. Derivando indefenso en el pozo de gravedad de THE BELT, necesito abrirme paso a disparos o esquivar estas rocas para sobrevivir.
 
 Extrañas señales alienígenas atraviesan la estática... y no suenan amistosas.
 

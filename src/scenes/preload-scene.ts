@@ -179,10 +179,19 @@ export default class PreloadScene extends Phaser.Scene {
             galaxyId = galaxyId.replace('-universe', '-galaxy');
         }
 
+        // Check for collision deactivation
+        const collisionParam = params.get('collision');
+        if (collisionParam === 'false') {
+            console.log('Collision deactivated via URL parameter');
+            this.registry.set('disableCollision', true);
+        } else {
+            this.registry.set('disableCollision', false);
+        }
+
         if (galaxyId) {
             console.log(`Starting directly with galaxy: ${galaxyId} (skipping wormhole)`);
-            const planetId = params.get('planetId');
-            this.scene.start('GalaxyScene', { galaxyId, planetId });
+            const autoLaunchPlanetId = params.get('autoLaunchPlanetId');
+            this.scene.start('GalaxyScene', { galaxyId, autoLaunchPlanetId });
         } else {
             console.log('WormholeScene started');
             this.scene.start('WormholeScene');

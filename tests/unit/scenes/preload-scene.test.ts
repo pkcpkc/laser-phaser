@@ -101,6 +101,10 @@ describe('PreloadScene', () => {
         (preloadScene as any).input = mockInput;
         (preloadScene as any).scene = mockScenePlugin;
         (preloadScene as any).tweens = mockTweens;
+        (preloadScene as any).registry = {
+            set: vi.fn(),
+            get: vi.fn()
+        };
 
         // Mock texture generator
         vi.spyOn(FlaresTexture, 'createFlareTexture').mockImplementation(() => { });
@@ -175,7 +179,7 @@ describe('PreloadScene', () => {
         preloadScene.preload();
         preloadScene.create();
 
-        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', planetId: null });
+        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', autoLaunchPlanetId: null });
 
         // Restore window.location
         (window as any).location = originalLocation;

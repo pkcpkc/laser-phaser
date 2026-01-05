@@ -99,6 +99,13 @@ export default class BaseScene extends Phaser.Scene {
             lootCollidesWith: categories.shipCategory
         };
 
+        if (this.registry.get('disableCollision')) {
+            collisionConfig.collidesWith = 0;
+            // Also disable loot collision if we want total isolation, or keep it if we want "God Mode"
+            // Plan said "disable all collisions"
+            collisionConfig.lootCollidesWith = 0;
+        }
+
         this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
 
         // Bind the specific ship instance to the container so PlayerController can inject it

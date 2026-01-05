@@ -3,9 +3,7 @@
 ## blood-hunters-galaxy
 
 ### belt
-Je me réveille en sursaut au son des alarmes. Je dérive impuissant dans le puits de gravité de THE BELT.
-
-Je dois me frayer un chemin ou esquiver ces rochers pour survivre.
+Les alarmes hurlent, me réveillant en sursaut. Dérivant sans défense dans le puits de gravité de THE BELT, je dois me frayer un chemin ou esquiver ces rochers pour survivre.
 
 D'étranges signaux extraterrestres percent la statique... et ils ne semblent pas amicaux.
 

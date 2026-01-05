@@ -3,9 +3,7 @@
 ## blood-hunters-galaxy
 
 ### belt
-Ich schrecke hoch, als die Alarme kreischen. Ich treibe hilflos im Gravitationsfeld von THE BELT.
-
-Ich muss mir einen Weg freischießen oder diesen Felsen ausweichen, um zu überleben.
+Alarme heulen auf und reißen mich aus dem Schlaf. Hilflos im Gravitationsfeld von THE BELT treibend, muss ich mir einen Weg freischießen oder diesen Felsen ausweichen, um zu überleben.
 
 Seltsame Alien-Signale dringen durch das Rauschen... und sie klingen nicht freundlich.
 

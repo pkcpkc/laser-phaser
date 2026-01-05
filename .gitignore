@@ -27,4 +27,4 @@ dist-ssr
 src-generated/
 
 # Tests
-tests/reports/
+test-reports/

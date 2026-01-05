@@ -9,6 +9,14 @@ export class PlanetIntroOverlay {
     private container: Phaser.GameObjects.Container;
     private background: Phaser.GameObjects.Rectangle;
     private planetContainer: Phaser.GameObjects.Container;
+
+    // Scrolling Components
+    private scrollWindow!: Phaser.GameObjects.Container;
+    private scrollContent!: Phaser.GameObjects.Container;
+    private scrollMaskGraphics!: Phaser.GameObjects.Graphics;
+    private scrollMask!: Phaser.Display.Masks.GeometryMask;
+    private topFade!: Phaser.GameObjects.Graphics;
+
     private textContainer: Phaser.GameObjects.Text;
     private promptText: Phaser.GameObjects.Text;
 
@@ -18,6 +26,12 @@ export class PlanetIntroOverlay {
     private timerEvent?: Phaser.Time.TimerEvent;
     private onComplete?: () => void;
     private isTyping: boolean = false;
+
+    // Scroll State
+    private isDragging: boolean = false;
+    private lastPointerY: number = 0;
+    private dragThreshold: number = 5; // Minimum movement to be considered a drag
+    private startPointerPos: { x: number, y: number } | null = null;
 
     // Track synced visuals for reverse animation
     private activeVisuals: (Phaser.GameObjects.Image | Phaser.GameObjects.Container)[] = [];
@@ -49,32 +63,58 @@ export class PlanetIntroOverlay {
 
         // 2. Planet Container (Holds Text, Planet, Effects)
         this.planetContainer = scene.add.container(0, 0);
+        this.planetContainer.setDepth(20); // High depth to stay above fade and text
         this.container.add(this.planetContainer);
 
-        // 3. Typewriter Text
-        const presetWidth = Math.min(600, width * 0.8);
-        this.textContainer = scene.add.text(width / 2, 0, '', {
+        // 3. Scroll Content Container
+        this.scrollWindow = scene.add.container(0, 0);
+        this.scrollWindow.setDepth(10); // Below fade
+        this.container.add(this.scrollWindow);
+
+        this.scrollContent = scene.add.container(0, 0);
+        this.scrollWindow.add(this.scrollContent);
+
+        // Mask Setup
+        this.scrollMaskGraphics = scene.make.graphics({});
+        this.scrollMask = this.scrollMaskGraphics.createGeometryMask();
+        this.scrollWindow.setMask(this.scrollMask);
+
+        // 4. Typewriter Text
+        const padding = 5;
+        const presetWidth = width - (padding * 2);
+        this.textContainer = scene.add.text(0, 0, '', { // Position relative to scrollContent
             fontFamily: 'Oswald, sans-serif',
             fontSize: '22px',
             color: '#ffffff',
             align: 'left',
             lineSpacing: 8,
-            wordWrap: { width: presetWidth - 40 },
-            fixedWidth: presetWidth, // Predefined centered box width
-            padding: { top: 10, bottom: 10, left: 10, right: 10 }
-        }).setOrigin(0.5, 0).setScrollFactor(0); // FIX: Lock to camera
+            wordWrap: { width: presetWidth },
+            fixedWidth: presetWidth,
+            padding: { top: 0, bottom: 0, left: 0, right: 0 }
+        }).setOrigin(0.5, 0); // Center origin X
 
-        // Add text to the common container for sorting!
-        this.planetContainer.add(this.textContainer);
+        this.scrollContent.add(this.textContainer);
 
-        // 4. Prompt Text
-        this.promptText = scene.add.text(width / 2, height - 80, 'Press FIRE', {
+        // 5. Prompt Text
+        this.promptText = scene.add.text(0, 0, 'Press FIRE', {
             fontFamily: 'Oswald, sans-serif',
-            fontSize: '22px', // Matches textContainer
+            fontSize: '22px',
             color: '#aaaaaa'
-        }).setOrigin(0.5);
+        }).setOrigin(0.5, 0);
         this.promptText.setVisible(false);
-        this.container.add(this.promptText);
+        this.scrollContent.add(this.promptText);
+
+        // 6. Top Fade
+        this.topFade = scene.add.graphics();
+        this.topFade.setScrollFactor(0);
+        this.topFade.setDepth(15); // Above text (in window), below planet
+        this.container.add(this.topFade); // FIX: Add to main container to be visible above window
+
+        // Ensure Z-Order by manipulation (containers render based on child list order)
+        // Order Bottom-up: Background -> ScrollWindow -> TopFade -> PlanetContainer
+        this.container.bringToTop(this.scrollWindow);
+        this.container.bringToTop(this.topFade);
+        this.container.bringToTop(this.planetContainer);
 
         // Initially hidden, High Depth
         this.setVisible(false);
@@ -84,19 +124,33 @@ export class PlanetIntroOverlay {
         // Resize handler
         scene.scale.on('resize', this.handleResize, this);
 
-        // Critical: Hook into scene postupdate to force sort AFTER effects have updated their properties
-        // This is the clean, non-hacky way to ensure container respects dynamic depth changes
+        // Input Handling for Scroll
+        scene.input.on('pointerdown', this.handlePointerDown, this);
+        scene.input.on('pointermove', this.handlePointerMove, this);
+        scene.input.on('pointerup', this.handlePointerUp, this);
+        // Note: We use scene input to capture drags even if started on background
+
+        // Update loop for kinetic scroll or bounds check could go here if needed, 
+        // but simple drag is enough for now.
+
+        // Critical: Hook into scene postupdate to sort visuals in planetContainer
         this.scene.events.on('postupdate', this.updateSorting, this);
     }
 
     public destroy() {
         this.scene.events.off('postupdate', this.updateSorting, this);
         this.scene.scale.off('resize', this.handleResize, this);
+        this.scene.input.off('pointerdown', this.handlePointerDown, this);
+        this.scene.input.off('pointermove', this.handlePointerMove, this);
+        this.scene.input.off('pointerup', this.handlePointerUp, this);
+
         if (this.timerEvent) this.timerEvent.remove();
+        this.scrollMaskGraphics.destroy();
         this.container.destroy();
     }
 
     private updateSorting() {
+        // planetContainer contents might change depth dynamically
         if (this.visible && this.borrowedPlanet) {
             this.planetContainer.sort('depth');
         }
@@ -104,6 +158,7 @@ export class PlanetIntroOverlay {
 
     public setVisible(visible: boolean) {
         this.container.setVisible(visible);
+        // Ensure mask visibility matches (though mask is not 'visible' in that sense)
     }
 
     public get visible(): boolean {
@@ -127,14 +182,17 @@ export class PlanetIntroOverlay {
     }
 
     public show(planet: PlanetData, text: string, onComplete: () => void) {
-        // Reset state first
-        this.fullText = "";  // Clear first to ensure no old content
+        // Reset state
+        this.fullText = "";
         this.currentText = "";
         this.charIndex = 0;
         this.isTyping = true;
-        this.onComplete = onComplete;
+        this.onComplete = onComplete; // Callback when user dismisses
 
-        // Kill any existing tweens that might interfere
+        // Reset scroll
+        this.scrollContent.y = 0;
+
+        // Kill tweens
         this.scene.tweens.killTweensOf(this.textContainer);
         this.scene.tweens.killTweensOf(this.promptText);
         this.scene.tweens.killTweensOf(this.background);
@@ -142,53 +200,49 @@ export class PlanetIntroOverlay {
             this.scene.tweens.killTweensOf(this.borrowedPlanet);
         }
 
-        // DESTROY and RECREATE textContainer to clear any cached Phaser canvas texture
-        const { width } = this.scene.scale;
-        const presetWidth = Math.min(600, width * 0.8);
-        this.textContainer.destroy();
-        this.textContainer = this.scene.add.text(width / 2, 0, '', {
-            fontFamily: 'Oswald, sans-serif',
-            fontSize: '22px',
-            color: '#ffffff',
-            align: 'left',
-            lineSpacing: 8,
-            wordWrap: { width: presetWidth - 40 },
+        // Recreate text to ensure clean slate (sometimes required for texture issues)
+        // For efficiency, we could just setText, but let's stick to update params
+        const { width, height } = this.scene.scale;
+        const padding = 5;
+        const presetWidth = width - (padding * 2);
+
+        this.textContainer.setStyle({
+            wordWrap: { width: presetWidth },
             fixedWidth: presetWidth,
-            padding: { top: 10, bottom: 10, left: 10, right: 10 }
-        }).setOrigin(0.5, 0).setScrollFactor(0);
-        this.textContainer.setVisible(false);
-        this.textContainer.setAlpha(0);
+            padding: { top: 0, bottom: 0, left: 0, right: 0 }
+        });
 
-        // Add to planetContainer for sorting
-        this.planetContainer.add(this.textContainer);
+        // Layout Text
+        this.fullText = text;
+        this.textContainer.setText("");
+        this.textContainer.setVisible(true); // Always visible container, text grows
+        this.textContainer.setAlpha(1);
 
-        // Ensure prompt is top level (in Overlay)
         this.promptText.setVisible(false);
         this.promptText.setAlpha(0);
 
-        // NOW set the actual text we want to type
-        this.fullText = text;
+        // Setup Scroll Viewport
+        this.updateLayout(width, height);
 
         // Keep overlay invisible initially
         this.setVisible(false);
         this.background.setAlpha(0);
-        this.background.setInteractive(); // Re-enable interaction
 
-        // Setup borrowPlanetVisuals BEFORE showing overlay
+        // Setup visuals
         this.borrowPlanetVisuals(planet);
 
-        // Show immediately
+        // Show
         this.setVisible(true);
         this.setAlpha(1);
+
         // Input
-        this.scene.input.keyboard?.on('keydown-SPACE', this.handleInput, this);
-        this.scene.input.on('pointerdown', this.handleInput, this);
+        // Note: Global input listeners are already set in constructor
     }
 
     private borrowPlanetVisuals(planet: PlanetData) {
         this.borrowedPlanet = planet;
         this.borrowedPlanet.isHijacked = true;
-        this.activeVisuals = []; // Reset active visuals
+        this.activeVisuals = [];
 
         // Save Original Data
         this.originalState.x = planet.x;
@@ -200,23 +254,20 @@ export class PlanetIntroOverlay {
         const { width, height } = this.scene.scale;
         const camera = this.scene.cameras.main;
 
-        // Target Positions (Screen Space)
+        // Target Positions
         const targetX = width / 2;
+        // Updating layout ensures planetTargetY is fresh
+        this.updateLayout(width, height);
+        const targetY = this.planetTargetY;
 
-        const textStartY = Math.max(180, height * 0.3) - 70;
-        const targetY = textStartY - 50;
-
-        // Start Positions (Screen Space)
         const startX = planet.x - camera.scrollX;
         const startY = planet.y - camera.scrollY;
 
-        // 1. Setup Data for dynamic effects (Convert to Screen Space)
-        // This ensures effects that read planet.x/y (like Asteroids) render relative to the container (0,0) correctly
         planet.x = startX;
         planet.y = startY;
         planet.hidden = false;
 
-        // 2. Identify Visuals to Move
+        // Hijack Logic (same as before)
         if (planet.gameObject) {
             this.hijackObject(planet.gameObject, startX, startY, 1, false, this.planetContainer);
             this.activeVisuals.push(planet.gameObject as any);
@@ -226,73 +277,53 @@ export class PlanetIntroOverlay {
             this.activeVisuals.push(planet.overlayGameObject as any);
         }
 
-        // 3. Handle Effects
         if (planet.effects) {
             planet.effects.forEach(effect => {
                 const e = effect as any;
-
-                // Hijack underlying elements first to save their original world depths
                 if (e.getVisualElements) {
                     const elements = e.getVisualElements();
                     elements.forEach((obj: Phaser.GameObjects.GameObject) => {
-                        // Hijack into container.
-                        // Do NOT add to activeVisuals because they update themselves via effect.update()
                         this.hijackObject(obj, startX, startY, undefined, true, this.planetContainer);
                     });
                 } else if (e.graphics) {
                     this.hijackObject(e.graphics, startX, startY, undefined, true, this.planetContainer);
                 }
 
-                // Standardize depth base (Back=0, Planet=1, Front=2+) after hijacking
                 if (e.setDepth) {
                     if (e.getDepth) {
                         this.originalEffectDepths.set(e, e.getDepth());
                     }
-                    e.setDepth(0); // Base depth 0 relative to container (Planet is 1, Front effects 2+)
+                    e.setDepth(0);
                     this.borrowedEffects.push(e);
                 }
             });
         }
 
-        // Handle Emitter (Cloud animation for hidden planets)
         if (planet.emitter) {
             this.borrowedEmitter = planet.emitter;
             this.originalEmitterDepth = planet.emitter.depth;
-
-            // Hijack the emitter into the container
             this.hijackObject(planet.emitter as any, startX, startY, 11, false, this.planetContainer);
             this.activeVisuals.push(planet.emitter as any);
-
             planet.emitter.setVisible(true);
         }
 
-        // Handle Lock Icon
         const lockIcon = (planet as any).lockIcon as Phaser.GameObjects.Text;
         if (lockIcon) {
-            // Hijack the lock icon into the container
             this.hijackObject(lockIcon, startX, startY, 12, false, this.planetContainer);
             this.activeVisuals.push(lockIcon as any);
         }
 
-        // Start Text Layout
-        // Text Position is already calculated
-        this.textContainer.setPosition(width / 2, textStartY);
-        this.textContainer.setText("");
-        this.textContainer.setVisible(false);
-
-        // Create Name Label
+        // Name Label
         const nameContainer = this.scene.add.container(startX, startY);
         nameContainer.setDepth(10);
         this.planetContainer.add(nameContainer);
         this.activeVisuals.push(nameContainer);
-
         this.createStartNamev2(planet, nameContainer);
 
-        // ANIMATION SEQUENCE
+        // ANIMATION
         const duration = 1000;
         const ease = 'Power2';
 
-        // 1. Fade in Background
         this.scene.tweens.add({
             targets: this.background,
             alpha: 0.8,
@@ -300,7 +331,6 @@ export class PlanetIntroOverlay {
             ease: ease
         });
 
-        // 2. Move Planet Data AND Sync Visuals
         this.scene.tweens.add({
             targets: planet,
             x: targetX,
@@ -308,11 +338,9 @@ export class PlanetIntroOverlay {
             duration: duration,
             ease: ease,
             onUpdate: () => {
-                // Sync manually tracked visuals (Planet Sprite, Name Label)
                 this.activeVisuals.forEach(obj => {
                     obj.setPosition(planet.x, planet.y);
                 });
-                // Note: Asteroids/Rings update themselves in their own update() loop reading planet.x/y
             },
             onComplete: () => {
                 if (this.isTyping) {
@@ -370,7 +398,6 @@ export class PlanetIntroOverlay {
             this.borrowedEmitter.setDepth(this.originalEmitterDepth);
         }
 
-        // Restore Effects Depth
         if (this.borrowedEffects.length > 0) {
             this.borrowedEffects.forEach(effect => {
                 if (effect.setDepth) {
@@ -408,7 +435,6 @@ export class PlanetIntroOverlay {
     }
 
     private createStartNamev2(planet: PlanetData, container: Phaser.GameObjects.Container) {
-        // Generates name text relative to (0,0) and adds to the passed container
         const fullText = planet.name.toUpperCase();
         let lines: string[] = [fullText];
         const planetScale = planet.visualScale || 1.0;
@@ -435,11 +461,9 @@ export class PlanetIntroOverlay {
                 const img = go as Phaser.GameObjects.Image;
                 const dx = (img.width * 0.60) - img.displayOriginX;
                 const dy = (img.height / 2) - img.displayOriginY;
-
                 const rot = img.rotation;
                 const c = Math.cos(rot);
                 const s = Math.sin(rot);
-
                 labelOffsetX = dx * c - dy * s;
                 labelOffsetY = dx * s + dy * c;
             }
@@ -497,22 +521,95 @@ export class PlanetIntroOverlay {
         measureText.destroy();
     }
 
-    private handleInput() {
-        if (!this.visible) return;
-        if (this.isTyping) { this.forceFinishTyping(); } else { this.hide(); }
+
+
+
+
+
+    // ... (rest of methods)
+
+    private updateLayout(width: number, height: number) {
+        // Layout Config
+        const margin = 5;
+
+        // Symmetrical Layout Logic:
+        // User wants "distance between text start and planet end" == "distance between planet start and top of screen".
+        // This implies symmetry around the planet center.
+        // Formula: textStartY = planetCenterY * 2.
+
+        // Let's pick a comfortable Planet Center Y.
+        // Assuming typical visual radius ~60-65px (Asteroid Belt).
+        // To have ~10px top margin: 65 + 10 = 75px.
+        const planetY = 75;
+        this.planetTargetY = planetY;
+
+        // Text Start Y for full visibility
+        const textStartY = planetY * 2; // = 150px
+
+        // Scroll Window / Mask Start
+        // We allow text to scroll UP into the planet area to fade out "under" it.
+        // Let's start the mask at the planet center (or slightly below header).
+        const maskY = planetY;
+
+        const bottomPadding = 0;
+        const viewportHeight = height - maskY - bottomPadding;
+
+        // Position Scroll Container
+        // We position the Container at the Mask Start
+        this.scrollWindow.setPosition(width / 2, maskY);
+
+        // Update Mask
+        this.scrollMaskGraphics.clear();
+        this.scrollMaskGraphics.fillStyle(0xffffff, 1);
+        // Mask Rect is local to Graphics? No, createGeometryMask uses World Coords usually,
+        // but here masking logic can be tricky.
+        // Ideally mask covers screen from maskY to height.
+        this.scrollMaskGraphics.fillRect(0, maskY, width, viewportHeight);
+
+        // Update Text Width & Margins
+        const presetWidth = width - (margin * 2);
+
+        this.textContainer.setFixedSize(presetWidth, 0);
+        this.textContainer.setWordWrapWidth(presetWidth);
+        this.textContainer.setPadding(0, 0, 0, 0);
+
+        // Recalculate prompt position
+        if (!this.isTyping && this.fullText) {
+            const textHeight = this.textContainer.height;
+            const textY = this.textContainer.y;
+            this.promptText.setPosition(0, textY + textHeight + 30);
+        }
+
+        // Update Fade
+        // Fade covers the area from MaskStart (planetY) to TextStart.
+        // This effectively dims text as it moves from "Fully Visible Start" up towards "Behind Planet".
+        this.topFade.clear();
+        const fadeHeight = textStartY - maskY; // 150 - 75 = 75px
+        this.topFade.fillGradientStyle(0x000000, 0x000000, 0x000000, 0x000000, 1, 1, 0, 0);
+        // Fade is in World Coords (scrollFactor 0)
+        this.topFade.fillRect(0, maskY, width, fadeHeight);
+
+        // Ensure Text starts visually at textStartY.
+        // Since scrollWindow is at maskY (75), and we want text at 150:
+        // Text Local Y = 150 - 75 = 75.
+        // We set the textContainer basic position (offset).
+        // OR we use padding? No, just set Y.
+        this.textContainer.setY(fadeHeight);
+
+        this.clampScroll();
     }
+
+    private planetTargetY: number = 0; // Store for animation usage
 
     private startTyping() {
         if (this.timerEvent) this.timerEvent.remove();
 
-        // Show text container now that typing is starting (was hidden to prevent flash)
-        this.textContainer.setVisible(true);
-        this.textContainer.setAlpha(1);
+        this.textContainer.setText("");
+        this.scrollContent.y = 0;
 
         this.timerEvent = this.scene.time.addEvent({
             delay: 50, loop: true,
             callback: () => {
-                // Safety check: Ensure scene and textContainer still exist
                 if (!this.scene || !this.textContainer || !this.textContainer.scene) {
                     if (this.timerEvent) this.timerEvent.remove();
                     return;
@@ -522,18 +619,55 @@ export class PlanetIntroOverlay {
                     this.currentText += this.fullText[this.charIndex];
                     this.textContainer.setText(this.currentText);
                     this.charIndex++;
-                } else { this.finishTyping(); }
+
+                    // Auto-Scroll Logic
+                    this.updateAutoScroll();
+
+                } else {
+                    this.finishTyping();
+                }
             }
         });
+    }
 
-        // Ensure timer is cleaned up on destroy
-        // Since we are not a GameObject, we rely on the scene shutdown
+    private updateAutoScroll() {
+        // Calculate bounds
+        const { height } = this.scene.scale;
+
+        // Viewport starts at scrollWindow.y (maskY)
+        const maskY = this.scrollWindow.y;
+        const viewportHeight = height - maskY;
+
+        // Content Position
+        const currentY = this.scrollContent.y; // usually <= 0
+
+        // Bottom of text relative to scrollContent origin
+        // textContainer has Y offset (fadeHeight)
+        const textBottomLocal = this.textContainer.y + this.textContainer.height;
+
+        // Visible bottom in scrollContent local space is:
+        // (viewportHeight - currentY)  <-- maps viewport bottom to local Y
+        const visibleBottomLocal = -currentY + viewportHeight;
+
+        // Buffer for comfort
+        const buffer = 30;
+
+        // If bottom of text is below visible area, scroll up
+        if (textBottomLocal > visibleBottomLocal - buffer) {
+            // Target: map textBottomLocal to visibleBottomLocal - buffer
+            // textBottomLocal = -targetScroll + viewportHeight - buffer
+            // targetScroll = -(textBottomLocal - viewportHeight + buffer)
+
+            const targetScroll = -(textBottomLocal - viewportHeight + buffer);
+
+            // Gentle lerp
+            const newY = Phaser.Math.Linear(currentY, targetScroll, 0.1);
+            this.scrollContent.y = newY;
+        }
     }
 
     private forceFinishTyping() {
         if (this.timerEvent) this.timerEvent.remove();
-        this.textContainer.setVisible(true); // Ensure visible when skipping
-        this.textContainer.setAlpha(1);
         this.textContainer.setText(this.fullText);
         console.log(`Intro Text displayed for planet: ${this.borrowedPlanet?.id}`);
         this.finishTyping();
@@ -542,21 +676,106 @@ export class PlanetIntroOverlay {
     private finishTyping() {
         this.isTyping = false;
         if (this.timerEvent) this.timerEvent.remove();
+
+        // Position Prompt Logic
+        // The text prompt moves to end of text
         this.promptText.setVisible(true);
+        this.promptText.setAlpha(0);
+
+        // Re-layout scrolling content to check bounds
+        const textHeight = this.textContainer.height;
+        const textY = this.textContainer.y;
+        this.promptText.setPosition(0, textY + textHeight + 30); // 30px gap
+
         this.scene.tweens.add({ targets: this.promptText, alpha: { from: 0, to: 1 }, duration: 500, yoyo: true, repeat: -1 });
+
+        // Auto-scroll to bottom if needed? Or just let user scroll?
+        // User requested: "move the Press FIRE at the end of the text and scroll together"
     }
+
+    // --- Input & Scrolling ---
+
+    private handlePointerDown(pointer: Phaser.Input.Pointer) {
+        if (!this.visible || this.borrowedPlanet === undefined) return;
+
+        this.isDragging = true;
+        this.startPointerPos = { x: pointer.x, y: pointer.y };
+        this.lastPointerY = pointer.y;
+    }
+
+    private handlePointerMove(pointer: Phaser.Input.Pointer) {
+        if (!this.visible || !this.isDragging) return;
+
+        const deltaY = pointer.y - this.lastPointerY;
+        this.lastPointerY = pointer.y;
+
+        // Apply drag
+        this.scrollContent.y += deltaY;
+        this.clampScroll();
+    }
+
+    private handlePointerUp(pointer: Phaser.Input.Pointer) {
+        if (!this.visible) return;
+
+        // Check if tap (for skip/proceed)
+        if (this.isDragging && this.startPointerPos) {
+            const dist = Phaser.Math.Distance.Between(this.startPointerPos.x, this.startPointerPos.y, pointer.x, pointer.y);
+            if (dist < this.dragThreshold) {
+                // Treated as a click/tap
+                this.handleTap();
+            }
+        }
+
+        this.isDragging = false;
+        this.startPointerPos = null;
+    }
+
+    private handleTap() {
+        if (this.isTyping) {
+            this.forceFinishTyping();
+        } else {
+            // Only dismiss if we are done typing
+            this.hide();
+        }
+    }
+
+    private clampScroll() {
+        const { height } = this.scene.scale;
+        const maskY = this.scrollWindow.y;
+
+        // Calculate internal offset due to Fade Zone
+        const startOffset = this.textContainer.y; // e.g. 75px
+
+        // Content Height: Text + Gap + Prompt + Padding + StartOffset
+        const contentHeight = startOffset + this.textContainer.height + 30 + this.promptText.height + 50;
+
+        // Viewport Height
+        const viewportHeight = height - maskY;
+
+        if (contentHeight <= viewportHeight) {
+            this.scrollContent.y = 0; // No scrolling needed
+        } else {
+            // Min Scroll needs to allow reaching the bottom.
+            // If content is huge, we scroll UP (negative y).
+            // Bottom of content at (contentHeight + Y) should be >= ViewportHeight?
+            // No, we want to scroll until bottom of content aligns with bottom of viewport.
+            // contentHeight + y = viewportHeight
+            // y = viewportHeight - contentHeight
+            const minScroll = viewportHeight - contentHeight;
+            const maxScroll = 0;
+            this.scrollContent.y = Phaser.Math.Clamp(this.scrollContent.y, minScroll, maxScroll);
+        }
+    }
+
+    // --- ---
 
     private hide() {
         if (!this.borrowedPlanet) return;
 
-        // 1. Disable Input
-        this.scene.input.keyboard?.off('keydown-SPACE', this.handleInput, this);
-        this.scene.input.off('pointerdown', this.handleInput, this);
-
         const duration = 800;
         const ease = 'Power2';
 
-        // 2. Fade Out Text & Background ONLY (Keep container visible)
+        // Fade Out Text Components
         this.scene.tweens.add({
             targets: [this.textContainer, this.promptText, this.background],
             alpha: 0,
@@ -564,7 +783,6 @@ export class PlanetIntroOverlay {
             ease: ease
         });
 
-        // 3. Move Planet Data back to Original Start
         this.scene.tweens.add({
             targets: this.borrowedPlanet,
             x: this.originalState.x,
@@ -572,7 +790,6 @@ export class PlanetIntroOverlay {
             duration: duration,
             ease: ease,
             onUpdate: () => {
-                // Keep visuals synced while moving back
                 if (this.borrowedPlanet) {
                     this.activeVisuals.forEach(obj => {
                         obj.setPosition(this.borrowedPlanet!.x, this.borrowedPlanet!.y);
@@ -580,8 +797,7 @@ export class PlanetIntroOverlay {
                 }
             },
             onComplete: () => {
-                // 4. Final Cleanup - Only now hide the container and restore
-                this.textContainer.setText(""); // Clear text for next show
+                this.textContainer.setText("");
                 this.textContainer.setVisible(false);
                 this.setVisible(false);
                 this.restorePlanetVisuals();
@@ -592,24 +808,11 @@ export class PlanetIntroOverlay {
     }
 
     private handleResize(gameSize: Phaser.Structs.Size) {
-        if (!this.background || !this.background.scene) return; // Guard against resize during destruction
+        if (!this.background || !this.background.scene) return;
         const { width, height } = gameSize;
 
         if (this.background.setSize) {
             this.background.setSize(width, height);
         }
-
-        const textStartY = Math.max(180, height * 0.3) - 70;
-        // const targetY = textStartY - 70; // Sync with show() logic (Unused here, planet pos handled by tween/state)
-
-        this.textContainer.setPosition(width / 2, textStartY);
-
-        // Note: resizing while overlay is active and animating is complex. 
-        // For now we just update text and prompt. 
-        // Ideally we would update planet position too if it's currently "hijacked" and shown.
-        // But since borrowedPlanet is tweened, simple setting might conflict. 
-        // Optimally, we mainly care about text flow for now.
-
-        this.promptText.setPosition(width / 2, height - 80);
     }
 }

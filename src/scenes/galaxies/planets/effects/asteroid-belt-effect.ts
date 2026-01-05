@@ -69,10 +69,7 @@ export class AsteroidBeltEffect extends BaseRingEffect {
             const targetDepth = isFront ? this.baseDepth + 2 : this.baseDepth;
 
             if (asteroid.sprite.depth !== targetDepth) {
-                // Debug logging to troubleshoot layering
-                if (Math.random() < 0.001) {
-                    console.log(`Asteroid @ ${this.planet.id}: ty=${ty.toFixed(1)}, target=${targetDepth}, base=${this.baseDepth}`);
-                }
+
                 asteroid.sprite.setDepth(targetDepth);
             }
         }

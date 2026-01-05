@@ -6,8 +6,8 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
     workers: process.env.CI ? 1 : undefined,
-    reporter: [['html', { outputFolder: 'tests/reports/playwright-report' }]],
-    outputDir: 'tests/reports/test-results',
+    reporter: [['html', { outputFolder: 'test-reports/playwright-report' }]],
+    outputDir: 'test-reports/test-results',
     use: {
         baseURL: 'http://localhost:5177', // Use distinct port for E2E
         trace: 'on-first-retry',
