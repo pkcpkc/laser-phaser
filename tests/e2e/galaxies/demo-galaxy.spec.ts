@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { handleIntro, clickPlanet, startLevel, waitForGalaxy } from '../helpers/galaxy-test-utils';
+import { handleIntro, clickPlanet, startLevel, waitForGalaxy } from '../helpers/galaxy-utils';
 import { takeScreenshot } from '../helpers/screenshot-utils';
 
 test.describe('Demo Galaxy Smoke Test', () => {

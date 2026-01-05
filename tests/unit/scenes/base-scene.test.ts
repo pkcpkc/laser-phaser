@@ -96,7 +96,14 @@ describe('BaseScene', () => {
     };
 
     const mockCollisionManager = {
-        getCategories: vi.fn().mockReturnValue({ shipCategory: 1 }),
+        getCategories: vi.fn().mockReturnValue({
+            shipCategory: 0x0001,
+            laserCategory: 0x0002,
+            enemyCategory: 0x0004,
+            enemyLaserCategory: 0x0008,
+            lootCategory: 0x0010,
+            wallCategory: 0x0020
+        }),
         setupCollisions: vi.fn(),
         config: vi.fn(),
     };
@@ -186,6 +193,15 @@ describe('BaseScene', () => {
             },
         } as any;
 
+        scene.registry = {
+            get: vi.fn().mockImplementation((key) => {
+                // Default behavior: godMode is disabled
+                if (key === 'godMode') return false;
+                return undefined;
+            }),
+            set: vi.fn(),
+        } as any;
+
         scene.game = { canvas: { style: {} } } as any;
         scene.matter = { world: { setBounds: vi.fn() } } as any;
         scene.sys = { isActive: vi.fn().mockReturnValue(true) } as any;
@@ -249,5 +265,28 @@ describe('BaseScene', () => {
 
         expect(mockShipInstance.explode).toHaveBeenCalled();
         expect(mockGameManager.handleGameOver).toHaveBeenCalled();
+    });
+
+    it('should allow collision with loot when (God Mode) is enabled', () => {
+        // Setup registry to enable God Mode
+        (scene.registry.get as any).mockImplementation((key: string) => {
+            if (key === 'godMode') return true;
+            return undefined;
+        });
+
+        const categories = mockCollisionManager.getCategories();
+
+        scene.create();
+
+        // Check that Ship was initialized with limited collision mask (only loot)
+        expect(Ship).toHaveBeenCalledWith(
+            expect.anything(), // scene
+            expect.anything(), // x
+            expect.anything(), // y
+            expect.anything(), // config
+            expect.objectContaining({
+                collidesWith: categories.lootCategory
+            })
+        );
     });
 });

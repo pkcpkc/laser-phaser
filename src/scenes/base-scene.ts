@@ -99,11 +99,11 @@ export default class BaseScene extends Phaser.Scene {
             lootCollidesWith: categories.shipCategory
         };
 
-        if (this.registry.get('disableCollision')) {
-            collisionConfig.collidesWith = 0;
+        if (this.registry.get('godMode')) {
+            collisionConfig.collidesWith = categories.lootCategory;
             // Also disable loot collision if we want total isolation, or keep it if we want "God Mode"
             // Plan said "disable all collisions"
-            collisionConfig.lootCollidesWith = 0;
+            // collisionConfig.lootCollidesWith = 0;
         }
 
         this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);

@@ -185,7 +185,7 @@ You can append these parameters to the URL (e.g., `http://localhost:5173/?galaxy
 | :--- | :--- | :--- |
 | `galaxyId` | `[string]` | Skips the wormhole and starts directly in the specified galaxy (e.g., `blood-hunters-galaxy`). |
 | `autoLaunchPlanetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet and **launches the level automatically**. |
-| `collision` | `false` | Disables collision detection for the player ship (God Mode). |
+| `godMode` | `true` | Disables collision detection for the player ship (except Loot). |
 | `locale` | `en`, `de`, `fr`, etc. | Forces the game to load in the specified locale. |
 
 ## Getting Started

@@ -179,13 +179,13 @@ export default class PreloadScene extends Phaser.Scene {
             galaxyId = galaxyId.replace('-universe', '-galaxy');
         }
 
-        // Check for collision deactivation
-        const collisionParam = params.get('collision');
-        if (collisionParam === 'false') {
-            console.log('Collision deactivated via URL parameter');
-            this.registry.set('disableCollision', true);
+        // Check for God Mode (disable collision except loot)
+        const godModeParam = params.get('godMode');
+        if (godModeParam === 'true') {
+            console.log('God Mode enabled via URL parameter');
+            this.registry.set('godMode', true);
         } else {
-            this.registry.set('disableCollision', false);
+            this.registry.set('godMode', false);
         }
 
         if (galaxyId) {

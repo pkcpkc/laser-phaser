@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
-import { handleIntro, clickPlanet, startLevel, forceVictory, waitForGalaxy } from '../helpers/galaxy-test-utils';
+import { handleIntro, clickPlanet, startLevel, waitForGalaxy } from '../helpers/galaxy-utils';
+import { forceVictory } from '../helpers/shoot-em-up-utils';
 import { takeScreenshot } from '../helpers/screenshot-utils';
 
 test.describe('Blood Hunter Galaxy E2E', () => {
