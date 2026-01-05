@@ -10,7 +10,7 @@ import { PlayerShipController } from '../../../../src/scenes/galaxies/player-shi
 import { PlanetNavigator } from '../../../../src/scenes/galaxies/planet-navigator';
 import { WarpStarfield } from '../../../../src/backgrounds/warp-starfield';
 import { LootUI } from '../../../../src/ui/loot-ui';
-import { PlanetIntroOverlay } from '../../../../src/scenes/galaxies/planets/planet-intro-overlay';
+import { PlanetStoryline } from '../../../../src/scenes/galaxies/planets/planet-storyline';
 import { container } from '../../../../src/di/container';
 // Mock dependencies
 vi.mock('../../../../src/logic/storyline-manager');
@@ -59,8 +59,8 @@ vi.mock('../../../../src/scenes/galaxies/planet-navigator', () => ({
         config = vi.fn();
     }
 }));
-vi.mock('../../../../src/scenes/galaxies/planets/planet-intro-overlay', () => ({
-    PlanetIntroOverlay: class {
+vi.mock('../../../../src/scenes/galaxies/planets/planet-storyline', () => ({
+    PlanetStoryline: class {
         constructor(_scene?: any) { }
     }
 }));
@@ -264,7 +264,7 @@ describe('GalaxyScene', () => {
         const mockShipController = new PlayerShipController(scene);
         const mockLootUI = new LootUI(scene);
         const mockStarfield = new WarpStarfield(scene);
-        const mockIntroOverlay = new PlanetIntroOverlay(scene);
+        const mockIntroOverlay = new PlanetStoryline(scene);
         const mockNavigator = new PlanetNavigator(mockShipController, mockInteractions, mockIntroOverlay, mockLootUI);
 
         (container.get as any).mockImplementation((type: any) => {

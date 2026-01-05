@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
+import type { WeaponModule } from '../module-types';
 
-export interface Laser {
+export interface Laser extends WeaponModule {
     createTexture(scene: Phaser.Scene): void;
     recoil?: number;
     scale?: number;

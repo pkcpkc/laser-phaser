@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { BaseLaser } from '../lasers/base-laser';
 import { Projectile } from '../lasers/projectile';
+import { ModuleType } from '../module-types';
 
 export abstract class BaseRocket extends BaseLaser {
+    override readonly type = ModuleType.ROCKET;
     abstract readonly maxAmmo: number;
     readonly visibleOnMount = true;
 

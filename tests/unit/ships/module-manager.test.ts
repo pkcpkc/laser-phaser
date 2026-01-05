@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ModuleType } from '../../../src/ships/modules/module-types';
 import { ModuleManager } from '../../../src/ships/module-manager';
 
 // Mock Phaser
@@ -38,7 +39,8 @@ describe('ModuleManager', () => {
             recoil: 5,
             createTexture: vi.fn(),
             visibleOnMount: false,
-            TEXTURE_KEY: 'laser'
+            TEXTURE_KEY: 'laser',
+            type: ModuleType.LASER
         };
         mockLaserClass = class {
             fire = mockLaserInstance.fire;
@@ -46,6 +48,7 @@ describe('ModuleManager', () => {
             createTexture = mockLaserInstance.createTexture;
             visibleOnMount = mockLaserInstance.visibleOnMount;
             TEXTURE_KEY = mockLaserInstance.TEXTURE_KEY;
+            type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
         };
 
         mockSprite = {
@@ -162,6 +165,7 @@ describe('ModuleManager', () => {
             createTexture = mockLaserInstance.createTexture;
             visibleOnMount = true;
             TEXTURE_KEY = 'laser';
+            type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
         };
 
         const manager = new ModuleManager(

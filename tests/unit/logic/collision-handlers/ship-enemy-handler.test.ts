@@ -45,7 +45,11 @@ describe('ShipEnemyHandler', () => {
             getData: vi.fn().mockReturnValue(mockShipData)
         } as unknown as Phaser.GameObjects.GameObject;
 
-        const mockEnemyShipData = { explode: vi.fn(), takeDamage: vi.fn() };
+        const mockEnemyShipData = {
+            explode: vi.fn(),
+            takeDamage: vi.fn(),
+            currentHealth: 80
+        };
         const mockEnemy = {
             active: true,
             getData: vi.fn().mockReturnValue(mockEnemyShipData),
@@ -55,7 +59,7 @@ describe('ShipEnemyHandler', () => {
         const result = handler.handle(mockScene, SHIP_CATEGORY, ENEMY_CATEGORY, mockShipGO, mockEnemy);
 
         expect(result).toBe(true);
-        expect(mockShipData.takeDamage).toHaveBeenCalledWith(50);
+        expect(mockShipData.takeDamage).toHaveBeenCalledWith(80);
         expect(mockOnGameOver).toHaveBeenCalled();
     });
 

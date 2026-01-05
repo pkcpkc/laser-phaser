@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import type { Drive } from './types';
+import { ModuleType } from '../module-types';
 
 export abstract class BaseDrive implements Drive {
+    readonly type = ModuleType.DRIVE;
     abstract readonly thrust: number;
     abstract readonly name: string;
     abstract readonly description: string;

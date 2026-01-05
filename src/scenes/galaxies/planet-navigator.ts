@@ -4,7 +4,7 @@ import type { IPlanetNavigator } from '../../di/interfaces/galaxy';
 import { type PlanetData } from './planets/planet-data';
 import { PlayerShipController } from './player-ship-controller';
 import { GalaxyInteractionManager } from './galaxy-interaction';
-import { PlanetIntroOverlay } from './planets/planet-intro-overlay';
+import { PlanetStoryline } from './planets/planet-storyline';
 import { LootUI } from '../../ui/loot-ui';
 import { GameStatus } from '../../logic/game-status';
 import { StorylineManager } from '../../logic/storyline-manager';
@@ -25,7 +25,7 @@ export class PlanetNavigator implements IPlanetNavigator {
     constructor(
         @inject(PlayerShipController) private shipController: PlayerShipController,
         @inject(GalaxyInteractionManager) private interactions: GalaxyInteractionManager,
-        @inject(PlanetIntroOverlay) private introOverlay: PlanetIntroOverlay,
+        @inject(PlanetStoryline) private introOverlay: PlanetStoryline,
         @inject(LootUI) private lootUI: LootUI
     ) {
     }

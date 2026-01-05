@@ -3,7 +3,7 @@
 ## blood-hunters-galaxy
 
 ### belt
-Alarms scream, jolting me awake. Drifting helpless in the gravity well of THE BELT, I need to blast a path or dodge these rocks to survive.
+Alarms scream, jolting me awake. Drifting helpless in the gravity well of THE BELT, I need to dodge these rocks or blast a path to survive.
 
 Strange alien signals are piercing the static... and they don't sound friendly.
 

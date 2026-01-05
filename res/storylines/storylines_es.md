@@ -3,43 +3,43 @@
 ## blood-hunters-galaxy
 
 ### belt
-Las alarmas gritan, despertándome de golpe. Derivando indefenso en el pozo de gravedad de THE BELT, necesito abrirme paso a disparos o esquivar estas rocas para sobrevivir.
+Las alarmas gritan, despertándome de golpe. A la deriva e indefenso en el pozo de gravedad de THE BELT, necesito esquivar estas rocas o abrirme camino a disparos para sobrevivir.
 
-Extrañas señales alienígenas atraviesan la estática... y no suenan amistosas.
+Extrañas señales alienígenas atraviesan la estática... y no suenan amigables.
 
 ¡Pero ahora mismo, los asteroides son lo único que importa!
 
 Inicia el juego con 🚀
 
 ### vortex
-Intento llamar a las naves que se acercan... transmisión rechazada. Los Blood Hunters no negocian.
+Intento contactar a las naves que se acercan... transmisión rechazada. Los Blood Hunters no negocian.
 
 Estos malvados carroñeros solo están interesados en una cosa: saquear mi nave.
 
 Veo Fighters y Bombers en el radar, enjambrando el vórtice. ¡Debo destruirlos antes de que me dejen en los huesos!
 
-Estoy interceptando extraños informes en sus comunicaciones... algo sobre una puerta warp en el planeta Halo. Si es verdad, ¡esa es mi salida de esta galaxia olvidada por dios!
+Estoy interceptando extraños reportes en sus comunicaciones... algo sobre una puerta warp en el planeta Halo. Si es verdad, ¡esa es mi salida de esta galaxia olvidada por dios!
 
 ### halo
-He llegado al planeta Halo, pero una firma masiva está bloqueando la puerta warp.
+He alcanzado el planeta Halo, pero una firma masiva está bloqueando la puerta warp.
 
-Es el Blood Boss. Se interpone entre la transición a la siguiente galaxia y yo.
+Es el Blood Boss. Se interpone entre mí y la transición a la siguiente galaxia.
 
 Espero que el siguiente sector sea más pacífico, pero para llegar allí, ¡tengo que pasar por encima de él!
 
 ## demo-galaxy
 
 ### astra
-DEMO: Calibre de exhibición de naves. Todas las configuraciones de naves se muestran en una fila horizontal, oscilando y disparando continuamente. Planeta central con efectos de huracán. Cuenta con una puerta warp a la Blood Hunters Galaxy.
+DEMO: Nivel de exhibición de naves. Todas las configuraciones de naves se muestran en una fila horizontal, oscilando y disparando continuamente. Planeta central con efectos de huracán. Cuenta con puerta warp a la Blood Hunters Galaxy.
 
 ### aurelia
-DEMO: Planeta solo visual. Sin nivel asignado. Muestra un efecto de anillo sólido con inclinación de 30° y rotación habilitada. Tinte dorado oscuro, escala 0.8.
+DEMO: Planeta solo visual. Sin nivel asignado. Muestra efecto de anillo sólido con inclinación de 30° y rotación habilitada. Tinte dorado oscuro, escala 0.8.
 
 ### veridia
-DEMO: Planeta oculto. Sin nivel. Muestra un efecto de grupo de rectángulos púrpuras con luces amarillas (4 grupos, 55 rectángulos) más un anillo de satélites amarillo (10 satélites).
+DEMO: Planeta oculto. Sin nivel. Muestra efecto de grupo de rectángulos púrpuras con luces amarillas (4 grupos, 55 rectángulos) más anillo de satélites amarillos (10 satélites).
 
 ### nox
-DEMO: Nivel de Blood Hunters. Planeta púrpura con escala 1.5 que exhibe un efecto de gas verde tóxico. Cuenta con formaciones de Diamante y Línea con tácticas de Fighters, Bombers y Sinus.
+DEMO: Nivel de Blood Hunters. Planeta púrpura con escala 1.5 exhibiendo efecto de anillo de gas verde tóxico. Cuenta con formaciones Diamond y Line con Fighters, Bombers y tácticas Sinus.
 
 ### crimson
 DEMO: Nivel de Blood Boss con Astillero. Pequeño planeta rojo (escala 0.5) con 3 mini-lunas en diferentes inclinaciones (-60°, 0°, 60°). El jefe usa tácticas de radio de movimiento y duración de fuego.

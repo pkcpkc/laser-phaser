@@ -5,7 +5,7 @@ import { type PlanetData } from './planet-data';
 import { type IPlanetEffect } from './planet-effect';
 
 @SceneScoped()
-export class PlanetIntroOverlay {
+export class PlanetStoryline {
     private container: Phaser.GameObjects.Container;
     private background: Phaser.GameObjects.Rectangle;
     private planetContainer: Phaser.GameObjects.Container;
@@ -532,27 +532,53 @@ export class PlanetIntroOverlay {
         // Layout Config
         const margin = 5;
 
-        // Symmetrical Layout Logic:
-        // User wants "distance between text start and planet end" == "distance between planet start and top of screen".
-        // This implies symmetry around the planet center.
-        // Formula: textStartY = planetCenterY * 2.
+        // Dynamic Sizing based on Planet Visuals
+        let planetRadius = 30; // Default fallback (approx 60px height)
+        if (this.borrowedPlanet && this.borrowedPlanet.gameObject) {
+            const go = this.borrowedPlanet.gameObject as any;
+            if (go.displayHeight) {
+                planetRadius = go.displayHeight / 2;
+            } else if (go.height) {
+                planetRadius = (go.height * (go.scaleY || 1)) / 2;
+            }
+        }
 
-        // Let's pick a comfortable Planet Center Y.
-        // Assuming typical visual radius ~60-65px (Asteroid Belt).
-        // To have ~10px top margin: 65 + 10 = 75px.
-        const planetY = 75;
+        // Calculate Title Extent (curved text on top)
+        let titleTopExtension = 0;
+        if (this.borrowedPlanet) {
+            const name = this.borrowedPlanet.name.toUpperCase();
+            const scale = this.borrowedPlanet.visualScale || 1.0;
+            let lines = 1;
+            if (scale <= 0.9 && name.includes(' ')) {
+                lines = name.split(' ').length;
+            }
+
+            // Logic mirroring createStartNamev2 for curved text radius
+            const basePlanetRadius = 30;
+            const planetVisualRadius = basePlanetRadius * scale;
+            const baseRadius = planetVisualRadius + 23;
+            // Outermost line radius (lines stack outwards)
+            const heightLevel = lines - 1;
+            const outerRadius = baseRadius + (heightLevel * 18);
+
+            titleTopExtension = outerRadius + 10; // +10 safety buffer for text height
+        }
+
+        // 10px margin from top of Reference (Planet or Title)
+        const topElementRadius = Math.max(planetRadius, titleTopExtension);
+        const planetY = 10 + topElementRadius;
         this.planetTargetY = planetY;
 
-        // Text Start Y for full visibility
-        const textStartY = planetY * 2; // = 150px
+        // 20px gap between planet bottom and text
+        // Planet Bottom is at planetY + planetRadius (ignoring title for bottom gap)
+        const textStartY = planetY + planetRadius + 20;
 
         // Scroll Window / Mask Start
         // We allow text to scroll UP into the planet area to fade out "under" it.
         // Let's start the mask at the planet center (or slightly below header).
         const maskY = planetY;
 
-        const bottomPadding = 0;
-        const viewportHeight = height - maskY - bottomPadding;
+        const viewportHeight = height - maskY;
 
         // Position Scroll Container
         // We position the Container at the Mask Start

@@ -1,12 +1,14 @@
+import { ModuleType } from '../src/ships/modules/module-types';
 
 export namespace MarkerConfig {
     export const colors = {
-        drive: 0xFFA500FF,       // Orange
-        laser: 0x00FF00FF,       // Green
-        armor: 0x000000FF,       // Black
-        rocket: 0xFFFFFFFF,      // White
-        orientation: 0xFF0000FF, // Red - used for orientation markers
-        origin: 0x0000FFFF,      // Blue - used for origin/center point
+        [ModuleType.DRIVE]: 0xFFA500FF,       // Orange
+        [ModuleType.LASER]: 0x00FF00FF,       // Green
+        [ModuleType.ROCKET]: 0xFFFFFFFF,      // White
+        [ModuleType.ARMOR]: 0x000000FF,       // Black
+        [ModuleType.SHIELD]: 0x00FFFFFF,      // Cyan
+        orientation: 0xFF0000FF,              // Red - used for orientation markers
+        origin: 0x0000FFFF,                   // Blue - used for origin/center point
     } as const;
 
     export type Type = keyof typeof colors;

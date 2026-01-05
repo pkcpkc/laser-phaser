@@ -17,7 +17,7 @@ vi.mock('phaser', () => {
         }
     };
 });
-import { isWeapon, isDrive, type ShipModule, type WeaponModule } from '../../../../src/ships/modules/module-types';
+import { isWeapon, isDrive, type ShipModule, type WeaponModule, ModuleType } from '../../../../src/ships/modules/module-types';
 import type { Drive } from '../../../../src/ships/modules/drives/types';
 
 describe('Module Type Guards', () => {
@@ -25,14 +25,16 @@ describe('Module Type Guards', () => {
         it('should return true if module has a fire method', () => {
             const mockWeapon: Abstract<WeaponModule> = {
                 fire: vi.fn(),
-                createTexture: vi.fn()
+                createTexture: vi.fn(),
+                type: ModuleType.LASER
             };
             expect(isWeapon(mockWeapon as unknown as ShipModule)).toBe(true);
         });
 
         it('should return false if module does not have a fire method', () => {
             const mockModule: ShipModule = {
-                createTexture: vi.fn()
+                createTexture: vi.fn(),
+                type: ModuleType.DRIVE // Different type
             };
             expect(isWeapon(mockModule)).toBe(false);
         });
@@ -42,14 +44,16 @@ describe('Module Type Guards', () => {
         it('should return true if module has a thrust property', () => {
             const mockDrive: Abstract<Drive> = {
                 thrust: 100,
-                createTexture: vi.fn()
+                createTexture: vi.fn(),
+                type: ModuleType.DRIVE
             };
             expect(isDrive(mockDrive as unknown as ShipModule)).toBe(true);
         });
 
         it('should return false if module does not have a thrust property', () => {
             const mockModule: ShipModule = {
-                createTexture: vi.fn()
+                createTexture: vi.fn(),
+                type: ModuleType.LASER // Different type
             };
             expect(isDrive(mockModule)).toBe(false);
         });

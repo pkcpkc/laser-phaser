@@ -25,9 +25,11 @@ export class ShipEnemyHandler implements CollisionHandler {
             const enemyGO = categoryA === this.enemyCategory ? gameObjectA : gameObjectB;
             const enemy = enemyGO as Phaser.Physics.Matter.Image;
 
+            let ship: Ship | undefined;
+
             // Enemy takes damage
             if (enemy.active) {
-                const ship = enemy.getData('ship') as Ship;
+                ship = enemy.getData('ship') as Ship;
                 if (ship) {
                     ship.takeDamage(100); // Massive ramming damage to enemy
                 } else {
@@ -42,7 +44,8 @@ export class ShipEnemyHandler implements CollisionHandler {
             if (playerGO && playerGO.active) {
                 const playerShip = playerGO.getData('ship') as Ship;
                 if (playerShip) {
-                    playerShip.takeDamage(50); // Ramming damage to player
+                    const damage = ship ? ship.currentHealth : 10; // Fallback if enemy has no ship data
+                    playerShip.takeDamage(damage); // Ramming damage based on enemy health
 
                     if (playerShip.currentHealth <= 0) {
                         this.onGameOver();

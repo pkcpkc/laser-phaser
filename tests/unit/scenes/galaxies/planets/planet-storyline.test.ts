@@ -1,6 +1,6 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PlanetIntroOverlay } from '../../../../../src/scenes/galaxies/planets/planet-intro-overlay';
+import { PlanetStoryline } from '../../../../../src/scenes/galaxies/planets/planet-storyline';
 import { type PlanetData } from '../../../../../src/scenes/galaxies/planets/planet-data';
 
 // Mock Phaser
@@ -137,13 +137,13 @@ vi.mock('phaser', () => {
     };
 });
 
-describe('PlanetIntroOverlay', () => {
-    let overlay: PlanetIntroOverlay;
+describe('PlanetStoryline', () => {
+    let overlay: PlanetStoryline;
     let scene: any;
 
     beforeEach(() => {
         scene = mockScene;
-        overlay = new PlanetIntroOverlay(scene as any);
+        overlay = new PlanetStoryline(scene as any);
     });
 
     it('should create visuals on init', () => {

@@ -49,8 +49,8 @@ graph TD
         GalaxyFactory --> |"Creates"| Galaxy
         PlanetVisuals --> |"Visualizes"| Galaxy
         PlanetNavigator --> |"Manipulates"| Galaxy
-        GalaxyInteractionManager --> |"Triggers"| PlanetIntroOverlay
-        PlanetIntroOverlay --> |"Fetches Text"| StorylineManager
+        GalaxyInteractionManager --> |"Triggers"| PlanetStoryline
+        PlanetStoryline --> |"Fetches Text"| StorylineManager
     end
 
     subgraph "Shoot 'Em Up Logic"
@@ -98,21 +98,11 @@ constructor(private laserService: LaserService) { ... }
 We use custom decorators to handle specific scopes and lifecycle management.
 
 *   **`@SceneScoped()`**:
-    *   **Purpose**: Marks a service as "scoped" to the current Phaser Scene. This ensures that the service is re-instantiated whenever a new scene is started, preventing stale state from previous levels.
-    *   **Function**: Behind the scenes, it decorates the class as `@injectable()` and registers it in a `sceneServices` registry. When a scene starts, the `bindScene()` function iterates over this registry and rebinds these services in `SingletonScope` for the duration of that scene.
-    *   **Usage**:
-        ```typescript
-        @SceneScoped()
-        export class PlanetNavigator {
-            constructor(@inject('Scene') private scene: Phaser.Scene) {}
-        }
-        ```
-
-#### Injection Tokens
-While classes are injected by their constructor type, some dependencies (like the Phaser Scene itself or configuration objects) use string tokens.
-
-*   `@inject('Scene')`: Injects the current active Phaser Scene.
-*   `@inject('PlayerCursorKeys')`: Injects the input cursor keys.
+    *  Marks a service as "scoped" to the current Phaser Scene. This ensures that the service is re-instantiated whenever a new scene is started, preventing stale state from previous levels.
+*   **`@InjectScene()`**
+    *  Injects the current active Phaser Scene (maps to `'Scene'`).
+*   **`@InjectPlayerCursorKeys()`**
+    *  Injects the input cursor keys (maps to `'PlayerCursorKeys'`).
 
 ### Storyline Management
 
@@ -220,6 +210,7 @@ To fire up the engines and start developing, use the following commands:
 We use **Antigravity** workflows to automate complex agentic tasks. These are defined in `.agent/workflows/`.
 
 *   **/translate_storylines**: Automates the translation of the default English storyline (`storylines.md`) into all supported locales found in `res/storylines/`. Preserves markdown structure and proper nouns.
+*   **/add_ship**: Automates the process of adding a new ship from an existing PNG asset. Generates markers, updates atlases, and creates the TypeScript definition and configuration files. Requires the ship name as a parameter (e.g., "firefly").
 
 ---
 

@@ -1,4 +1,4 @@
-import { injectable, decorate } from 'inversify';
+import { injectable, decorate, inject } from 'inversify';
 import 'reflect-metadata';
 
 // Registry to track scene-scoped services
@@ -20,4 +20,18 @@ export function SceneScoped() {
         // Register for scene binding
         sceneServices.add(target);
     };
+}
+
+/**
+ * Decorator to inject the current active Phaser Scene.
+ */
+export function InjectScene() {
+    return inject('Scene');
+}
+
+/**
+ * Decorator to inject the player cursor keys.
+ */
+export function InjectPlayerCursorKeys() {
+    return inject('PlayerCursorKeys');
 }

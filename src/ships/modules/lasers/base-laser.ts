@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { Laser } from './types';
 import { WeaponBase } from '../weapon-base';
 import { TimeUtils } from '../../../utils/time-utils';
+import { ModuleType } from '../module-types';
 
 // Trail Effect Constants
 const TRAIL_CIRCLE_RADIUS = 2;
@@ -16,6 +17,7 @@ const CLEANUP_DELAY = 200;
  * Extends WeaponBase with laser-specific trail effects.
  */
 export abstract class BaseLaser extends WeaponBase implements Laser {
+    readonly type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
     /**
      * Add a glowing trail effect behind the laser.
      */

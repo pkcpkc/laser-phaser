@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Ship } from '../../../src/ships/ship';
 import { Explosion } from '../../../src/ships/effects/explosion';
+import { ModuleType } from '../../../src/ships/modules/module-types';
 import Phaser from 'phaser';
 
 // Mock Phaser
@@ -96,7 +97,8 @@ describe('Ship', () => {
             recoil: 5,
             createTexture: vi.fn(),
             visibleOnMount: false,
-            TEXTURE_KEY: 'laser'
+            TEXTURE_KEY: 'laser',
+            type: ModuleType.LASER
         };
         mockLaserClass = class {
             fire = mockLaserInstance.fire;
@@ -104,6 +106,7 @@ describe('Ship', () => {
             createTexture = mockLaserInstance.createTexture;
             visibleOnMount = mockLaserInstance.visibleOnMount;
             TEXTURE_KEY = mockLaserInstance.TEXTURE_KEY;
+            type = mockLaserInstance.type;
         };
 
         mockScene = {
@@ -288,6 +291,7 @@ describe('Ship', () => {
             description = 'Fast';
             createTexture = vi.fn();
             visibleOnMount = true;
+            type = ModuleType.DRIVE;
         };
 
         const driveConfig = {
@@ -311,6 +315,7 @@ describe('Ship', () => {
             description = 'Fast';
             createTexture = vi.fn();
             visibleOnMount = true;
+            type = ModuleType.DRIVE;
         };
 
         const multiDriveConfig = {
@@ -341,6 +346,7 @@ describe('Ship', () => {
             maxAmmo = 10;
             createTexture = vi.fn();
             visibleOnMount = false;
+            type = ModuleType.LASER;
         };
 
         const enemyConfig = {
@@ -381,6 +387,7 @@ describe('Ship', () => {
             maxAmmo = 2;
             createTexture = vi.fn();
             visibleOnMount = false;
+            type = ModuleType.LASER;
         }
 
         const playerConfig = {
@@ -411,6 +418,7 @@ describe('Ship', () => {
             createTexture = vi.fn();
             visibleOnMount = false;
             fixedFireDirection = true;
+            type = ModuleType.LASER;
         };
 
         const config = {

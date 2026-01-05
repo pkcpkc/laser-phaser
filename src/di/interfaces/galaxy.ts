@@ -30,7 +30,7 @@ export interface IPlanetNavigator {
     areControlsEnabled(): boolean;
 }
 
-export interface IPlanetIntroOverlay {
+export interface IPlanetStoryline {
     show(name: string, description: string, planetId: string, color?: string, onComplete?: () => void): void;
     isVisible(): boolean;
 }
