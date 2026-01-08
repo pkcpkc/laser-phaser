@@ -289,4 +289,23 @@ describe('BaseScene', () => {
             })
         );
     });
+    it('should recreate player ship', () => {
+        scene.create();
+        const oldShip = (scene as any).ship;
+        const oldShipDestroySpy = vi.spyOn(oldShip, 'destroy');
+
+        const newShipConfig = {
+            definition: { id: 'new-ship', name: 'New Ship' }
+        };
+
+        // Call public recreatePlayerShip (need to cast accessed via logic or public method if BaseScene exposes it)
+        // BaseScene exposes it as public method now.
+        scene.recreatePlayerShip(newShipConfig as any);
+
+        expect(oldShipDestroySpy).toHaveBeenCalled();
+        expect(scene.registry.set).toHaveBeenCalledWith('playerShipConfig', newShipConfig);
+        expect(Ship).toHaveBeenCalledTimes(2); // Initial creation + recreation
+        expect(container.rebind).toHaveBeenCalledWith(Ship);
+        expect(container.get).toHaveBeenCalledWith(PlayerController); // Should re-setup controls
+    });
 });

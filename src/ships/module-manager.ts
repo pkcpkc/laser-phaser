@@ -113,8 +113,8 @@ export class ModuleManager implements IModuleManager {
                 }
             }
 
-            // Check ammo (skip for enemies - unlimited)
-            if (!this.collisionConfig.isEnemy) {
+            // Check ammo (skip for enemies or unlimited ammo flag)
+            if (!this.collisionConfig.isEnemy && !this.collisionConfig.hasUnlimitedAmmo) {
                 if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
                     continue;
                 }
@@ -151,8 +151,8 @@ export class ModuleManager implements IModuleManager {
             if (projectile) {
                 module.lastFired = now;
 
-                // Refill ammo for enemies
-                if (this.collisionConfig.isEnemy && weapon.currentAmmo !== undefined) {
+                // Refill ammo for enemies or unlimited ammo
+                if ((this.collisionConfig.isEnemy || this.collisionConfig.hasUnlimitedAmmo) && weapon.currentAmmo !== undefined) {
                     if (weapon.maxAmmo) {
                         weapon.currentAmmo = weapon.maxAmmo;
                     }
@@ -187,7 +187,10 @@ export class ModuleManager implements IModuleManager {
             // Check weapon visibility (ammo/reload)
             if (isWeapon(module.module)) {
                 const weapon = module.module;
-                if (weapon.currentAmmo !== undefined && weapon.currentAmmo <= 0) {
+                const hasAmmo = this.collisionConfig.isEnemy || this.collisionConfig.hasUnlimitedAmmo ||
+                    weapon.currentAmmo === undefined || weapon.currentAmmo > 0;
+
+                if (!hasAmmo) {
                     sprite.setVisible(false);
                     return;
                 }

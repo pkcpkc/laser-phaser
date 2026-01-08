@@ -240,4 +240,34 @@ describe('Level', () => {
     });
 
 
+
+    it('should loop when loop is true', () => {
+        class MockFormationType1 extends MockFormation { }
+
+        const config: LevelConfig = {
+            name: 'Loop Level',
+            loop: true,
+            formations: [
+                [{ formationType: MockFormationType1, tacticType: MockTactic as any }]
+            ]
+        };
+
+        const level = new Level(mockScene, config, mockCollisionConfig);
+        level.start();
+
+        // 1st Iteration
+        vi.advanceTimersByTime(0);
+        expect(MockTactic.instances.length).toBe(1);
+
+        // Complete the tactic
+        const tactic1 = MockTactic.instances[0];
+        (tactic1.isComplete as any).mockReturnValue(true);
+        level.update(0, 0);
+        expect(tactic1.destroy).toHaveBeenCalled();
+
+        // Trigger next loop
+        level.update(0, 0);
+
+        expect(MockTactic.instances.length).toBe(2);
+    });
 });

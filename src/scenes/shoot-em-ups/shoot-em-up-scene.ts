@@ -64,6 +64,14 @@ export class ShootEmUpScene extends BaseScene {
         return { name: 'Unknown', formations: [] };
     }
 
+    protected override getShipCollisionConfig() {
+        const config = super.getShipCollisionConfig();
+        if (this.levelId === 'ship-debug-level') {
+            config.hasUnlimitedAmmo = true;
+        }
+        return config;
+    }
+
     create() {
         super.create();
 
@@ -96,11 +104,13 @@ export class ShootEmUpScene extends BaseScene {
         // Create a dropdown to select ship
         const select = document.createElement('select');
         select.style.position = 'absolute';
-        select.style.top = '10px';
-        select.style.right = '10px';
+        select.style.top = '20px';
+        select.style.left = '50%';
+        select.style.transform = 'translateX(-50%)';
         select.style.zIndex = '1000';
-        select.style.padding = '5px';
+        select.style.padding = '10px';
         select.style.fontSize = '16px';
+        select.style.fontFamily = 'Oswald, sans-serif';
         select.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
         select.style.color = 'white';
         select.style.border = '1px solid #444';

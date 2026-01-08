@@ -90,4 +90,5 @@ export interface ShipCollisionConfig {
     lootCategory?: number;
     lootCollidesWith?: number;
     isEnemy?: boolean; // Enemy ships have unlimited ammo
+    hasUnlimitedAmmo?: boolean; // If true, ammo checks are skipped (useful for debug/god mode)
 }

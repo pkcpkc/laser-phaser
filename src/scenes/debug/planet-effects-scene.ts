@@ -70,6 +70,10 @@ export default class PlanetEffectsScene extends Phaser.Scene {
         this.selector.style.padding = '10px';
         this.selector.style.fontSize = '16px';
         this.selector.style.fontFamily = 'Oswald, sans-serif';
+        this.selector.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        this.selector.style.color = 'white';
+        this.selector.style.border = '1px solid #444';
+        this.selector.style.borderRadius = '5px';
 
         const planets = this.getSortedPlanets();
 

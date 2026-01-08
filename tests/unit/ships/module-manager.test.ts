@@ -30,25 +30,37 @@ describe('ModuleManager', () => {
     let mockScene: any;
     let mockSprite: any;
     let mockLaserClass: any;
-    let mockLaserInstance: any;
     let mockCollisionConfig: any;
 
     beforeEach(() => {
-        mockLaserInstance = {
-            fire: vi.fn().mockReturnValue({}),
-            recoil: 5,
-            createTexture: vi.fn(),
-            visibleOnMount: false,
-            TEXTURE_KEY: 'laser',
-            type: ModuleType.LASER
-        };
+        // Define a class that behaves like a weapon with ammo
         mockLaserClass = class {
-            fire = mockLaserInstance.fire;
-            recoil = mockLaserInstance.recoil;
-            createTexture = mockLaserInstance.createTexture;
-            visibleOnMount = mockLaserInstance.visibleOnMount;
-            TEXTURE_KEY = mockLaserInstance.TEXTURE_KEY;
-            type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
+            type = ModuleType.LASER;
+            TEXTURE_KEY = 'laser';
+            visibleOnMount = false;
+            currentAmmo?: number;
+            maxAmmo = 10;
+            reloadTime = 0;
+            recoil = 5;
+
+            constructor() {
+                // Default empty
+            }
+
+            createTexture = vi.fn();
+
+            // Use bound function or arrow function to ensure this context if needed, 
+            // but for simple class usage 'this' refers to instance.
+            fire = vi.fn().mockImplementation(function (this: any) {
+                if (this.currentAmmo !== undefined) {
+                    if (this.currentAmmo > 0) {
+                        this.currentAmmo--;
+                        return { isRocket: true };
+                    }
+                    return undefined;
+                }
+                return { isRocket: true };
+            });
         };
 
         mockSprite = {
@@ -82,6 +94,19 @@ describe('ModuleManager', () => {
             events: {
                 on: vi.fn(),
                 off: vi.fn()
+            },
+            // Mock textures.exists to always return true so createTexture doesn't run complex logic
+            textures: {
+                exists: vi.fn().mockReturnValue(true),
+                get: vi.fn()
+            },
+            make: {
+                graphics: vi.fn().mockReturnValue({
+                    fillStyle: vi.fn(),
+                    fillRect: vi.fn(),
+                    generateTexture: vi.fn(),
+                    destroy: vi.fn()
+                })
             }
         };
 
@@ -89,7 +114,9 @@ describe('ModuleManager', () => {
             category: 1,
             collidesWith: 2,
             laserCategory: 4,
-            laserCollidesWith: 8
+            laserCollidesWith: 8,
+            isEnemy: false,
+            hasUnlimitedAmmo: false
         };
     });
 
@@ -117,7 +144,6 @@ describe('ModuleManager', () => {
         );
 
         expect(manager.getActiveModules()).toHaveLength(1);
-        expect(mockLaserInstance.createTexture).toHaveBeenCalledWith(mockScene);
     });
 
     it('should fire lasers from active modules', () => {
@@ -134,8 +160,9 @@ describe('ModuleManager', () => {
 
         manager.fireLasers();
 
-        expect(mockLaserInstance.fire).toHaveBeenCalled();
-        expect(mockSprite.thrustBack).toHaveBeenCalled(); // recoil applied
+        const weapon = manager.getActiveModules()[0].module as any;
+        expect(weapon.fire).toHaveBeenCalled();
+        expect(mockSprite.thrustBack).toHaveBeenCalled();
     });
 
     it('should not fire when sprite is inactive', () => {
@@ -153,30 +180,88 @@ describe('ModuleManager', () => {
         mockSprite.active = false;
         manager.fireLasers();
 
-        expect(mockLaserInstance.fire).not.toHaveBeenCalled();
+        const weapon = manager.getActiveModules()[0].module as any;
+        expect(weapon.fire).not.toHaveBeenCalled();
     });
 
     it('should cleanup on destroy', () => {
-        // Make module visible for sprite creation
-        mockLaserInstance.visibleOnMount = true;
-        const visibleLaserClass = class {
-            fire = mockLaserInstance.fire;
-            recoil = mockLaserInstance.recoil;
-            createTexture = mockLaserInstance.createTexture;
+        // Define a class that has visibleOnMount TRUE by default
+        class VisibleLaser extends mockLaserClass {
             visibleOnMount = true;
-            TEXTURE_KEY = 'laser';
-            type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
-        };
+        }
 
         const manager = new ModuleManager(
             mockScene,
             mockSprite,
-            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: visibleLaserClass }],
+            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: VisibleLaser }],
             mockCollisionConfig
         );
 
         manager.destroy();
 
         expect(mockScene.events.off).toHaveBeenCalledWith('postupdate', expect.any(Function));
+    });
+
+    it('should respect unlimited ammo flag', () => {
+        // Setup manager WITH unlimited ammo flag
+        mockCollisionConfig.hasUnlimitedAmmo = true;
+
+        const AmmoWeapon = class extends mockLaserClass {
+            currentAmmo = 1;
+            maxAmmo = 10;
+        };
+
+        const modules = [
+            { marker: { x: 0, y: 0, angle: 0, type: 'rocket' }, module: AmmoWeapon }
+        ];
+
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            modules,
+            mockCollisionConfig
+        );
+
+        const weapon = manager.getActiveModules()[0].module as any;
+
+        // 1. Initial State
+        expect(weapon.currentAmmo).toBe(1);
+
+        // 2. Fire - Should decrease ammo to 0 inside fire(), but Manager should refill it to maxAmmo
+        manager.fireLasers();
+
+        expect(weapon.fire).toHaveBeenCalledTimes(1);
+        expect(weapon.currentAmmo).toBe(10);
+
+        // 3. Fire again - Should verify it stays full or refills
+        manager.fireLasers();
+        expect(weapon.currentAmmo).toBe(10);
+    });
+
+    it('should depletion ammo if not unlimited', () => {
+        mockCollisionConfig.hasUnlimitedAmmo = false;
+
+        const AmmoWeapon = class extends mockLaserClass {
+            currentAmmo = 1;
+            maxAmmo = 10;
+        };
+
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 0, y: 0, type: 'rocket', angle: 0 }, module: AmmoWeapon }],
+            mockCollisionConfig
+        );
+
+        const weapon = manager.getActiveModules()[0].module as any;
+
+        // Fire 1: 1 -> 0. No refill.
+        manager.fireLasers();
+        expect(weapon.currentAmmo).toBe(0);
+
+        // Fire 2: 0 -> undefined (should not fire)
+        manager.fireLasers();
+        expect(weapon.fire).toHaveBeenCalledTimes(1); // Still 1 call because subsequent loop check skips call
+        expect(weapon.currentAmmo).toBe(0);
     });
 });

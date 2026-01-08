@@ -3,7 +3,7 @@ import { BigCruiserWhiteLaserConfig } from '../ships/configurations/big-cruiser-
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
 import { GameStatus } from '../logic/game-status';
-import { LootType, type ShipConfig } from '../ships/types';
+import { LootType, type ShipConfig, type ShipCollisionConfig } from '../ships/types';
 import { Loot } from '../ships/loot';
 import { setupDebugKey } from '../logic/debug-utils';
 import { container, bindScene } from '../di/container';
@@ -99,12 +99,6 @@ export default class BaseScene extends Phaser.Scene {
             lootCollidesWith: categories.shipCategory
         };
 
-        if (this.registry.get('godMode')) {
-            collisionConfig.collidesWith = categories.lootCategory;
-            // Also disable loot collision if we want total isolation, or keep it if we want "God Mode"
-            // Plan said "disable all collisions"
-            // collisionConfig.lootCollidesWith = 0;
-        }
 
         const validConfig = this.registry.get('playerShipConfig') as ShipConfig || BigCruiserWhiteLaserConfig;
         this.ship = new Ship(this, width * 0.5, height - 50, validConfig, collisionConfig);
@@ -121,6 +115,24 @@ export default class BaseScene extends Phaser.Scene {
         this.ship.sprite.setAngle(-90);
 
         this.ship.setEffect(new EngineTrail(this.ship));
+    }
+
+    protected getShipCollisionConfig(): any {
+        const categories = this.collisionManager.getCategories();
+        const collisionConfig = {
+            category: categories.shipCategory,
+            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory | categories.wallCategory,
+            laserCategory: categories.laserCategory,
+            laserCollidesWith: categories.enemyCategory,
+            lootCategory: categories.lootCategory,
+            lootCollidesWith: categories.shipCategory
+        };
+
+        if (this.registry.get('godMode')) {
+            collisionConfig.collidesWith = categories.lootCategory;
+        }
+
+        return collisionConfig;
     }
 
     public recreatePlayerShip(config: ShipConfig) {
@@ -140,19 +152,7 @@ export default class BaseScene extends Phaser.Scene {
         // We can just call createPlayerShip() again, but we need to ensure we clean up correctly.
         // creating the ship:
 
-        const categories = this.collisionManager.getCategories();
-        const collisionConfig = {
-            category: categories.shipCategory,
-            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory | categories.wallCategory,
-            laserCategory: categories.laserCategory,
-            laserCollidesWith: categories.enemyCategory,
-            lootCategory: categories.lootCategory,
-            lootCollidesWith: categories.shipCategory
-        };
-
-        if (this.registry.get('godMode')) {
-            collisionConfig.collidesWith = categories.lootCategory;
-        }
+        const collisionConfig = this.getShipCollisionConfig();
 
         this.ship = new Ship(this, width * 0.5, height - 50, config, collisionConfig);
 
