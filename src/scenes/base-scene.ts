@@ -3,7 +3,7 @@ import { BigCruiserWhiteLaserConfig } from '../ships/configurations/big-cruiser-
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
 import { GameStatus } from '../logic/game-status';
-import { LootType, type ShipConfig, type ShipCollisionConfig } from '../ships/types';
+import { LootType, type ShipConfig } from '../ships/types';
 import { Loot } from '../ships/loot';
 import { setupDebugKey } from '../logic/debug-utils';
 import { container, bindScene } from '../di/container';

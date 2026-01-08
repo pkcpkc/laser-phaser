@@ -193,7 +193,7 @@ describe('ModuleManager', () => {
         const manager = new ModuleManager(
             mockScene,
             mockSprite,
-            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: VisibleLaser }],
+            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: VisibleLaser as any }],
             mockCollisionConfig
         );
 
@@ -212,7 +212,7 @@ describe('ModuleManager', () => {
         };
 
         const modules = [
-            { marker: { x: 0, y: 0, angle: 0, type: 'rocket' }, module: AmmoWeapon }
+            { marker: { x: 0, y: 0, angle: 0, type: 'rocket' }, module: AmmoWeapon as any }
         ];
 
         const manager = new ModuleManager(
@@ -249,7 +249,7 @@ describe('ModuleManager', () => {
         const manager = new ModuleManager(
             mockScene,
             mockSprite,
-            [{ marker: { x: 0, y: 0, type: 'rocket', angle: 0 }, module: AmmoWeapon }],
+            [{ marker: { x: 0, y: 0, type: 'rocket', angle: 0 }, module: AmmoWeapon as any }],
             mockCollisionConfig
         );
 
