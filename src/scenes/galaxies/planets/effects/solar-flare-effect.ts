@@ -16,14 +16,12 @@ class SolarFlare {
     private container: Phaser.GameObjects.Container;
     private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
     private timer: Phaser.Time.TimerEvent;
-    private angleDeg: number;
     private startTime: number;
     private duration: number;
 
     constructor(scene: Phaser.Scene, container: Phaser.GameObjects.Container, startX: number, startY: number, angleDeg: number, scale: number = 1) {
         this.scene = scene;
         this.container = container;
-        this.angleDeg = angleDeg;
         this.startTime = scene.time.now;
 
         // Duration 0.3-1.5 seconds
@@ -35,8 +33,8 @@ class SolarFlare {
             y: startY,
             color: [0xffaa00, 0xff4400, 0xaa0000], // Orange -> Red -> Dark
             alpha: { start: 1, end: 0, ease: 'Expo.easeIn' },
-            scale: { start: 0.3 * scale, end: 0.1 * scale }, // Coupled to scale
-            speed: { min: 15 * scale, max: 55 * scale }, // Increased length
+            scale: { start: 0.4 * scale, end: 0.1 * scale }, // Increased min core size a bit
+            speed: { min: 20 * scale, max: 55 * scale }, // Increased min speed a bit
             angle: { min: angleDeg - 25, max: angleDeg + 25 },
             lifespan: { min: 500, max: 1200 },
             blendMode: 'ADD',
@@ -48,42 +46,9 @@ class SolarFlare {
         this.emitters.push(coreEmitter);
         this.container.add(coreEmitter);
 
-        // Sparks - High speed, shooting far out (Keep these somewhat active for contrast)
-        const sparkEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            x: startX,
-            y: startY,
-            color: [0xffffff, 0xffff00], // Super bright
-            alpha: { start: 1, end: 0 },
-            scale: { start: 0.1 * scale, end: 0 }, // Coupled to scale
-            speed: { min: 150 * scale, max: 350 * scale }, // Increased length
-            angle: { min: angleDeg - 45, max: angleDeg + 45 },
-            lifespan: { min: 400, max: 800 },
-            blendMode: 'ADD',
-            quantity: 1,
-            frequency: 30,
-            emitting: true,
-            rotate: { min: 0, max: 360 }
-        });
-        this.emitters.push(sparkEmitter);
-        this.container.add(sparkEmitter);
+        // Sparks - REMOVED per user request
 
-        // Prominence Stream - The "tongues" licking upwards
-        const streamEmitter = this.scene.add.particles(0, 0, 'flare-white', {
-            x: startX,
-            y: startY,
-            color: [0xff6600, 0x990000, 0x330000], // Orange -> Deep Red -> Dark
-            alpha: { start: 0.7, end: 0, ease: 'Cubic.easeOut' },
-            scale: { start: 0.4 * scale, end: 0.1 * scale }, // Coupled to scale
-            speed: { min: 80 * scale, max: 180 * scale }, // Increased length
-            angle: { min: angleDeg - 15, max: angleDeg + 15 },
-            lifespan: { min: 500, max: 1000 },
-            blendMode: 'ADD',
-            quantity: 2,
-            frequency: 12,
-            emitting: true
-        });
-        this.emitters.push(streamEmitter);
-        this.container.add(streamEmitter);
+        // Prominence Stream - REMOVED per user request
 
         // Update loop for this flare
         this.timer = this.scene.time.addEvent({
@@ -102,16 +67,7 @@ class SolarFlare {
             return;
         }
 
-        // Flame-like turbulence: Faster, more chaotic jitter
-        const t = elapsed * 0.005;
-        const waveBase = Math.sin(t) * 30; // Slower base sway
-        const waveJitter = (Math.random() - 0.5) * 40; // Chaotic flicker
-        const currentAngle = this.angleDeg + waveBase + waveJitter;
-
-        // Update Prominence Stream angle to snake around
-        this.emitters[1].setConfig({
-            angle: { min: currentAngle - 15, max: currentAngle + 15 }
-        });
+        // Flame-like turbulence logic removed since we removed the stream emitter
     }
 
     private stop() {

@@ -34,6 +34,7 @@ export type LevelStep = FormationConfig[];
 export interface LevelConfig {
     name: string;
     formations: LevelStep[];
+    loop?: boolean;
 }
 
 type RunnerState = 'DELAY' | 'RUNNING' | 'FINISHED';
@@ -176,14 +177,20 @@ export class Level {
 
     private spawnNextStep() {
         if (this.currentStepIndex >= this.config.formations.length) {
-            if (!this.isLevelComplete) {
-                this.isLevelComplete = true;
-                console.log('Level Complete');
-                if (this.onComplete) {
-                    this.onComplete();
+            if (this.config.loop) {
+                console.log('Level looping...');
+                this.currentStepIndex = 0;
+                // Fall through to spawn the first step again
+            } else {
+                if (!this.isLevelComplete) {
+                    this.isLevelComplete = true;
+                    console.log('Level Complete');
+                    if (this.onComplete) {
+                        this.onComplete();
+                    }
                 }
+                return;
             }
-            return;
         }
 
         const step = this.config.formations[this.currentStepIndex];

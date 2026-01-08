@@ -3,7 +3,7 @@ import { BigCruiserWhiteLaserConfig } from '../ships/configurations/big-cruiser-
 import { Ship } from '../ships/ship';
 import { EngineTrail } from '../ships/effects/engine-trail';
 import { GameStatus } from '../logic/game-status';
-import { LootType } from '../ships/types';
+import { LootType, type ShipConfig } from '../ships/types';
 import { Loot } from '../ships/loot';
 import { setupDebugKey } from '../logic/debug-utils';
 import { container, bindScene } from '../di/container';
@@ -106,7 +106,8 @@ export default class BaseScene extends Phaser.Scene {
             // collisionConfig.lootCollidesWith = 0;
         }
 
-        this.ship = new Ship(this, width * 0.5, height - 50, BigCruiserWhiteLaserConfig, collisionConfig);
+        const validConfig = this.registry.get('playerShipConfig') as ShipConfig || BigCruiserWhiteLaserConfig;
+        this.ship = new Ship(this, width * 0.5, height - 50, validConfig, collisionConfig);
 
         // Bind the specific ship instance to the container so PlayerController can inject it
         if (container.isBound(Ship)) {
@@ -120,6 +121,66 @@ export default class BaseScene extends Phaser.Scene {
         this.ship.sprite.setAngle(-90);
 
         this.ship.setEffect(new EngineTrail(this.ship));
+    }
+
+    public recreatePlayerShip(config: ShipConfig) {
+        if (this.ship) {
+            this.ship.destroy();
+        }
+
+        // Just use the registry update so standard createPlayerShip flows would also work if scene restarts
+        this.registry.set('playerShipConfig', config);
+
+        const { width, height } = this.scale;
+
+        // Re-use collision config from createPlayerShip logic or extracted?
+        // Let's duplicate basic setup for now or refactor createPlayerShip to be more reusable?
+        // Better: createPlayerShip should rely on the registry.
+
+        // We can just call createPlayerShip() again, but we need to ensure we clean up correctly.
+        // creating the ship:
+
+        const categories = this.collisionManager.getCategories();
+        const collisionConfig = {
+            category: categories.shipCategory,
+            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory | categories.wallCategory,
+            laserCategory: categories.laserCategory,
+            laserCollidesWith: categories.enemyCategory,
+            lootCategory: categories.lootCategory,
+            lootCollidesWith: categories.shipCategory
+        };
+
+        if (this.registry.get('godMode')) {
+            collisionConfig.collidesWith = categories.lootCategory;
+        }
+
+        this.ship = new Ship(this, width * 0.5, height - 50, config, collisionConfig);
+
+        // Rebind
+        if (container.isBound(Ship)) {
+            container.rebind(Ship).toConstantValue(this.ship as Ship);
+        } else {
+            container.bind(Ship).toConstantValue(this.ship as Ship);
+        }
+
+        this.ship.sprite.setFixedRotation();
+        this.ship.sprite.setAngle(-90);
+        this.ship.setEffect(new EngineTrail(this.ship));
+
+        // Update player controller to use new ship
+        if (this.playerController) {
+            // We need to re-inject or just ensure player controller grabs the ship from container/property?
+            // PlayerController usually gets ship injected in constructor.
+            // We might need to manually update it if it holds a reference.
+            // Let's check PlayerController implementation.
+            // For now assuming we might need to recreate player controller too or it reads valid ship from somewhere?
+            // Actually, if PlayerController has a direct reference, that reference is now dead (destroyed ship).
+            // We need to update PlayerController.
+            // Quick fix: Re-create player controller setup.
+        }
+
+        // Re-setup controls (re-injects PlayerController)
+        this.setupControls();
     }
 
     protected goldCount: number = 0;
@@ -146,7 +207,8 @@ export default class BaseScene extends Phaser.Scene {
         // Fire Button
         this.fireButton = this.add.text(width - 80, height - 95, '🔴', { fontFamily: 'Oswald, sans-serif', fontSize: '40px', padding: { top: 10, bottom: 10 } })
             .setOrigin(0.5)
-            .setInteractive();
+            .setInteractive()
+            .setVisible(false);
 
         // Hide controls on first space press
         this.input.keyboard!.once('keydown-SPACE', () => {

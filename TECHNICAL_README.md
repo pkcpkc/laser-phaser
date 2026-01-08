@@ -174,7 +174,8 @@ You can append these parameters to the URL (e.g., `http://localhost:5173/?galaxy
 | Parameter | Value | Description |
 | :--- | :--- | :--- |
 | `galaxyId` | `[string]` | Skips the wormhole and starts directly in the specified galaxy (e.g., `blood-hunters-galaxy`). |
-| `autoLaunchPlanetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet and **launches the level automatically**. |
+| `autoLaunchPlanetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet (must exist in galaxy) and **launches its assigned level automatically**. Example: `?galaxyId=demo-galaxy&autoLaunchPlanetId=astra`. |
+| `autoLaunchPlanetId` | `ship-debug` | **Ship Debug Level**: Special value (requires `galaxyId=demo-galaxy`) to launch the ship debugging asteroid field. |
 | `godMode` | `true` | Disables collision detection for the player ship (except Loot). |
 | `locale` | `en`, `de`, `fr`, etc. | Forces the game to load in the specified locale. |
 | `debug` | `planet-effects` | Launches the **Planet Effects Debug Scene** for inspecting procedurally generated planets and effects in isolation. |

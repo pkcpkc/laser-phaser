@@ -3,6 +3,19 @@ import { Level, type LevelConfig } from './levels/level';
 import { GameStatus } from '../../logic/game-status';
 import { Loot } from '../../ships/loot';
 import { getLevelConfig, getLevel } from './level-registry';
+import type { ShipConfig } from '../../ships/types';
+
+// Dynamically import all ship configurations for debug mode
+const configModules = import.meta.glob<{ [key: string]: ShipConfig }>(
+    '../../ships/configurations/*.ts',
+    { eager: true }
+);
+
+const allShipConfigs: ShipConfig[] = Object.values(configModules).flatMap(
+    (module) => Object.values(module).filter((exp): exp is ShipConfig =>
+        !!(exp && typeof exp === 'object' && 'definition' in exp && 'modules' in exp)
+    )
+);
 
 export class ShootEmUpScene extends BaseScene {
     protected level: Level | null = null;
@@ -73,6 +86,57 @@ export class ShootEmUpScene extends BaseScene {
             () => this.handleVictory()
         );
         this.level.start();
+
+        if (this.levelId === 'ship-debug-level') {
+            this.createShipDebugUI();
+        }
+    }
+
+    private createShipDebugUI() {
+        // Create a dropdown to select ship
+        const select = document.createElement('select');
+        select.style.position = 'absolute';
+        select.style.top = '10px';
+        select.style.right = '10px';
+        select.style.zIndex = '1000';
+        select.style.padding = '5px';
+        select.style.fontSize = '16px';
+        select.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        select.style.color = 'white';
+        select.style.border = '1px solid #444';
+        select.style.borderRadius = '5px';
+
+        // Add options
+        allShipConfigs.sort((a, b) => a.definition.id.localeCompare(b.definition.id)).forEach(config => {
+            const option = document.createElement('option');
+            option.value = config.definition.id;
+            option.text = config.definition.id;
+            select.appendChild(option);
+        });
+
+        // Select current ship if possible (default is BigCruiser so maybe logic needs adjustment if we want to reflect current?)
+        // Assuming default first one or BigCruiserWhiteLaserConfig but we don't know easily which one matches exact instance.
+
+        select.onchange = (e) => {
+            const selectedId = (e.target as HTMLSelectElement).value;
+            const config = allShipConfigs.find(c => c.definition.id === selectedId);
+            if (config) {
+                // Keep focus on game canvas so spacebar works
+                (this.game.canvas as HTMLCanvasElement).focus();
+
+                // Recreate ship
+                this.recreatePlayerShip(config);
+            }
+        };
+
+        document.body.appendChild(select);
+
+        // Cleanup on shutdown
+        this.events.once('shutdown', () => {
+            if (document.body.contains(select)) {
+                document.body.removeChild(select);
+            }
+        });
     }
 
     // ... (rest of the file)

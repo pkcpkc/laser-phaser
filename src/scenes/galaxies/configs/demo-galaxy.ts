@@ -9,6 +9,17 @@ export const DemoGalaxyConfig: GalaxyConfig = {
     // The original class did not set backgroundTexture, so it used default 'nebula' from Galaxy.
     planets: [
         {
+            id: 'ship-debug',
+            name: 'Ship Debug',
+            hidden: false,
+            tint: 0xFF5555, // Light Red
+            interaction: {
+                levelId: 'ship-debug-level',
+                showAlways: true
+            },
+            effects: []
+        },
+        {
             id: 'astra',
             name: 'Astra',
             hidden: false,

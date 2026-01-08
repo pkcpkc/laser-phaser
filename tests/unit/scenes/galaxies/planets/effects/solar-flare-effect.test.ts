@@ -109,8 +109,8 @@ describe('SolarFlareEffect', () => {
 
         mainTimer.callback();
 
-        expect(mockScene.add.particles).toHaveBeenCalledTimes(3);
-        expect(createdEmitters.length).toBe(3);
+        expect(mockScene.add.particles).toHaveBeenCalledTimes(1);
+        expect(createdEmitters.length).toBe(1);
     });
 
     it('should spawn a flare when list is empty even if random chance fails', () => {
@@ -123,7 +123,7 @@ describe('SolarFlareEffect', () => {
         // First call should spawn because list is empty
         mainTimer.callback();
 
-        expect(mockScene.add.particles).toHaveBeenCalledTimes(3);
+        expect(mockScene.add.particles).toHaveBeenCalledTimes(1);
 
         // Second call should NOT spawn because list is not empty and chance fails
         vi.clearAllMocks();
@@ -137,7 +137,7 @@ describe('SolarFlareEffect', () => {
         vi.spyOn(Math, 'random').mockReturnValue(0.01);
         mainTimer.callback();
 
-        expect(createdEmitters.length).toBe(3);
+        expect(createdEmitters.length).toBe(1);
 
         effect.setVisible(false);
 
@@ -149,7 +149,7 @@ describe('SolarFlareEffect', () => {
         createdEmitters = [];
         effect.setVisible(true);
         mainTimer.callback();
-        expect(createdEmitters.length).toBe(3);
+        expect(createdEmitters.length).toBe(1);
     });
 
     it('should NOT spawn a flare when list is populated and random chance is NOT met', () => {
@@ -159,7 +159,7 @@ describe('SolarFlareEffect', () => {
         // Force a spawn first to populate list
         vi.spyOn(Math, 'random').mockReturnValue(0.01);
         mainTimer.callback();
-        expect(mockScene.add.particles).toHaveBeenCalledTimes(3);
+        expect(mockScene.add.particles).toHaveBeenCalledTimes(1);
         vi.clearAllMocks();
 
         // Now mock chance failure
