@@ -265,4 +265,50 @@ describe('GalaxyInteractionManager', () => {
         expect(mockContainer.setVisible).toHaveBeenCalledWith(true);
         expect(mockScene.add.text).toHaveBeenCalled();
     });
+
+    it('should position Play icon centered on planet, separate from other icons', () => {
+        // Use unique mock objects
+        const mockTexts: any[] = [];
+        mockScene.add.text.mockImplementation(() => {
+            const txt = createMockText();
+            mockTexts.push(txt);
+            return txt as any;
+        });
+
+        // Ensure defeated so other icons show up too
+        mockIsPlanetDefeated.mockReturnValue(true);
+
+        const planetData = {
+            id: 'hostile',
+            name: 'Hostile',
+            x: 100, y: 200,
+            visualScale: 1.0, // Radius = 30
+            interaction: {
+                levelId: 'level-1',
+                hasShipyard: true,
+            },
+            gameObject: {
+                x: 100, y: 200,
+                width: 50, height: 50,
+                displayOriginX: 25, displayOriginY: 25,
+                rotation: 0
+            }
+        };
+
+        manager.showInteractionUI(planetData as any);
+
+        const playIcon = mockTexts.find(t => t.getData('iconType') === '🚀');
+        const shipyardIcon = mockTexts.find(t => t.getData('iconType') === '🛠️');
+
+        expect(playIcon).toBeDefined();
+        expect(shipyardIcon).toBeDefined();
+
+        // Check Play/Rocket icon position
+        // Should be at (0, -(30 + 17)) = (0, -47) relative to container
+        expect(playIcon.setPosition).toHaveBeenCalledWith(0, -47);
+
+        // Check Shipyard icon position
+        // Since it's the only one in the 'icons' list, it should be at (0, 0) relative to container center line
+        expect(shipyardIcon.setPosition).toHaveBeenCalledWith(0, 0);
+    });
 });

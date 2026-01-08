@@ -44,7 +44,7 @@ describe('BootScene', () => {
 
     it('should scale logo in preload', () => {
         bootScene.preload();
-        expect(mockLoad.image).toHaveBeenCalledWith('logo', 'assets/images/laser-phaser-logo.png');
+        expect(mockLoad.image).toHaveBeenCalledWith('logo', 'assets/loading/laser-phaser.png');
     });
 
     it('should start PreloadScene in create', () => {

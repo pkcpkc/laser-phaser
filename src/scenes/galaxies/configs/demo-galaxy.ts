@@ -31,6 +31,9 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             name: 'Aurelia',
             tint: 0xB8860B, // Dark Golden Rod
             visualScale: 0.8,
+            interaction: {
+                levelId: 'debug-aurelia-level'
+            },
             effects: [
                 {
                     type: 'solid-ring',
@@ -44,6 +47,9 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             id: 'veridia',
             name: 'Veridia',
             tint: 0xeeeeee, // Green-ish
+            interaction: {
+                levelId: 'debug-veridia-level'
+            },
             effects: [
                 {
                     type: 'rectangles',
@@ -120,7 +126,10 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             name: 'Pulsar',
             tint: 0x333333,
             visualScale: 0.6,
-            hidden: true,
+            hidden: false,
+            interaction: {
+                levelId: 'debug-pulsar-level'
+            },
             effects: [
                 {
                     type: 'ghost-shade',
@@ -150,7 +159,10 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             name: 'Umbra',
             tint: 0x333333,
             visualScale: 0.6,
-            hidden: true,
+            hidden: false,
+            interaction: {
+                levelId: 'debug-umbra-level'
+            },
             effects: [
                 {
                     type: 'ghost-shade',

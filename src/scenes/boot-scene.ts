@@ -7,7 +7,9 @@ export default class BootScene extends Phaser.Scene {
 
     preload() {
         // Load the logo for the preload scene
-        this.load.image('logo', 'assets/images/laser-phaser-logo.png');
+        this.load.image('logo', 'assets/loading/laser-phaser.png');
+        this.load.image('background', 'assets/loading/background.png');
+        this.load.image('android-head', 'assets/loading/android-head.png');
     }
 
     create() {

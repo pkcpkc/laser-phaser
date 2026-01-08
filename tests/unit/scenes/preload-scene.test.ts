@@ -48,20 +48,30 @@ describe('PreloadScene', () => {
             setAlpha: vi.fn(),
             setScale: vi.fn(),
             setPosition: vi.fn(),
+            setDepth: vi.fn(),
             width: 100,
             height: 100,
             displayHeight: 100,
         };
 
+        const mockBackground = { ...mockLogo };
+        const mockHead = { ...mockLogo };
+
         mockLoadingText = {
             setOrigin: vi.fn().mockReturnThis(),
             setText: vi.fn(),
             setPosition: vi.fn(),
+            setDepth: vi.fn(),
             width: 100,
         };
 
         mockAdd = {
-            image: vi.fn().mockReturnValue(mockLogo),
+            image: vi.fn().mockImplementation((_x, _y, key) => {
+                if (key === 'logo') return mockLogo;
+                if (key === 'background') return mockBackground;
+                if (key === 'android-head') return mockHead;
+                return mockLogo;
+            }),
             text: vi.fn().mockReturnValue(mockLoadingText),
         };
 
@@ -74,7 +84,7 @@ describe('PreloadScene', () => {
 
         mockTime = {
             delayedCall: vi.fn((_delay, callback) => callback()), // Execute immediately
-            addEvent: vi.fn(), // For loading dots animation
+            addEvent: vi.fn().mockReturnValue({ destroy: vi.fn() }), // Return mock event with destroy
         };
 
         mockInput = {
@@ -115,10 +125,23 @@ describe('PreloadScene', () => {
         expect((preloadScene as any).startTime).toBeDefined();
     });
 
-    it('should preload assets (default en)', () => {
+    it('should preload assets and setup visuals', () => {
         // Default behavior (en)
         preloadScene.preload();
+
+        // 1. Background
+        expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'background');
+
+        // 2. Logo
         expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'logo');
+
+        // 3. Android Head
+        expect(mockAdd.image).toHaveBeenCalledWith(400, 300, 'android-head');
+
+        // 4. Loading Text
+        expect(mockAdd.text).toHaveBeenCalledWith(0, 0, 'LOADING...', expect.any(Object));
+
+        // Load content
         expect(mockLoad.atlas).toHaveBeenCalledWith('ships', 'assets/sprites/ships.png', 'assets/sprites/ships.json');
         expect(mockLoad.image).toHaveBeenCalledWith('nebula', 'assets/images/nebula.png');
         expect(mockLoad.image).toHaveBeenCalledWith('blood_nebula', 'assets/images/blood_nebula.png');
@@ -139,16 +162,14 @@ describe('PreloadScene', () => {
         (window as any).location = originalLocation;
     });
 
-    it('should generate flares and setup loading text on create', () => {
+    it('should generate flares on create', () => {
         preloadScene.create();
         expect(FlaresTexture.createFlareTexture).toHaveBeenCalledTimes(5); // 5 colors defined
-        expect(mockAdd.text).toHaveBeenCalledWith(0, 0, 'LOADING...', expect.any(Object));
         expect(mockScale.on).toHaveBeenCalledWith('resize', expect.any(Function), preloadScene);
     });
 
     it('should handle resize layout updates', () => {
-        preloadScene.preload(); // Setup logo
-        preloadScene.create(); // Setup text
+        preloadScene.preload(); // Setup logo, text, etc
 
         // reset mocks calls to verify resize specifically
         mockLogo.setPosition.mockClear();
@@ -161,9 +182,24 @@ describe('PreloadScene', () => {
         expect(mockLoadingText.setPosition).toHaveBeenCalled();
     });
 
-    it('should start WormholeScene automatically after loading by default', () => {
+    it('should wait 3s before starting WormholeScene after visual completion', () => {
         preloadScene.preload();
-        preloadScene.create(); // This triggers the delayedCall mock which executes onLoadingComplete and starts the game
+
+        // Mock visuals
+        (preloadScene as any).background = { setAlpha: vi.fn(), setScale: vi.fn(), setPosition: vi.fn() };
+        (preloadScene as any).androidHead = { setAlpha: vi.fn(), setScale: vi.fn(), setPosition: vi.fn() };
+        (preloadScene as any).realProgress = 1; // Loaded
+        (preloadScene as any).startTime = Date.now() - 4000; // > 3s elapsed
+
+        // Trigger update to complete visuals
+        (preloadScene as any).updateProgress();
+
+        // Should trigger delayed call for 3000ms
+        expect(mockTime.delayedCall).toHaveBeenCalledWith(3000, expect.any(Function));
+
+        // Manually execute the delayed callback
+        const callback = mockTime.delayedCall.mock.calls[0][1];
+        callback();
 
         // Verify game started with WormholeScene
         expect(mockScale.off).toHaveBeenCalled();
@@ -177,7 +213,19 @@ describe('PreloadScene', () => {
         (window as any).location = new URL('http://localhost/?galaxyId=test-galaxy');
 
         preloadScene.preload();
-        preloadScene.create();
+
+        // Mock visuals and completion
+        (preloadScene as any).background = { setAlpha: vi.fn(), setScale: vi.fn(), setPosition: vi.fn() };
+        (preloadScene as any).androidHead = { setAlpha: vi.fn(), setScale: vi.fn(), setPosition: vi.fn() };
+        (preloadScene as any).realProgress = 1;
+        (preloadScene as any).startTime = Date.now() - 4000;
+
+        // Trigger update
+        (preloadScene as any).updateProgress();
+
+        // Execute delay
+        const callback = mockTime.delayedCall.mock.calls[0][1];
+        callback();
 
         expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', autoLaunchPlanetId: null });
 

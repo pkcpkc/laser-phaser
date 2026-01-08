@@ -38,12 +38,17 @@ export class GalaxyInteractionManager {
     }
 
     private createInteractionUI() {
+        // High depth to ensure it is above planet (50) and effects (50-100)
+        // PlanetStoryline is 2000.
+        // Veridia's effects might be stacking up, so let's go with a safe high number.
+        const INTERACTION_DEPTH = 1000;
+
         this.interactionContainer = this.scene.add.container(0, 0);
         this.interactionContainer.setVisible(false);
-        this.interactionContainer.setDepth(100);
+        this.interactionContainer.setDepth(INTERACTION_DEPTH);
 
         this.planetNameContainer = this.scene.add.container(0, 0);
-        this.planetNameContainer.setDepth(100);
+        this.planetNameContainer.setDepth(INTERACTION_DEPTH);
         this.planetNameContainer.setVisible(false);
     }
 
@@ -98,7 +103,14 @@ export class GalaxyInteractionManager {
         // Play icon - show if planet has a level
         if (planet.interaction?.levelId) {
             const levelId = planet.interaction.levelId;
-            icons.push(this.createIcon(InteractionIcon.Play, () => this.launchLevel(levelId, planet)));
+            const rocketIcon = this.createIcon(InteractionIcon.Play, () => this.launchLevel(levelId, planet));
+
+            // Reverted to simple centering:
+            // Position centered on the planet
+            // Container is at (planet.x, iconY), where iconY is below the planet
+            // So we start at 0,0 locally and subtract the offset
+            rocketIcon.setPosition(0, -(planetRadius + 17));
+            this.interactionContainer.add(rocketIcon);
         }
 
         // Determine if "locked" icons should show
@@ -167,6 +179,7 @@ export class GalaxyInteractionManager {
         // Increased from 15 to 23 based on feedback that text was too close (touching) on small planets
         const baseRadius = planetRadius + 23;
 
+        // Revert to original visual center logic
         // Calculate the true visual center (geometric center of the quad)
         // because setOrigin(0.52, 0.40) and rotation shifts the visual center relative to x,y
         let labelX = planet.x;

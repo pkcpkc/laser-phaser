@@ -1,6 +1,6 @@
 # Laser Phaser <a href="https://pkcpkc.github.io/laser-phaser/"><img align="right" src="https://img.shields.io/badge/PLAY-NOW-red?style=for-the-badge&logo=spaceship&logoColor=white" alt="Play Now"></a>
 
-![Laser Phaser Logo](./docs/assets/images/laser-phaser-logo.png)
+![Laser Phaser Logo](./docs/assets/loading/laser-phaser.png)
 
 <a href="./LICENSE"><img align="right" src="https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge" alt="License: CC BY-NC 4.0"></a>
 
