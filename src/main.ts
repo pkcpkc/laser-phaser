@@ -8,6 +8,7 @@ import GalaxyScene from './scenes/galaxies/galaxy-scene';
 import ShipyardScene from './scenes/shipyards/shipyard-scene';
 import TowerDefenseScene from './scenes/tower-defenses/tower-defense-scene';
 import WormholeScene from './scenes/wormhole-scene';
+import PlanetEffectsScene from './scenes/debug/planet-effects-scene';
 
 import './style.css';
 
@@ -32,7 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: import.meta.env.MODE === 'debug' // Set to true if you want to see physics bodies
     }
   },
-  scene: [BootScene, PreloadScene, GalaxyScene, ShootEmUpScene, ShipyardScene, TowerDefenseScene, WormholeScene]
+  scene: [BootScene, PreloadScene, GalaxyScene, ShootEmUpScene, ShipyardScene, TowerDefenseScene, WormholeScene, PlanetEffectsScene]
 };
 
 // Clean up existing game instance if it exists (HMR)

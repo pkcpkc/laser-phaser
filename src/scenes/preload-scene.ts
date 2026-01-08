@@ -209,6 +209,13 @@ export default class PreloadScene extends Phaser.Scene {
             this.registry.set('godMode', false);
         }
 
+        const debugParam = params.get('debug');
+        if (debugParam === 'planet-effects') {
+            console.log('Starting debug scene: PlanetEffectsScene');
+            this.scene.start('PlanetEffectsScene');
+            return;
+        }
+
         if (galaxyId) {
             console.log(`Starting directly with galaxy: ${galaxyId} (skipping wormhole)`);
             const autoLaunchPlanetId = params.get('autoLaunchPlanetId');

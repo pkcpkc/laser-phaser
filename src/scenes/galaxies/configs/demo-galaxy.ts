@@ -106,7 +106,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             id: 'ignis',
             name: 'Ignis',
             tint: 0xaB0000, // Dark red
-            visualScale: 0.5,
+            visualScale: 1,
             interaction: {
                 levelId: 'blood-hunters-level',
                 hasShipyard: true,

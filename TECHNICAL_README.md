@@ -177,6 +177,7 @@ You can append these parameters to the URL (e.g., `http://localhost:5173/?galaxy
 | `autoLaunchPlanetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet and **launches the level automatically**. |
 | `godMode` | `true` | Disables collision detection for the player ship (except Loot). |
 | `locale` | `en`, `de`, `fr`, etc. | Forces the game to load in the specified locale. |
+| `debug` | `planet-effects` | Launches the **Planet Effects Debug Scene** for inspecting procedurally generated planets and effects in isolation. |
 
 ## Getting Started
 

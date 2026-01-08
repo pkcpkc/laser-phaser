@@ -20,7 +20,7 @@ class SolarFlare {
     private startTime: number;
     private duration: number;
 
-    constructor(scene: Phaser.Scene, container: Phaser.GameObjects.Container, startX: number, startY: number, angleDeg: number) {
+    constructor(scene: Phaser.Scene, container: Phaser.GameObjects.Container, startX: number, startY: number, angleDeg: number, scale: number = 1) {
         this.scene = scene;
         this.container = container;
         this.angleDeg = angleDeg;
@@ -35,8 +35,8 @@ class SolarFlare {
             y: startY,
             color: [0xffaa00, 0xff4400, 0xaa0000], // Orange -> Red -> Dark
             alpha: { start: 1, end: 0, ease: 'Expo.easeIn' },
-            scale: { start: 0.3, end: 0.1 }, // Reduced size (was 0.5->0.2)
-            speed: { min: 10, max: 40 }, // Slower (was 20-60)
+            scale: { start: 0.3 * scale, end: 0.1 * scale }, // Coupled to scale
+            speed: { min: 15 * scale, max: 55 * scale }, // Increased length
             angle: { min: angleDeg - 25, max: angleDeg + 25 },
             lifespan: { min: 500, max: 1200 },
             blendMode: 'ADD',
@@ -54,8 +54,8 @@ class SolarFlare {
             y: startY,
             color: [0xffffff, 0xffff00], // Super bright
             alpha: { start: 1, end: 0 },
-            scale: { start: 0.1, end: 0 }, // Slightly smaller
-            speed: { min: 100, max: 250 }, // Slightly slower
+            scale: { start: 0.1 * scale, end: 0 }, // Coupled to scale
+            speed: { min: 150 * scale, max: 350 * scale }, // Increased length
             angle: { min: angleDeg - 45, max: angleDeg + 45 },
             lifespan: { min: 400, max: 800 },
             blendMode: 'ADD',
@@ -73,8 +73,8 @@ class SolarFlare {
             y: startY,
             color: [0xff6600, 0x990000, 0x330000], // Orange -> Deep Red -> Dark
             alpha: { start: 0.7, end: 0, ease: 'Cubic.easeOut' },
-            scale: { start: 0.4, end: 0.1 }, // Reduced size (was 0.7->0.1)
-            speed: { min: 50, max: 120 }, // Slower (was 80-180)
+            scale: { start: 0.4 * scale, end: 0.1 * scale }, // Coupled to scale
+            speed: { min: 80 * scale, max: 180 * scale }, // Increased length
             angle: { min: angleDeg - 15, max: angleDeg + 15 },
             lifespan: { min: 500, max: 1000 },
             blendMode: 'ADD',
@@ -250,7 +250,7 @@ export class SolarFlareEffect implements IPlanetEffect {
         // Pass container instead of scene for adding emitters?
         // SolarFlare constructor expects Scene.
         // We can pass container as well.
-        const flare = new SolarFlare(this.scene, this.container, localX, localY, angleDeg);
+        const flare = new SolarFlare(this.scene, this.container, localX, localY, angleDeg, scale);
 
         // Set depth (relative to container 0)
         // Planet in overlay is depth 1. So 1.1 is good.
