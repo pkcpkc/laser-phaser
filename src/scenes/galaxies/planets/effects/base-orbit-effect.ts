@@ -94,6 +94,22 @@ export abstract class BaseOrbitEffect implements IPlanetEffect {
         };
     }
 
+    /**
+     * Calculates the target depth for an orbiting object based on its position relative to the planet.
+     * Ensures objects behind the planet are drawn significantly lower than the planet's depth.
+     * 
+     * @param baseDepth The base depth assigned to this effect layer
+     * @param isFront Whether the object is in front of the planet (z > 0)
+     */
+    protected getOrbitDepth(baseDepth: number, isFront: boolean): number {
+        // Planet is usually at depth 50.
+        // Effect layers start around 49, 51, etc.
+        // If front: Keep on top of the base layer -> baseDepth + 1.2
+        // If back: DROPPING IT LOW. -100 ensures it is behind the planet (50) 
+        // regardless of how high the effect stack gets (e.g. effect #5 might be baseDepth ~60).
+        return isFront ? baseDepth + 1.2 : baseDepth - 100;
+    }
+
     public setVisible(_visible: boolean) {
         // To be implemented by subclasses or made abstract if needed.
         // But since this implements IPlanetEffect, we probably need it here

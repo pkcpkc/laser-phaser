@@ -205,9 +205,14 @@ export class SatelliteEffect extends BaseOrbitEffect {
             // Position satellite
             sat.image.setPosition(pos.x, pos.y);
 
-            // Front objects: baseDepth + 2
-            // Back objects: baseDepth
-            const targetDepth = pos.isFront ? this.baseDepth + 2 : this.baseDepth;
+            // Front objects: baseDepth + 1.2 (via getOrbitDepth)
+            // Back objects: baseDepth - 100 (via getOrbitDepth)
+            const targetDepth = this.getOrbitDepth(this.baseDepth, pos.isFront);
+
+            // For satellites, we might want slightly more nuance if we want to layer *among* satellites,
+            // but the main issue is planet occlusion. 
+            // Let's stick to the base helper for now to fix the bug.
+
             sat.image.setDepth(targetDepth);
             if (sat.trail) sat.trail.setDepth(targetDepth - 0.05);
 

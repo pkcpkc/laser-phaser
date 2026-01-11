@@ -1,15 +1,8 @@
 import type { LevelConfig } from './level';
 import { DiamondFormation } from '../formations/diamond-formation';
-// New imports
 import { LineFormation } from '../formations/line-formation';
 import { SinusTactic } from '../tactics/sinus-tactic';
-import { LinearTactic } from '../tactics/linear-tactic';
-
 import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
-import { BloodFighterBigRedLaserConfig } from '../../../ships/configurations/blood-fighter-big-red-laser';
-import { BloodBomberBloodRocketConfig } from '../../../ships/configurations/blood-bomber-blood-rocket';
-
-
 
 export const BloodHuntersLevel: LevelConfig = {
     name: 'Blood Hunters',
@@ -46,14 +39,14 @@ export const BloodHuntersLevel: LevelConfig = {
     [{
         tacticType: SinusTactic,
         tacticConfig: {
-            amplitude: 50,
+            amplitude: 60,
             frequency: 0.002
         },
         formationType: LineFormation,
         shipConfigs: [BloodHunterRedLaserConfig],
         config: {
             enemyCount: 4,
-            spacing: 100,
+            spacing: 90,
             verticalOffset: 60,
             spawnY: -200
         }
@@ -63,30 +56,56 @@ export const BloodHuntersLevel: LevelConfig = {
         {
             tacticType: SinusTactic,
             tacticConfig: {
-                amplitude: 50,
+                amplitude: 70,
                 frequency: 0.002
             },
             formationType: LineFormation,
             shipConfigs: [BloodHunterRedLaserConfig],
             config: {
                 enemyCount: 5,
-                spacing: 100,
+                spacing: 80,
                 verticalOffset: 60,
                 spawnY: -200
             }
-        },
-        // Diamond Formation Center (Linear Travel)
+        }
+    ],
+    [
+        // Diamond Formation (1, 2) with Sinus Tactic
         {
-            tacticType: LinearTactic,
-            tacticConfig: {}, // Angle auto-calculated
+            tacticType: SinusTactic,
+            tacticConfig: {
+                amplitude: 40,
+                frequency: 0.0015
+            },
             formationType: DiamondFormation,
-            shipConfigs: [BloodFighterBigRedLaserConfig],
+            shipConfigs: [BloodHunterRedLaserConfig],
             startDelay: 1000,
             config: {
-                startWidthPercentage: 0.25,
-                endWidthPercentage: 0.5,
+                startWidthPercentage: 0.3,
+                endWidthPercentage: 0.7,
                 formationGrid: [1, 2],
-                spacing: 90,
+                spacing: 100,
+                verticalSpacing: 70,
+                continuousFire: true,
+                shootingChance: 0.8
+            }
+        }
+    ],
+    [
+        // Larger Diamond Formation (1, 2) with Sinus Tactic
+        {
+            tacticType: SinusTactic,
+            tacticConfig: {
+                amplitude: 40,
+                frequency: 0.0015
+            },
+            formationType: DiamondFormation,
+            shipConfigs: [BloodHunterRedLaserConfig],
+            config: {
+                startWidthPercentage: 0.2,
+                endWidthPercentage: 0.8,
+                formationGrid: [1, 2],
+                spacing: 100,
                 verticalSpacing: 70,
                 continuousFire: true,
                 shootingChance: 1.0
@@ -94,35 +113,39 @@ export const BloodHuntersLevel: LevelConfig = {
         }
     ],
     [
-        // Bomber Formation
+        // Final Wave: Mulitple Diamond Formations (Left and Right)
         {
-            tacticType: LinearTactic,
-            tacticConfig: {}, // Angle auto-calculated
+            tacticType: SinusTactic,
+            tacticConfig: {
+                amplitude: 30,
+                frequency: 0.0015
+            },
             formationType: DiamondFormation,
-            shipConfigs: [BloodBomberBloodRocketConfig],
+            shipConfigs: [BloodHunterRedLaserConfig],
             config: {
-                startWidthPercentage: 0.2,
-                endWidthPercentage: 0.8,
-                formationGrid: [2, 3],
-                spacing: 100,
-                verticalSpacing: 80,
+                startWidthPercentage: 0.25,
+                endWidthPercentage: 0.25,
+                formationGrid: [1, 2],
+                spacing: 80,
+                verticalSpacing: 60,
                 continuousFire: true,
-                shotDelay: { min: 0, max: 100 } // Allow weapon rate (500-1500) to control firing
+                shootingChance: 1.0
             }
-        }
-    ],
-    [
-        // Diamond Formation Left (Linear Travel)
+        },
         {
-            tacticType: LinearTactic,
-            tacticConfig: {}, // Angle auto-calculated
+            tacticType: SinusTactic,
+            tacticConfig: {
+                amplitude: 30,
+                frequency: 0.0015
+            },
             formationType: DiamondFormation,
-            shipConfigs: [BloodFighterBigRedLaserConfig],
+            shipConfigs: [BloodHunterRedLaserConfig],
             config: {
                 startWidthPercentage: 0.75,
-                endWidthPercentage: 0.5,
-                formationGrid: [1, 3],
-                verticalSpacing: 70,
+                endWidthPercentage: 0.75,
+                formationGrid: [1, 2],
+                spacing: 80,
+                verticalSpacing: 60,
                 continuousFire: true,
                 shootingChance: 1.0
             }

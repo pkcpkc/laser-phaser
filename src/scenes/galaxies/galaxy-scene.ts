@@ -31,11 +31,8 @@ export default class GalaxyScene extends Phaser.Scene {
         super('GalaxyScene');
     }
 
-    init(data: { galaxyId?: string, planetId?: string, autoLaunchPlanetId?: string, victory?: boolean, autoStart?: boolean }) {
-        if (data?.autoLaunchPlanetId) {
-            this.registry.set('initialPlanetId', data.autoLaunchPlanetId);
-            this.autoStartLevel = true;
-        } else if (data?.planetId) {
+    init(data: { galaxyId?: string, planetId?: string, victory?: boolean, autoStart?: boolean }) {
+        if (data?.planetId) {
             this.registry.set('initialPlanetId', data.planetId);
             this.autoStartLevel = data.autoStart ?? false;
         }

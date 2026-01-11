@@ -320,10 +320,6 @@ describe('GalaxyScene', () => {
             expect((scene as any).autoStartLevel).toBe(false);
         });
 
-        it('handles autoLaunchPlanetId correctly', () => {
-            scene.init({ autoLaunchPlanetId: 'launch-planet' });
-            expect((scene as any).registry.set).toHaveBeenCalledWith('initialPlanetId', 'launch-planet');
-            expect((scene as any).autoStartLevel).toBe(true);
-        });
+
     });
 });

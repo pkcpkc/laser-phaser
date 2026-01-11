@@ -227,7 +227,7 @@ describe('PreloadScene', () => {
         const callback = mockTime.delayedCall.mock.calls[0][1];
         callback();
 
-        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', autoLaunchPlanetId: null });
+        expect(mockScenePlugin.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: 'test-galaxy', planetId: null, autoStart: false });
 
         // Restore window.location
         (window as any).location = originalLocation;

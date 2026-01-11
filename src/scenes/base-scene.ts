@@ -88,16 +88,9 @@ export default class BaseScene extends Phaser.Scene {
 
     protected createPlayerShip() {
         const { width, height } = this.scale;
-        const categories = this.collisionManager.getCategories();
 
-        const collisionConfig = {
-            category: categories.shipCategory,
-            collidesWith: categories.enemyCategory | categories.enemyLaserCategory | categories.lootCategory | categories.wallCategory,
-            laserCategory: categories.laserCategory,
-            laserCollidesWith: categories.enemyCategory,
-            lootCategory: categories.lootCategory,
-            lootCollidesWith: categories.shipCategory
-        };
+
+        const collisionConfig = this.getShipCollisionConfig();
 
 
         const validConfig = this.registry.get('playerShipConfig') as ShipConfig || BigCruiserWhiteLaserConfig;

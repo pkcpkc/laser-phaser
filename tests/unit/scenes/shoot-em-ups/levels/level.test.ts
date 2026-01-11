@@ -265,9 +265,36 @@ describe('Level', () => {
         level.update(0, 0);
         expect(tactic1.destroy).toHaveBeenCalled();
 
+        // Advance timers to trigger deferred spawn
+        vi.advanceTimersByTime(0);
+
         // Trigger next loop
         level.update(0, 0);
 
         expect(MockTactic.instances.length).toBe(2);
+    });
+    it('should log wave completion', () => {
+        const consoleSpy = vi.spyOn(console, 'log');
+        class MockFormationType1 extends MockFormation { }
+
+        const config: LevelConfig = {
+            name: 'Test Level',
+            formations: [
+                [{ formationType: MockFormationType1, tacticType: MockTactic as any }]
+            ]
+        };
+
+        const level = new Level(mockScene, config, mockCollisionConfig);
+        level.start();
+
+        // Advance timers to trigger deferred spawn
+        vi.advanceTimersByTime(0);
+
+        // Complete the tactic
+        const tactic1 = MockTactic.instances[0];
+        (tactic1.isComplete as any).mockReturnValue(true);
+        level.update(0, 0);
+
+        expect(consoleSpy).toHaveBeenCalledWith('Wave 1 done');
     });
 });

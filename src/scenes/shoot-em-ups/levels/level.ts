@@ -171,6 +171,7 @@ export class Level {
 
         // If no active runners, spawn next step
         if (this.activeRunners.length === 0 && !this.isLevelComplete) {
+            console.log(`Wave ${this.currentStepIndex} done`);
             this.spawnNextStep();
         }
     }

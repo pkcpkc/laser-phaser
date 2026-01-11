@@ -135,6 +135,38 @@ To define the rotation (angle) of a marker, place a **Red Pixel** (`#FF0000`) ad
 
 ![Module Color Palette](./module-color-palette.png)
 
+
+## Game Mechanics
+
+This section details the internal calculations for ship physics and weapon characteristics.
+
+### Ship Physics
+
+The ship's movement is driven by a physics simulation (Matter.js) rather than direct position updates.
+
+*   **Mass**: Defined in the ship's configuration (`physics.mass`). Defaults to `1` if not specified.
+*   **Thrust**: The sum of the `thrust` value of all active **Drive** modules.
+    *   *Diminishing Returns*: If a ship has more than one drive, the total acceleration is multiplied by `0.7` to prevent linear scaling overpower.
+*   **Acceleration**: Calculated as `Total Thrust / Mass`.
+*   **Max Speed**: Determined by air friction. `Max Speed = Acceleration / FrictionAir`.
+    *   `FrictionAir` defaults to `0.01` in the physics config.
+    *   This means a ship will naturally cap its speed when the drag force equals the thrust force.
+
+### Weapon Mechanics
+
+Weapon behavior is determined by the installed modules (Lasers, Rockets).
+
+*   **Firing Rate**: Controlled by the `reloadTime` property (in milliseconds) of the weapon module.
+    *   `Shots Per Second = 1000 / reloadTime`.
+    *   Example: A `reloadTime` of `200ms` results in 5 shots per second.
+*   **Ammo Consumption**:
+    *   Weapons check `currentAmmo` before firing.
+    *   If `currentAmmo` reaches 0, the weapon stops firing until replenished.
+    *   *Exceptions*: Enemies and the Player in `godMode` (or with `unlimitedAmmo` config) have infinite ammo.
+*   **Recoil**: Some powerful weapons apply a reverse force (`recoil`) to the ship when fired, pushing it backward.
+*   **Custom Behaviors**: Individual weapons can override default behavior.
+    *   Example: The **Big Red Laser** adds a random delay (0-100ms) to each shot to simulate inaccuracy/jitter.
+
 ## Asset Pipeline & Tooling
 
 We use a custom asset pipeline and various tools to optimize game performance and help with asset creation:
@@ -174,8 +206,8 @@ You can append these parameters to the URL (e.g., `http://localhost:5173/?galaxy
 | Parameter | Value | Description |
 | :--- | :--- | :--- |
 | `galaxyId` | `[string]` | Skips the wormhole and starts directly in the specified galaxy (e.g., `blood-hunters-galaxy`). |
-| `autoLaunchPlanetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet (must exist in galaxy) and **launches its assigned level automatically**. Example: `?galaxyId=demo-galaxy&autoLaunchPlanetId=astra`. |
-| `autoLaunchPlanetId` | `ship-debug` | **Ship Debug Level**: Special value (requires `galaxyId=demo-galaxy`) to launch the ship debugging asteroid field. |
+| `planetId` | `[string]` | Requires `galaxyId`. Starts directly at the specified planet (must exist in galaxy) and **launches its assigned level automatically**. Example: `?galaxyId=demo-galaxy&planetId=astra`. |
+| `planetId` | `ship-debug` | **Ship Debug Level**: Special value (requires `galaxyId=demo-galaxy`) to launch the ship debugging asteroid field. |
 | `godMode` | `true` | Disables collision detection for the player ship (except Loot). |
 | `locale` | `en`, `de`, `fr`, etc. | Forces the game to load in the specified locale. |
 | `debug` | `planet-effects` | Launches the **Planet Effects Debug Scene** for inspecting procedurally generated planets and effects in isolation. |

@@ -156,11 +156,11 @@ export class MiniMoonEffect extends BaseOrbitEffect {
         this.miniMoon.angle += 2.0;
 
         // Depth sorting
-        // Front: 1.2 (Above Planet at 1.0)
-        // Back: 0.5 (Behind Planet at 1.0 and Overlay at 0.9)
-        const baseDepth = pos.isFront ? 1.2 : 0.5;
-        this.miniMoon.setDepth(this.baseDepth + baseDepth);
-        this.trail.setDepth(this.baseDepth + (pos.isFront ? 1.15 : 0.45));
+        // Depth sorting
+        const targetDepth = this.getOrbitDepth(this.baseDepth, pos.isFront);
+        this.miniMoon.setDepth(targetDepth);
+        // Trail slightly behind moon
+        this.trail.setDepth(targetDepth - 0.05);
 
         // Alpha / Brightness - Dim when behind
         const baseAlpha = pos.isFront ? 1.0 : 0.6;

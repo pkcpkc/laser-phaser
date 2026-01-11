@@ -14,7 +14,7 @@ export class BloodRocket extends BaseRocket {
     readonly reloadTime = 2000;
     readonly firingDelay = { min: 500, max: 1500 };
 
-    readonly damage = 20;
+    readonly damage = 15;
 
     readonly maxAmmo = 20;
 

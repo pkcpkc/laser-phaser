@@ -80,7 +80,12 @@ export class AsteroidFieldFormation extends BaseFormation {
                 ...baseConfig,
                 definition: {
                     ...baseConfig.definition,
-                    assetKey: `${baseConfig.definition.id}-texture-${Phaser.Math.Between(0, 4)}`
+                    assetKey: `${baseConfig.definition.id}-texture-${Phaser.Math.Between(0, 4)}`,
+                    physics: {
+                        ...baseConfig.definition.physics,
+                        // Randomize mass by +/- 15% to create speed variation
+                        mass: (baseConfig.definition.physics.mass || 1) * Phaser.Math.FloatBetween(0.85, 1.15)
+                    }
                 }
             };
 
@@ -107,7 +112,7 @@ export class AsteroidFieldFormation extends BaseFormation {
 
             this.enemies.push({
                 ship,
-                spawnTime: this.scene.time.now,
+                spawnTime: this.scene.time.now + Phaser.Math.Between(100, 400), // Add random delay to break up lines
                 startX: x,
                 startY: y
             });

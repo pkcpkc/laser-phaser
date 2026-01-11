@@ -135,6 +135,7 @@ describe('BaseScene', () => {
             setAngle: vi.fn(),
         },
         explode: vi.fn(),
+        destroy: vi.fn(),
     };
 
     beforeEach(() => {
@@ -291,6 +292,10 @@ describe('BaseScene', () => {
     });
     it('should recreate player ship', () => {
         scene.create();
+
+        // Simulating that Ship is now bound
+        (container.isBound as any).mockReturnValue(true);
+
         const oldShip = (scene as any).ship;
         const oldShipDestroySpy = vi.spyOn(oldShip, 'destroy');
 

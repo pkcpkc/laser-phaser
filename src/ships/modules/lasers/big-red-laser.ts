@@ -6,7 +6,7 @@ export class BigRedLaser extends BaseLaser {
     readonly TEXTURE_KEY = 'big-red-laser';
     readonly COLOR = 0xff0000;
     readonly SPEED = 5;
-    readonly damage = 40;
+    readonly damage = 10;
     readonly width = 4;
     readonly height = 4;
     readonly reloadTime = 300; // Slow but powerful

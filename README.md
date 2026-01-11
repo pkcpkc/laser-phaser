@@ -20,7 +20,6 @@ Experience the transition from hand-drawn imagination to high-tech digital asset
 | ![Blood Boss](./artwork/blood-boss.jpeg) | ![Blood Boss Generated](./artwork/generated/blood-boss.jpeg) |
 | ![Blood Fighter](./artwork/blood-fighter.jpeg) | ![Blood Fighter Generated](./artwork/generated/blood-fighter.jpeg) |
 | ![Blood Hunter](./artwork/blood-hunter.jpeg) | ![Blood Hunter Generated](./artwork/generated/blood-hunter.jpeg) |
-| ![Green Alien](./artwork/green-alien.jpeg) | ![Green Alien Generated](./artwork/generated/green-alien.png) |
 
 ## 🕹️ A Love Letter to the 80s
 
