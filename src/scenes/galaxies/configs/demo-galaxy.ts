@@ -120,7 +120,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             visualScale: 1,
             hidden: false,
             interaction: {
-                levelId: 'blood-hunters-level',
+                levelId: 'targeting-test-level',
                 hasShipyard: true,
                 showAlways: true
             },

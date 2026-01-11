@@ -26,17 +26,21 @@ export class ShipEnemyHandler implements CollisionHandler {
             const enemy = enemyGO as Phaser.Physics.Matter.Image;
 
             let ship: Ship | undefined;
-
-            // Enemy takes damage
             if (enemy.active) {
                 ship = enemy.getData('ship') as Ship;
-                if (ship) {
-                    ship.takeDamage(100); // Massive ramming damage to enemy
-                } else {
-                    TimeUtils.delayedCall(scene, 0, () => {
-                        if (enemy.active) enemy.destroy();
-                    });
-                }
+            }
+
+            // Calculate damage to player FIRST (before enemy takes damage)
+            // Use Math.max(0, ...) to ensure we don't heal the player if enemy is already destroyed/negative
+            const playerDamageFromEnemy = ship ? Math.max(0, ship.currentHealth) * 3 : 30;
+
+            // Enemy takes damage
+            if (ship) {
+                ship.takeDamage(100); // Massive ramming damage to enemy
+            } else {
+                TimeUtils.delayedCall(scene, 0, () => {
+                    if (enemy.active) enemy.destroy();
+                });
             }
 
             // Player takes damage
@@ -44,8 +48,7 @@ export class ShipEnemyHandler implements CollisionHandler {
             if (playerGO && playerGO.active) {
                 const playerShip = playerGO.getData('ship') as Ship;
                 if (playerShip) {
-                    const damage = ship ? ship.currentHealth : 10; // Fallback if enemy has no ship data
-                    playerShip.takeDamage(damage); // Ramming damage based on enemy health
+                    playerShip.takeDamage(playerDamageFromEnemy); // Ramming damage based on enemy health * 3
 
                     if (playerShip.currentHealth <= 0) {
                         this.onGameOver();

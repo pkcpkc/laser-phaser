@@ -5,7 +5,7 @@ import type { ShipConfig } from '../../../ships/types';
 
 export abstract class BaseTactic implements ITactic {
     protected formations: IFormation[] = [];
-    private initData?: {
+    protected initData?: {
         scene: Phaser.Scene,
         formationType: IFormationConstructor,
         formationConfig: any,

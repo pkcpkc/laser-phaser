@@ -40,7 +40,25 @@ export class ShipCombat {
     takeDamage(amount: number): void {
         if (this.isDestroyed || !this.sprite.active) return;
 
+        const oldHealth = this._currentHealth;
         this._currentHealth -= amount;
+
+        const maxHealth = this.definition.gameplay.health;
+        if (maxHealth >= 100) {
+            const oldPercent = (oldHealth / maxHealth) * 100;
+            const newPercent = (this._currentHealth / maxHealth) * 100;
+
+            // Log if we cross a 25% threshold or reach <= 0
+            if (Math.floor(oldPercent / 25) !== Math.floor(newPercent / 25) || this._currentHealth <= 0) {
+                const healthPercent = Math.max(0, newPercent).toFixed(1);
+                console.log(`Ship ${this.definition.id} took ${amount} damage. Health: ${this._currentHealth}/${maxHealth} (${healthPercent}%)`);
+            }
+        } else {
+            // For small ships, maybe log only death?
+            if (this._currentHealth <= 0) {
+                console.log(`Ship ${this.definition.id} destroyed.`);
+            }
+        }
 
         if (this._currentHealth <= 0) {
             this.explode();
@@ -62,51 +80,52 @@ export class ShipCombat {
         if (!this.sprite.active || this.isExploding) return;
         this.isExploding = true;
 
-        // Defer to avoid physics world modification during collision
-        TimeUtils.delayedCall(this.sprite.scene, 0, () => {
-            if (!this.sprite.active) return;
+        // Play explosion effect immediately to ensure visibility
+        const explosionConfig = this.definition.explosion;
+        if (explosionConfig) {
+            try {
+                if (explosionConfig.type === 'dust') {
+                    new DustExplosion(this.sprite.scene, this.sprite.x, this.sprite.y, {
+                        lifespan: explosionConfig.lifespan,
+                        speed: explosionConfig.speed,
+                        scale: explosionConfig.scale,
+                        color: explosionConfig.color,
+                        particleCount: explosionConfig.particleCount,
+                        radius: this.sprite.displayWidth * 0.5
+                    });
+                } else {
+                    new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
+                }
+            } catch (e) {
+                console.error('Failed to play explosion effect:', e);
+            }
+        }
 
-            // Play explosion effect
-            const explosionConfig = this.definition.explosion;
-            if (explosionConfig) {
+        // Spawn loot immediately
+        if (this.lootConfig) {
+            this.lootConfig.forEach(lootItem => {
                 try {
-                    if (explosionConfig.type === 'dust') {
-                        new DustExplosion(this.sprite.scene, this.sprite.x, this.sprite.y, {
-                            lifespan: explosionConfig.lifespan,
-                            speed: explosionConfig.speed,
-                            scale: explosionConfig.scale,
-                            color: explosionConfig.color,
-                            particleCount: explosionConfig.particleCount,
-                            radius: this.sprite.displayWidth * 0.5
-                        });
-                    } else {
-                        new Explosion(this.sprite.scene, this.sprite.x, this.sprite.y, explosionConfig);
+                    const chance = lootItem.dropChance ?? 1;
+                    if (Math.random() <= chance) {
+                        const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
+
+                        if (this.collisionConfig.lootCategory) {
+                            loot.setCollisionCategory(this.collisionConfig.lootCategory);
+                        }
+                        if (this.collisionConfig.lootCollidesWith) {
+                            loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
+                        }
                     }
                 } catch (e) {
-                    console.error('Failed to play explosion effect:', e);
+                    console.error('Failed to spawn loot:', e);
                 }
-            }
+            });
+        }
 
-            // Spawn loot
-            if (this.lootConfig) {
-                this.lootConfig.forEach(lootItem => {
-                    try {
-                        const chance = lootItem.dropChance ?? 1;
-                        if (Math.random() <= chance) {
-                            const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
-
-                            if (this.collisionConfig.lootCategory) {
-                                loot.setCollisionCategory(this.collisionConfig.lootCategory);
-                            }
-                            if (this.collisionConfig.lootCollidesWith) {
-                                loot.setCollidesWith(this.collisionConfig.lootCollidesWith);
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Failed to spawn loot:', e);
-                    }
-                });
-            }
+        // Defer destruction to avoid physics world modification during collision
+        TimeUtils.delayedCall(this.sprite.scene, 0, () => {
+            if (!this.sprite.active && !this.isExploding) return; // Re-check simple active not strictly needed if we are just calling callback, but safe. 
+            // Note: isExploding is true now.
 
             this.isDestroyed = true;
             this.onDeath?.();

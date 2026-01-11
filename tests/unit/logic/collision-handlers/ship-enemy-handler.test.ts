@@ -59,7 +59,7 @@ describe('ShipEnemyHandler', () => {
         const result = handler.handle(mockScene, SHIP_CATEGORY, ENEMY_CATEGORY, mockShipGO, mockEnemy);
 
         expect(result).toBe(true);
-        expect(mockShipData.takeDamage).toHaveBeenCalledWith(80);
+        expect(mockShipData.takeDamage).toHaveBeenCalledWith(240);
         expect(mockOnGameOver).toHaveBeenCalled();
     });
 
@@ -82,5 +82,45 @@ describe('ShipEnemyHandler', () => {
     it('should return false if categories non-matching', () => {
         const result = handler.handle(mockScene, OTHER_CATEGORY, ENEMY_CATEGORY, {} as any, {} as any);
         expect(result).toBe(false);
+    });
+
+    it('should prevent healing if enemy takes fatal damage first', () => {
+        const mockShipData = {
+            takeDamage: vi.fn(),
+            currentHealth: 100
+        };
+        const mockShipGO = {
+            active: true,
+            getData: vi.fn().mockReturnValue(mockShipData)
+        } as unknown as Phaser.GameObjects.GameObject;
+
+        // Enemy with low health that will die from collision
+        let enemyHealth = 10;
+        const mockEnemyShipData = {
+            explode: vi.fn(),
+            // Simulate damage reducing health immediately
+            takeDamage: vi.fn().mockImplementation((amount) => {
+                enemyHealth -= amount;
+            }),
+            get currentHealth() { return enemyHealth; }
+        };
+
+        const mockEnemy = {
+            active: true,
+            getData: vi.fn().mockReturnValue(mockEnemyShipData)
+        } as unknown as Phaser.Physics.Matter.Image;
+
+        const result = handler.handle(mockScene, SHIP_CATEGORY, ENEMY_CATEGORY, mockShipGO, mockEnemy);
+
+        expect(result).toBe(true);
+        // Enemy takes 100 damage, goes to -90
+        expect(mockEnemyShipData.takeDamage).toHaveBeenCalledWith(100);
+        expect(mockEnemyShipData.currentHealth).toBe(-90);
+
+        // Player should take damage based on INITIAL positive health (10 * 3 = 30)
+        // because we calculate player damage before damaging the enemy in the handler now.
+        // OR if we rely on the fix that uses Math.max(0, current), it would be 0 if we did it wrong.
+        // But since we moved the calculation up, it should capture the 10.
+        expect(mockShipData.takeDamage).toHaveBeenCalledWith(30);
     });
 });
