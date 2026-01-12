@@ -40,25 +40,7 @@ export class ShipCombat {
     takeDamage(amount: number): void {
         if (this.isDestroyed || !this.sprite.active) return;
 
-        const oldHealth = this._currentHealth;
         this._currentHealth -= amount;
-
-        const maxHealth = this.definition.gameplay.health;
-        if (maxHealth >= 100) {
-            const oldPercent = (oldHealth / maxHealth) * 100;
-            const newPercent = (this._currentHealth / maxHealth) * 100;
-
-            // Log if we cross a 25% threshold or reach <= 0
-            if (Math.floor(oldPercent / 25) !== Math.floor(newPercent / 25) || this._currentHealth <= 0) {
-                const healthPercent = Math.max(0, newPercent).toFixed(1);
-                console.log(`Ship ${this.definition.id} took ${amount} damage. Health: ${this._currentHealth}/${maxHealth} (${healthPercent}%)`);
-            }
-        } else {
-            // For small ships, maybe log only death?
-            if (this._currentHealth <= 0) {
-                console.log(`Ship ${this.definition.id} destroyed.`);
-            }
-        }
 
         if (this._currentHealth <= 0) {
             this.explode();

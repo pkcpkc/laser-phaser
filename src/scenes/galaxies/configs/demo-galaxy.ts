@@ -120,7 +120,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             visualScale: 1,
             hidden: false,
             interaction: {
-                levelId: 'targeting-test-level',
+                levelId: 'path-tactic-demo-level',
                 hasShipyard: true,
                 showAlways: true
             },

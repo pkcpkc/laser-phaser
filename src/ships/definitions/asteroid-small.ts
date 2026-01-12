@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { ShipDefinition, ShipMarker } from '../types';
 import { AsteroidTexture } from '../textures/asteroid-texture';
+import { AsteroidMorphEffect } from '../effects/asteroid-morph-effect';
 
 
 // Standard drive marker for all asteroids (center position, pointing down)
@@ -19,7 +20,15 @@ export const SmallAsteroidDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 10
+        mass: 10,
+        massRange: { min: 8.5, max: 11.5 },
+        initialAngle: 90
+    },
+    randomizeAssetKey: (_scene: Phaser.Scene) => {
+        return `asteroid-small-texture-${Phaser.Math.Between(0, 4)}`;
+    },
+    createEffect: (scene: Phaser.Scene, ship: any) => {
+        return new AsteroidMorphEffect(scene, ship.sprite, 'asteroid-small-surface', 15, 5);
     },
     gameplay: {
         health: 5,

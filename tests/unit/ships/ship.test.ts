@@ -14,7 +14,7 @@ vi.mock('phaser', () => {
                         setAngle = vi.fn();
                         setFixedRotation = vi.fn();
                         setFrictionAir = vi.fn();
-                        setMass = vi.fn();
+                        setMass = vi.fn().mockImplementation((val) => { if (this.body) this.body.mass = val; });
                         setSleepThreshold = vi.fn();
                         setCollisionCategory = vi.fn();
                         setCollidesWith = vi.fn();
@@ -38,7 +38,7 @@ vi.mock('phaser', () => {
                         once = vi.fn();
                         setTint = vi.fn();
                         clearTint = vi.fn();
-                        body = { velocity: { x: 0, y: 0 } };
+                        body = { velocity: { x: 0, y: 0 }, mass: 1 };
                     },
                     Sprite: class { // Added Sprite
                         setAngle = vi.fn();
@@ -64,6 +64,10 @@ vi.mock('phaser', () => {
                         setVelocity = vi.fn();
                     }
                 }
+            },
+            Math: {
+                DegToRad: (deg: number) => deg * (Math.PI / 180),
+                FloatBetween: (min: number, max: number) => min + Math.random() * (max - min)
             }
         }
     };
@@ -127,6 +131,17 @@ describe('Ship', () => {
                         explode: vi.fn()
                     }),
                     setDepth: vi.fn(),
+                    destroy: vi.fn()
+                }),
+                graphics: vi.fn().mockReturnValue({
+                    setDepth: vi.fn(),
+                    setPosition: vi.fn(),
+                    setAlpha: vi.fn(),
+                    clear: vi.fn(),
+                    lineStyle: vi.fn(),
+                    beginPath: vi.fn(),
+                    arc: vi.fn(),
+                    strokePath: vi.fn(),
                     destroy: vi.fn()
                 })
             },

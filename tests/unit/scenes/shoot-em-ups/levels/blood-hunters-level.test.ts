@@ -16,10 +16,10 @@ vi.mock('phaser', () => {
 
 import { BloodHuntersLevel } from '../../../../../src/scenes/shoot-em-ups/levels/blood-hunters-level.ts';
 import { DiamondFormation } from '../../../../../src/scenes/shoot-em-ups/formations/diamond-formation';
-import { LineFormation } from '../../../../../src/scenes/shoot-em-ups/formations/line-formation.ts';
+
 import { BloodHunterRedLaserConfig } from '../../../../../src/ships/configurations/blood-hunter-red-laser';
-import { BloodBomberBloodRocketConfig } from '../../../../../src/ships/configurations/blood-bomber-blood-rocket';
-import { BloodFighterBigRedLaserConfig } from '../../../../../src/ships/configurations/blood-fighter-big-red-laser';
+
+
 
 describe('BloodHuntersLevel', () => {
     it('should have correct name', () => {
@@ -27,38 +27,30 @@ describe('BloodHuntersLevel', () => {
     });
 
     it('should have valid formations', () => {
-        expect(BloodHuntersLevel.formations).toHaveLength(6);
+        expect(BloodHuntersLevel.formations).toHaveLength(7);
 
-        // First step: Sinus (LineFormation) - 2 enemies
+        // First step: (DiamondFormation) - 2 enemies
         const step1 = BloodHuntersLevel.formations[0];
-        expect(step1[0].formationType).toBe(LineFormation);
+        expect(step1[0].formationType).toBe(DiamondFormation);
         if (step1[0].shipConfigs) {
             expect(step1[0].shipConfigs[0]).toBe(BloodHunterRedLaserConfig);
         }
 
-        // Fourth step has LineFormation + DiamondFormation (Fighter)
+        // Fourth step: Diamond [5]
         const step4 = BloodHuntersLevel.formations[3];
-        expect(step4[0].formationType).toBe(LineFormation);
-        expect(step4[1].formationType).toBe(DiamondFormation);
-        if (step4[1].shipConfigs) {
-            expect(step4[1].shipConfigs[0]).toBe(BloodFighterBigRedLaserConfig);
-        }
+        expect(step4[0].formationType).toBe(DiamondFormation);
+        expect(step4[0].config?.formationGrid).toEqual([5]);
 
-        // Fifth step: Bomber Formation
+        // Fifth step: Diamond [1, 2]
         const step5 = BloodHuntersLevel.formations[4];
-        expect(step5).toBeDefined();
-        if (step5[0].shipConfigs) {
-            expect(step5[0].shipConfigs[0]).toBe(BloodBomberBloodRocketConfig);
-        }
-        // Verify shooting config
-        const bomberConfig = step5[0].config;
-        expect(bomberConfig?.continuousFire).toBe(true);
-        expect(bomberConfig?.shotDelay).toEqual({ min: 0, max: 100 });
+        expect(step5[0].formationType).toBe(DiamondFormation);
+        expect(step5[0].config?.formationGrid).toEqual([1, 2]);
 
-
-        // Sixth step: DiamondFormation
-        const step6 = BloodHuntersLevel.formations[5];
-        expect(step6[0].formationType).toBe(DiamondFormation);
+        // last step: 2 formations
+        const lastStep = BloodHuntersLevel.formations[6];
+        expect(lastStep).toHaveLength(2);
+        expect(lastStep[0].formationType).toBe(DiamondFormation);
+        expect(lastStep[1].formationType).toBe(DiamondFormation);
     });
 
 

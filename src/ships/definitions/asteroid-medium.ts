@@ -1,5 +1,6 @@
 import type { ShipDefinition, ShipMarker } from '../types';
 import { AsteroidTexture } from '../textures/asteroid-texture';
+import { AsteroidMorphEffect } from '../effects/asteroid-morph-effect';
 
 // Debug comment to force update
 const mediumMarker: ShipMarker = {
@@ -17,7 +18,15 @@ export const MediumAsteroidDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 13
+        mass: 13,
+        massRange: { min: 11, max: 15 },
+        initialAngle: 90
+    },
+    randomizeAssetKey: (_scene: Phaser.Scene) => {
+        return `asteroid-medium-texture-${Phaser.Math.Between(0, 4)}`;
+    },
+    createEffect: (scene: Phaser.Scene, ship: any) => {
+        return new AsteroidMorphEffect(scene, ship.sprite, 'asteroid-medium-surface', 20, 5);
     },
     gameplay: {
         health: 15,

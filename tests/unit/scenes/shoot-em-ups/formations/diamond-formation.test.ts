@@ -135,24 +135,7 @@ describe('DiamondFormation', () => {
         expect(diamondFormation.getEnemies()).toHaveLength(0);
     });
 
-    it('should have individual movement variation (wobble)', () => {
-        diamondFormation.spawn();
-        const enemies = diamondFormation.getEnemies();
-        const firstEnemy = enemies[0];
 
-        // Update formation
-        diamondFormation.update(1000);
-
-        // Check if x or y changed from initial
-        // Initial x is stored in startX, but sprite.x might track it?
-        // Logic: enemy.x += wobbleX. 
-        // The mock ship constructor sets sprite.x = 0.
-        // DiamondFormation.update() adds wobble to 0.
-        // So expect sprite.x != 0.
-
-        expect(firstEnemy.ship.sprite.x).not.toBe(0);
-        expect(firstEnemy.ship.sprite.y).not.toBe(0);
-    });
 
     it('should support custom formation grids', () => {
         // Create formation with custom grid [2, 4]

@@ -1,6 +1,6 @@
 import type { LevelConfig } from './level';
 import { DiamondFormation } from '../formations/diamond-formation';
-import { LineFormation } from '../formations/line-formation';
+
 import { SinusTactic } from '../tactics/sinus-tactic';
 import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
 
@@ -12,13 +12,19 @@ export const BloodHuntersLevel: LevelConfig = {
             amplitude: 50,
             frequency: 0.002
         },
-        formationType: LineFormation,
+        formationType: DiamondFormation,
         shipConfigs: [BloodHunterRedLaserConfig],
         config: {
-            enemyCount: 2,
+            formationGrid: [2],
             spacing: 100,
-            verticalOffset: 60,
-            spawnY: -200
+            spawnY: -200 // DiamondFormation uses spawnY in config? No, it uses SPAWN_Y constant? 
+            // Wait, DiamondFormation hardcodes SPAWN_Y = -200. LineFormation used config.
+            // But LineFormation default was -200 too.
+            // DiamondFormation config doesn't list spawnY. It's Hardcoded.
+            // I should verify if I can change spawnY in DiamondFormation or if I rely on it.
+            // DiamondFormation ts: const SPAWN_Y = -200;
+            // It does NOT accept spawnY in config.
+            // If the usage relied on `spawnY: -200`, we are fine.
         }
     }],
     [{
@@ -27,13 +33,11 @@ export const BloodHuntersLevel: LevelConfig = {
             amplitude: 50,
             frequency: 0.002
         },
-        formationType: LineFormation,
+        formationType: DiamondFormation,
         shipConfigs: [BloodHunterRedLaserConfig],
         config: {
-            enemyCount: 3,
-            spacing: 100,
-            verticalOffset: 60,
-            spawnY: -200
+            formationGrid: [3],
+            spacing: 100
         }
     }],
     [{
@@ -42,13 +46,11 @@ export const BloodHuntersLevel: LevelConfig = {
             amplitude: 60,
             frequency: 0.002
         },
-        formationType: LineFormation,
+        formationType: DiamondFormation,
         shipConfigs: [BloodHunterRedLaserConfig],
         config: {
-            enemyCount: 4,
-            spacing: 90,
-            verticalOffset: 60,
-            spawnY: -200
+            formationGrid: [4],
+            spacing: 90
         }
     }],
     [
@@ -59,13 +61,11 @@ export const BloodHuntersLevel: LevelConfig = {
                 amplitude: 70,
                 frequency: 0.002
             },
-            formationType: LineFormation,
+            formationType: DiamondFormation,
             shipConfigs: [BloodHunterRedLaserConfig],
             config: {
-                enemyCount: 5,
-                spacing: 80,
-                verticalOffset: 60,
-                spawnY: -200
+                formationGrid: [5],
+                spacing: 80
             }
         }
     ],

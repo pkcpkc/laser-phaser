@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IntroAsteroidLevel } from '../../../../../src/scenes/shoot-em-ups/levels/intro-asteroid-level';
-import { AsteroidFieldFormation } from '../../../../../src/scenes/shoot-em-ups/formations/asteroid-field-formation';
+import { SingleShipFormation } from '../../../../../src/scenes/shoot-em-ups/formations/single-ship-formation';
 
 vi.mock('phaser', () => ({
     default: {
@@ -30,20 +30,23 @@ describe('IntroAsteroidLevel', () => {
     it('should use AsteroidFieldFormation for all waves', () => {
         IntroAsteroidLevel.formations.forEach(wave => {
             wave.forEach(formation => {
-                expect(formation.formationType).toBe(AsteroidFieldFormation);
+                expect(formation.formationType).toBe(SingleShipFormation);
             });
         });
     });
 
     it('should configure wave 1 (warmup) correctly', () => {
-        const wave = IntroAsteroidLevel.formations[0][0];
-        expect(wave.config.count).toBe(1);
+        const wave = IntroAsteroidLevel.formations[0];
+        expect(wave).toHaveLength(1);
+        expect(wave[0].shipConfigs).toHaveLength(1);
+        expect(wave[0].formationType).toBe(SingleShipFormation);
     });
 
     it('should configure wave 7 (chaos) correctly', () => {
-        const wave = IntroAsteroidLevel.formations[6][0];
-        expect(wave.config.count).toBe(35);
-        expect(wave.startDelay).toBe(600);
+        const wave = IntroAsteroidLevel.formations[6];
+        expect(wave).toHaveLength(35); // Now array of 35 formations
+        expect(wave[0].formationType).toBe(SingleShipFormation);
+        expect(wave[0].startDelay).toBe(600);
     });
 
     it('should decrease start delay for later waves', () => {

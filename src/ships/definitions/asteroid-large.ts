@@ -1,5 +1,6 @@
 import type { ShipDefinition, ShipMarker } from '../types';
 import { AsteroidTexture } from '../textures/asteroid-texture';
+import { AsteroidMorphEffect } from '../effects/asteroid-morph-effect';
 
 const largeMarker: ShipMarker = {
     type: 'drive',
@@ -16,7 +17,15 @@ export const LargeAsteroidDefinition: ShipDefinition = {
     physics: {
         frictionAir: 0.05,
         fixedRotation: false,
-        mass: 20
+        mass: 20,
+        massRange: { min: 17, max: 23 },
+        initialAngle: 90
+    },
+    randomizeAssetKey: (_scene: Phaser.Scene) => {
+        return `asteroid-large-texture-${Phaser.Math.Between(0, 4)}`;
+    },
+    createEffect: (scene: Phaser.Scene, ship: any) => {
+        return new AsteroidMorphEffect(scene, ship.sprite, 'asteroid-large-surface', 32, 5);
     },
     gameplay: {
         health: 30,

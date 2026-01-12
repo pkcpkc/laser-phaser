@@ -1,7 +1,10 @@
 import type { Laser } from './modules/lasers/types';
+import type { IShip } from '../di/interfaces/ship';
+import type { ShipEffect } from './effects/types';
 
 export interface ShipPhysicsConfig {
     mass?: number;
+    massRange?: { min: number; max: number };
     frictionAir?: number;
     fixedRotation?: boolean;
     initialAngle?: number;
@@ -65,6 +68,10 @@ export interface ShipDefinition {
     frame?: string;
     // Optional: Procedurally create textures for this ship
     createTextures?: (scene: Phaser.Scene) => void;
+    // Optional: Create visual effect for this ship
+    createEffect?: (scene: Phaser.Scene, ship: IShip) => ShipEffect;
+    // Optional: Randomize asset key (e.g. for texture variations)
+    randomizeAssetKey?: (scene: Phaser.Scene) => string;
 }
 
 /**

@@ -3,6 +3,7 @@ import type { IShip } from '../di/interfaces/ship';
 import Phaser from 'phaser';
 import type { Drive } from './modules/drives/types';
 import type { ShipEffect } from './effects/types';
+import { HealthIndicator } from './health-indicator';
 import { ModuleManager } from './module-manager';
 import { ShipCombat } from './ship-combat';
 import type { ShipConfig, ShipCollisionConfig } from './types';
@@ -20,6 +21,7 @@ export class Ship implements IShip {
     private hasEnteredScreen: boolean = false;
     private originalCollidesWith: number = 0;
     private isDestroyed = false;
+    private healthIndicator?: HealthIndicator;
 
     constructor(
         scene: Phaser.Scene,
@@ -28,15 +30,20 @@ export class Ship implements IShip {
         public readonly config: ShipConfig,
         collisionConfig: ShipCollisionConfig
     ) {
+        // Determine texture
+        const assetKey = config.definition.randomizeAssetKey
+            ? config.definition.randomizeAssetKey(scene)
+            : config.definition.assetKey;
+
         // Validate texture
-        if (!scene.textures.exists(config.definition.assetKey)) {
-            console.error(`Ship ${config.definition.id}: Texture '${config.definition.assetKey}' not found!`);
-        } else if (config.definition.frame && !scene.textures.get(config.definition.assetKey).has(config.definition.frame)) {
-            console.error(`Ship ${config.definition.id}: Frame '${config.definition.frame}' not found in texture '${config.definition.assetKey}'!`);
+        if (!scene.textures.exists(assetKey)) {
+            console.error(`Ship ${config.definition.id}: Texture '${assetKey}' not found!`);
+        } else if (config.definition.frame && !scene.textures.get(assetKey).has(config.definition.frame)) {
+            console.error(`Ship ${config.definition.id}: Frame '${config.definition.frame}' not found in texture '${assetKey}'!`);
         }
 
         // Create sprite
-        this.sprite = scene.matter.add.image(x, y, config.definition.assetKey, config.definition.frame);
+        this.sprite = scene.matter.add.image(x, y, assetKey, config.definition.frame);
         this.sprite.setData('ship', this);
 
         // Apply physics config
@@ -44,7 +51,12 @@ export class Ship implements IShip {
         this.sprite.setAngle(phys.initialAngle || 0);
         if (phys.fixedRotation) this.sprite.setFixedRotation();
         if (phys.frictionAir !== undefined) this.sprite.setFrictionAir(phys.frictionAir);
-        if (phys.mass) this.sprite.setMass(phys.mass);
+        if (phys.massRange) {
+            const mass = Phaser.Math.FloatBetween(phys.massRange.min, phys.massRange.max);
+            this.sprite.setMass(mass);
+        } else if (phys.mass) {
+            this.sprite.setMass(phys.mass);
+        }
         this.sprite.setSleepThreshold(-1);
 
         if (this.mass) {
@@ -107,6 +119,20 @@ export class Ship implements IShip {
 
         // Cleanup on destroy
         this.sprite.once('destroy', () => this.destroy());
+
+        // Create effect if defined
+        if (config.definition.createEffect) {
+            this.setEffect(config.definition.createEffect(scene, this));
+        }
+
+        // Health bar initialization
+        const isPlayer = !collisionConfig.isEnemy;
+        const maxHealth = config.definition.gameplay.health;
+        // Always show for player, or if maxHealth >= 100
+        if (isPlayer || maxHealth >= 100) {
+            this.healthIndicator = new HealthIndicator(scene, this.sprite, this.combat, config.definition);
+            this.healthIndicator.redraw();
+        }
     }
 
     // === Delegated Combat Methods ===
@@ -117,6 +143,10 @@ export class Ship implements IShip {
 
     takeDamage(amount: number): void {
         this.combat.takeDamage(amount);
+        if (this.healthIndicator) {
+            this.healthIndicator.onDamage();
+            this.healthIndicator.redraw();
+        }
     }
 
     explode(): void {
@@ -142,6 +172,11 @@ export class Ship implements IShip {
         if (this.isDestroyed) return;
         this.isDestroyed = true;
 
+        if (this.healthIndicator) {
+            this.healthIndicator.destroy();
+            this.healthIndicator = undefined;
+        }
+
         if (this.effect) {
             this.effect.destroy();
             this.effect = undefined;
@@ -158,6 +193,10 @@ export class Ship implements IShip {
     // === Physics Properties ===
 
     get mass(): number {
+        // If mass was randomized on creation, we should rely on the body mass
+        if (this.sprite && this.sprite.body) {
+            return this.sprite.body.mass;
+        }
         return this.config.definition.physics.mass || 1;
     }
 
@@ -187,4 +226,5 @@ export class Ship implements IShip {
         const frictionAir = this.config.definition.physics.frictionAir || 0.01;
         return this.acceleration / frictionAir;
     }
+
 }

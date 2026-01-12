@@ -1,0 +1,250 @@
+import { BaseTactic } from './base-tactic';
+import type { IFormation } from '../formations/types';
+
+export type PathPoint =
+    | [number, number] // Standard coordinate (width%, height%)
+    | { type: 'player', approach: number }; // Target player, approach is 0-1 (percentage of distance)
+
+export interface PathTacticConfig {
+    points?: PathPoint[];
+    faceMovement?: boolean; // Default true
+}
+
+export class PathTactic extends BaseTactic {
+    private config: PathTacticConfig;
+    private currentTargetIndex: number = 0;
+
+    // State
+    private hasStarted: boolean = false;
+    private lastAngle: number = Math.PI / 2;
+    private displacementX: number = 0;
+    private displacementY: number = 0;
+
+    // The "virtual" position of the formation anchor (leader start position) relative to path
+    private currentAnchorX: number = 0;
+    private currentAnchorY: number = 0;
+
+    // Stable reference to the initial anchor position for displacement calculation
+    private originalAnchorX: number | null = null;
+    private originalAnchorY: number | null = null;
+
+    // Cache for resolved target position of the current segment
+    private resolvedTarget: { x: number, y: number } | null = null;
+
+    constructor(config: PathTacticConfig = {}) {
+        super();
+        this.config = config;
+    }
+
+    private resolveTarget(index: number, scene: Phaser.Scene): { x: number, y: number } | null {
+        if (!this.config.points || index >= this.config.points.length) return null;
+
+        const point = this.config.points[index];
+
+        if (Array.isArray(point)) {
+            // [width%, height%]
+            return {
+                x: scene.scale.width * point[0],
+                y: scene.scale.height * point[1]
+            };
+        } else if (typeof point === 'object' && point.type === 'player') {
+            // Target Player
+            const player = (scene as any).ship?.sprite as Phaser.GameObjects.Sprite | undefined;
+            if (player && player.active) {
+                // Determine direction to player
+                const dx = player.x - this.currentAnchorX;
+                const dy = player.y - this.currentAnchorY;
+                // const dist = Math.sqrt(dx * dx + dy * dy); 
+
+
+                // Calculate target point based on approach percentage
+                // If approach is 0.7, we travel 0.7 * dist towards player
+                // Target = current + vector * approach
+                const approach = point.approach ?? 1.0;
+
+                return {
+                    x: this.currentAnchorX + dx * approach,
+                    y: this.currentAnchorY + dy * approach
+                };
+            } else {
+                // Fallback if no player? Down? or Just continue?
+                // Let's assume standard down movement or target center?
+                return {
+                    x: scene.scale.width * 0.5,
+                    y: scene.scale.height + 200 // Exit screen
+                };
+            }
+        }
+        return null;
+    }
+
+    protected updateFormation(formation: IFormation, time: number, delta: number): void {
+        const enemies = formation.getShips();
+        const scene = this.initData?.scene;
+
+        if (!scene) return;
+
+        // 1. Get leader for reference
+        const validEnemies = enemies.filter(e => e.ship && e.ship.sprite);
+        if (validEnemies.length === 0) return;
+
+        const leaderData = validEnemies[0];
+
+        // 2. Initialize State
+        if (!this.hasStarted) {
+            this.hasStarted = true;
+
+            // Resolve 1st point (Start Position)
+            // It MUST be a coordinate, not a Player target (doesn't make sense to start at Player relative?)
+            // Actually, if it is 'player', we spawn relative to player? 
+            // "once a point has reached, the next point..." implies we spawn at point 0.
+            // Let's assume Point 0 is always coordinate for simplicity, or we treat it as spawn pos.
+
+            if (this.config.points && this.config.points.length > 0) {
+                // We treat Index 0 as the spawn point.
+                const startPoint = this.resolveTarget(0, scene);
+                if (startPoint) {
+                    this.currentAnchorX = startPoint.x;
+                    this.currentAnchorY = startPoint.y;
+                }
+
+                // Set target to Index 1
+                this.currentTargetIndex = 1;
+
+                // Resolve Index 1 immediately
+                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene);
+
+                // If we have a target, calculate angle
+                if (this.resolvedTarget) {
+                    this.lastAngle = Phaser.Math.Angle.Between(
+                        this.currentAnchorX,
+                        this.currentAnchorY,
+                        this.resolvedTarget.x,
+                        this.resolvedTarget.y
+                    );
+                } else {
+                    this.lastAngle = Math.PI / 2;
+                }
+            } else {
+                // No points. defined.
+                this.currentAnchorX = (leaderData as any).startX ?? 0;
+                this.currentAnchorY = (leaderData as any).startY ?? -50;
+                this.lastAngle = Math.PI / 2;
+                this.resolvedTarget = null;
+            }
+
+            // Capture the original LEADER start position to calculate displacement consistently,
+            // regardless of which ship is the current leader.
+            this.originalAnchorX = (leaderData as any).startX ?? 0;
+            this.originalAnchorY = (leaderData as any).startY ?? 0;
+        }
+
+        // 3. Move along path
+        const dt = delta / 1000;
+        const rawSpeed = leaderData.ship.maxSpeed || 2;
+        const speedPxPerSec = rawSpeed * 60;
+
+        let targetAngle = this.lastAngle;
+        let distToMove = speedPxPerSec * dt;
+
+        while (distToMove > 0 && this.resolvedTarget) {
+            const dx = this.resolvedTarget.x - this.currentAnchorX;
+            const dy = this.resolvedTarget.y - this.currentAnchorY;
+            const distToTarget = Math.sqrt(dx * dx + dy * dy);
+
+            if (distToTarget < distToMove) {
+                // Reached Target
+                this.currentAnchorX = this.resolvedTarget.x;
+                this.currentAnchorY = this.resolvedTarget.y;
+                distToMove -= distToTarget;
+
+                // Advance Index
+                this.currentTargetIndex++;
+
+                // Resolve Next Target (Dynamic resolution happens HERE)
+                // This ensures "playerShipPosition considered once only"
+                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene);
+
+                if (this.resolvedTarget) {
+                    // Recalculate target angle for NEXT segment
+                    this.lastAngle = Phaser.Math.Angle.Between(
+                        this.currentAnchorX,
+                        this.currentAnchorY,
+                        this.resolvedTarget.x,
+                        this.resolvedTarget.y
+                    );
+                    targetAngle = this.lastAngle;
+                } else {
+                    // End of path.
+                    // Angle remains same (last approach angle).
+                    // distToMove will be applied in "No targets left" block or below loop
+                }
+
+            } else {
+                // Move towards current target
+                targetAngle = Math.atan2(dy, dx);
+                this.lastAngle = targetAngle;
+                // Move
+                this.currentAnchorX += Math.cos(targetAngle) * distToMove;
+                this.currentAnchorY += Math.sin(targetAngle) * distToMove;
+                distToMove = 0; // Consumed all movement
+            }
+        }
+
+        // If distToMove > 0 but no resolvedTarget -> Keep flying in last direction
+        if (distToMove > 0 && !this.resolvedTarget) {
+            this.currentAnchorX += Math.cos(this.lastAngle) * distToMove;
+            this.currentAnchorY += Math.sin(this.lastAngle) * distToMove;
+        }
+
+        // Calculate Displacement relative to ORIGINAL Anchor (Consistently)
+        // Check if originalAnchorX is set (it should be if hasStarted is true, but TS might complain or runtime edge case)
+        const startX = this.originalAnchorX ?? 0;
+        const startY = this.originalAnchorY ?? 0;
+
+        this.displacementX = this.currentAnchorX - startX;
+        this.displacementY = this.currentAnchorY - startY;
+
+        // 4. Apply to enemies
+        const sceneWidth = scene.scale.width;
+        const sceneHeight = scene.scale.height;
+        const buffer = 500;
+
+        for (const enemyData of enemies) {
+            if (!enemyData.ship || !enemyData.ship.sprite || !enemyData.ship.sprite.active) continue;
+            const enemy = enemyData.ship.sprite;
+
+            // Check Spawn Time
+            const elapsed = time - enemyData.spawnTime;
+            if (elapsed < 0) {
+                enemy.setVisible(false);
+                continue;
+            }
+            enemy.setVisible(true);
+
+            // Fire
+            enemyData.ship.fireLasers();
+
+            // Position
+            const eStartX = (enemyData as any).startX ?? enemy.x;
+            const eStartY = (enemyData as any).startY ?? enemy.y;
+
+            enemy.setPosition(eStartX + this.displacementX, eStartY + this.displacementY);
+
+            // Rotation
+            if (this.config.faceMovement !== false) {
+                const currentRot = enemy.rotation;
+                enemy.setRotation(Phaser.Math.Angle.RotateTo(currentRot, this.lastAngle, 3 * dt));
+            }
+            enemy.setVelocity(0, 0);
+
+            // Cleanup
+            if (enemy.y > sceneHeight + buffer || enemy.y < -buffer ||
+                enemy.x < -buffer || enemy.x > sceneWidth + buffer) {
+                if (this.hasStarted && elapsed > 1000) {
+                    enemyData.ship.destroy();
+                }
+            }
+        }
+    }
+}
