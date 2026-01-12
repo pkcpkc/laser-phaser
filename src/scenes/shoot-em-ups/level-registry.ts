@@ -12,14 +12,14 @@ export interface LevelEntry {
     backgroundTexture?: string;
 }
 
-// Auto-import all level modules (excluding level.ts which is the base class)
-// Vite's import.meta.glob with eager: true loads all modules at build time
+/** Level registry - auto-discovers all level files using Vite's import.meta.glob */
+
 const levelModules = import.meta.glob<{ [key: string]: LevelConfig }>(
     './levels/*-level.ts',
     { eager: true }
 );
 
-// Build the registry dynamically from discovered modules
+
 const levels: Record<string, LevelEntry> = {};
 
 for (const path in levelModules) {
@@ -31,7 +31,7 @@ for (const path in levelModules) {
 
     const levelId = match[1];
 
-    // Find the exported LevelConfig (first export that has a 'name' property)
+
     for (const exportName in module) {
         const exported = module[exportName];
         if (exported && typeof exported === 'object' && 'name' in exported && 'formations' in exported) {

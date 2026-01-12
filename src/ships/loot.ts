@@ -43,25 +43,9 @@ export class Loot extends Phaser.Physics.Matter.Image {
         this.setSensor(true); // Make it a sensor so it doesn't physically collide
 
 
-        // Simulated Z-axis rotation (flipping)
-        // We want exactly 3s lifespan (or config.lifespan)
-        // We want to end on "side" (scaleX = 0)
-        // Pattern: 1 -> -1 (1), -1 -> 1 (2), 1 -> -1 (3), -1 -> 1 (4), 1 -> 0 (4.5)
-        // Wait, user said "exactly 2.5 times".
-        // 1 full rotation = 1 -> -1 -> 1.
-        // 2.5 rotations = (1->-1->1) * 2 + (1->0).
-        // Segments:
-        // 1. 1->-1 (duration)
-        // 2. -1->1 (duration)
-        // 3. 1->-1 (duration)
-        // 4. -1->1 (duration)
-        // 5. 1->0  (duration/2)
-        // Total = 4.5 * duration.
-
         const lifespan = 3000;
 
         if (type === LootType.MODULE) {
-            // Add flare effect
             const particles = scene.add.particles(0, 0, 'flare-white', {
                 color: [0xffffff],
                 lifespan: 1000,
@@ -73,12 +57,8 @@ export class Loot extends Phaser.Physics.Matter.Image {
                 frequency: 100
             });
 
-            // Ensure particles are destroyed when loot is destroyed
-            this.on('destroy', () => {
-                particles.destroy();
-            });
+            this.on('destroy', () => particles.destroy());
 
-            // Simple fade out for mount
             scene.tweens.add({
                 targets: this,
                 alpha: 0,

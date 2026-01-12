@@ -50,6 +50,9 @@ Experience the lore of the universe through dramatic **Planet Intros**. Watch as
 ### 💥 Intense Arcade Combat
 Engage in wave-based combat with a robust damage system. Watch enemy ships explode into debris as you tear through formations with your custom-built ship.
 
+### 🔴 Live Health Indicators
+Ships display circular health arcs that flash on damage and fade when safe. See your enemies' health at a glance as you whittle them down!
+
 ### 🛠️ Deep Customization (Shipyard)
 *(In Development)* Visit the Shipyard to trade and customize your vessel. Choose from different **Drives** for speed, **Lasers** for precision, or **Rockets** for pure explosive power.
 

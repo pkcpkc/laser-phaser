@@ -45,7 +45,6 @@ export class ShipCombat {
         if (this._currentHealth <= 0) {
             this.explode();
         } else {
-            // Visual damage feedback
             this.sprite.setTint(0xff0000);
             TimeUtils.delayedCall(this.sprite.scene, 100, () => {
                 if (this.sprite?.active) {
@@ -62,7 +61,6 @@ export class ShipCombat {
         if (!this.sprite.active || this.isExploding) return;
         this.isExploding = true;
 
-        // Play explosion effect immediately to ensure visibility
         const explosionConfig = this.definition.explosion;
         if (explosionConfig) {
             try {
@@ -83,7 +81,6 @@ export class ShipCombat {
             }
         }
 
-        // Spawn loot immediately
         if (this.lootConfig) {
             this.lootConfig.forEach(lootItem => {
                 try {
@@ -104,10 +101,8 @@ export class ShipCombat {
             });
         }
 
-        // Defer destruction to avoid physics world modification during collision
         TimeUtils.delayedCall(this.sprite.scene, 0, () => {
-            if (!this.sprite.active && !this.isExploding) return; // Re-check simple active not strictly needed if we are just calling callback, but safe. 
-            // Note: isExploding is true now.
+            if (!this.sprite.active && !this.isExploding) return;
 
             this.isDestroyed = true;
             this.onDeath?.();

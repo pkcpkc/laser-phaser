@@ -38,32 +38,15 @@ export class GameStatus {
         return GameStatus.instance;
     }
 
-    // Persistence
     private load() {
-        // Persistence disabled by user request
-        // const dataStr = localStorage.getItem('laser-phaser-save');
-        // if (dataStr) {
-        //     const data = JSON.parse(dataStr);
-        //     this.loot = data.loot || {};
-        //     this.revealedPlanets = new Set(data.revealedPlanets || []);
-        //     this.seenIntroPlanetIds = new Set(data.seenIntroPlanetIds || []);
-        //     this.planetPositions = new Map(data.planetPositions || []);
-        //     this.victories = data.victories || {};
-        // }
+        // No-op: persistence disabled
     }
 
     private save() {
-        // Persistence disabled by user request
-        // const data = {
-        //     loot: this.loot,
-        //     revealedPlanets: Array.from(this.revealedPlanets),
-        //     planetPositions: Array.from(this.planetPositions.entries()),
-        //     victories: this.victories
-        // };
-        // localStorage.setItem('laser-phaser-save', JSON.stringify(data));
+        // No-op: persistence disabled
     }
 
-    // Loot Management
+
     public getLoot(): LootData {
         return { ...this.loot };
     }
@@ -73,7 +56,7 @@ export class GameStatus {
         this.save();
     }
 
-    // Planet Management
+
     public isPlanetRevealed(id: string): boolean {
         return this.revealedPlanets.has(id);
     }
@@ -83,7 +66,7 @@ export class GameStatus {
         this.save();
     }
 
-    // Intro Tracking
+
     public hasSeenIntro(planetId: string): boolean {
         return this.seenIntroPlanetIds.has(planetId);
     }
@@ -93,7 +76,7 @@ export class GameStatus {
         this.save();
     }
 
-    // Planet Position Management
+
     public getPlanetPosition(galaxyId: string, planetId: string): PlanetPosition | undefined {
         return this.planetPositions.get(`${galaxyId}:${planetId}`);
     }
@@ -103,7 +86,7 @@ export class GameStatus {
         this.save();
     }
 
-    // Victory Management
+
     public getVictories(galaxyId: string): number {
         return this.victories[galaxyId] || 0;
     }
@@ -116,7 +99,7 @@ export class GameStatus {
         this.save();
     }
 
-    // Planet Defeat Tracking
+
     public isPlanetDefeated(galaxyId: string, planetId: string): boolean {
         return this.defeatedPlanets.has(`${galaxyId}:${planetId}`);
     }

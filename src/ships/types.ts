@@ -50,7 +50,6 @@ export interface LootItem {
 export type LootConfig = LootItem[];
 
 
-// --- New Architecture ---
 
 /**
  * Static definition of a ship's chassis/hull.
@@ -63,14 +62,10 @@ export interface ShipDefinition {
     physics: ShipPhysicsConfig;
     gameplay: ShipGameplayConfig;
     explosion?: ExplosionConfig;
-    // All possible markers on this hull
     markers: ShipMarker[];
     frame?: string;
-    // Optional: Procedurally create textures for this ship
     createTextures?: (scene: Phaser.Scene) => void;
-    // Optional: Create visual effect for this ship
     createEffect?: (scene: Phaser.Scene, ship: IShip) => ShipEffect;
-    // Optional: Randomize asset key (e.g. for texture variations)
     randomizeAssetKey?: (scene: Phaser.Scene) => string;
 }
 

@@ -22,39 +22,16 @@ export class HealthIndicator {
 
     onDamage(): void {
         this.lastDamageTime = this.scene.time.now;
-        // No explicit redraw needed here as update() runs every frame and handles alpha/redrawing if needed,
-        // BUT since we only draw when properties change, forcing a redraw or relying on update loop is fine.
-        // Given existing logic, we only redraw when health changes? Or every frame?
-        // Original code redrew on updateHealthBar() called from takeDamage() AND updated position in update().
-        // Let's keep it efficient: update position and alpha every frame, redraw graphics only when needed?
-        // Actually, the previous implementation redrew every frame effectively? No, `updateHealthBar` was called in `takeDamage`.
-        // `updateHealthBarPosition` was called in loop.
-        // But `updateHealthBarPosition` also updated alpha.
-        // So we need to separate:
-        // 1. Position/Alpha update (every frame)
-        // 2. Geometry redraw (on damage/init)
     }
 
     update(): void {
         if (!this.graphics || !this.parent.active) return;
 
-        // Position at ship center
         this.graphics.setPosition(this.parent.x, this.parent.y);
 
-        // Update alpha based on time since last damage
         const timeSinceDamage = this.scene.time.now - this.lastDamageTime;
         const targetAlpha = timeSinceDamage < 1000 ? 1 : 0.3;
         this.graphics.setAlpha(targetAlpha);
-
-        // We also need to ensure the arc reflects current health.
-        // Redrawing every frame is simplest for "live" bars, but optimization: only redraw if dirty?
-        // For now, let's redraw every frame to ensure smooth animation if we had it, but mostly to keep it simple.
-        // Wait, the original code ONLY called `updateHealthBar` (redraw) on `takeDamage`.
-        // So we should expose a method or check if health changed?
-        // Actually, if we want to be clean: redraw on damage.
-
-        // HOWEVER, if we redraw ONLY on damage, we might miss initialization or resize?
-        // Let's add a public redraw method cause `onDamage` implies just the event.
     }
 
     redraw(): void {

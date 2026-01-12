@@ -16,10 +16,6 @@ export class StorylineManager {
         return true;
     }
 
-    // Deprecated but kept for compatibility during refactor if needed (though we will remove callers)
-    public init(_data: any) {
-        // No-op
-    }
 
     public getIntroText(galaxyId: string, planetId: string, locale: string = 'en'): string | null {
         return getStoryline(galaxyId, planetId, locale);
