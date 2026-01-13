@@ -25,6 +25,7 @@ dist-ssr
 
 # Generated files
 src-generated/
+docs/
 
 # Tests
 test-reports/
