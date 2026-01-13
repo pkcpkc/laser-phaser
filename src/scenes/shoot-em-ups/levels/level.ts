@@ -205,7 +205,20 @@ export class Level {
 
 
         const formattedSummary = step.map(c => {
-            const shipName = c.shipConfigs?.[0]?.definition?.id || c.shipClass?.name || 'Unknown Ship';
+            // Try to get ship name from shipFormationGrid first, then fall back to shipConfigs
+            let shipName = 'Unknown Ship';
+            const grid = c.config?.shipFormationGrid;
+            if (grid && Array.isArray(grid) && grid.length > 0) {
+                const firstRow = grid[0];
+                const firstConfig = firstRow?.find((cfg: unknown) => cfg !== null);
+                if (firstConfig && typeof firstConfig === 'object' && 'definition' in firstConfig) {
+                    shipName = (firstConfig as { definition?: { id?: string } }).definition?.id || shipName;
+                }
+            } else if (c.shipConfigs?.[0]?.definition?.id) {
+                shipName = c.shipConfigs[0].definition.id;
+            } else if (c.shipClass?.name) {
+                shipName = c.shipClass.name;
+            }
             const tacticName = c.tacticType?.name;
             return tacticName ? `${tacticName} (${shipName})` : shipName;
         }).join(', ');

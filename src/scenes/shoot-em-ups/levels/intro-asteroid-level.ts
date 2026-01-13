@@ -1,5 +1,5 @@
 import type { LevelConfig, FormationConfig } from './level';
-import { SingleShipFormation } from '../formations/single-ship-formation';
+import { DiamondFormation } from '../formations/diamond-formation';
 import { PathTactic } from '../tactics/path-tactic';
 import { SmallAsteroidDustConfig } from '../../../ships/configurations/asteroid-small-dust';
 import { MediumAsteroidDustConfig } from '../../../ships/configurations/asteroid-medium-dust';
@@ -39,17 +39,16 @@ function createAsteroidWave(
         wave.push({
             tacticType: PathTactic,
             tacticConfig: { points: [], faceMovement: false },
-            formationType: SingleShipFormation,
+            formationType: DiamondFormation,
             startDelay: currentDelay,
-            shipConfigs: [shipConfig],
             config: {
+                shipFormationGrid: [[shipConfig]],
                 startWidthPercentage: xPos,
                 endWidthPercentage: xPos,
                 rotation: 0
             }
         });
 
-        // Pipeline spawning
         const delay = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
         currentDelay += delay;
     }

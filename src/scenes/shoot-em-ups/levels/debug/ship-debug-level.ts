@@ -1,4 +1,4 @@
-import { SingleShipFormation } from '../../formations/single-ship-formation';
+import { DiamondFormation } from '../../formations/diamond-formation';
 import { SmallAsteroidDustConfig } from '../../../../ships/configurations/asteroid-small-dust';
 import { MediumAsteroidDustConfig } from '../../../../ships/configurations/asteroid-medium-dust';
 import { LargeAsteroidDustConfig } from '../../../../ships/configurations/asteroid-large-dust';
@@ -13,7 +13,6 @@ export const ShipDebugLevel: LevelConfig = {
     name: 'Ship Debug',
     loop: true,
     formations: [
-        // Constant stream of asteroids (replicated wave)
         createDebugWave()
     ]
 };
@@ -24,7 +23,6 @@ function createDebugWave(): FormationConfig[] {
     const count = 8;
 
     for (let i = 0; i < count; i++) {
-        // Random config
         const r = Math.random();
         let cfg = LargeAsteroidDustConfig;
         if (r < 0.3) cfg = SmallAsteroidDustConfig;
@@ -35,10 +33,10 @@ function createDebugWave(): FormationConfig[] {
         wave.push({
             tacticType: PathTactic,
             tacticConfig: { points: [], faceMovement: false },
-            formationType: SingleShipFormation,
+            formationType: DiamondFormation,
             startDelay: currentDelay,
-            shipConfigs: [cfg],
             config: {
+                shipFormationGrid: [[cfg]],
                 startWidthPercentage: xPos,
                 endWidthPercentage: xPos,
                 rotation: 0

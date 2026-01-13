@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { StorylineManager } from '../../../src/logic/storyline-manager';
-import * as GeneratedStorylines from '../../../src-generated/storylines/storylines';
+import * as GeneratedStorylines from '../../../src/generated/storylines/storylines';
 
-vi.mock('../../../src-generated/storylines/storylines', () => ({
+vi.mock('../../../src/generated/storylines/storylines', () => ({
     getStoryline: vi.fn()
 }));
 

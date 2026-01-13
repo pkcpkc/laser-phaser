@@ -1,5 +1,5 @@
 import type { ShipDefinition } from '../types';
-import { markers as allMarkers } from '../../../src-generated/ships/markers/big-cruiser.markers';
+import { markers as allMarkers } from '../../generated/ships/markers/big-cruiser.markers';
 
 export const BigCruiserDefinition: ShipDefinition = {
     id: 'big-cruiser',

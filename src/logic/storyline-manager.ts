@@ -1,4 +1,4 @@
-import { getStoryline } from '../../src-generated/storylines/storylines';
+import { getStoryline } from '../generated/storylines/storylines';
 
 export class StorylineManager {
     private static instance: StorylineManager;

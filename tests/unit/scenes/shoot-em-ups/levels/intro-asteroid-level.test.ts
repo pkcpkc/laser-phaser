@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { IntroAsteroidLevel } from '../../../../../src/scenes/shoot-em-ups/levels/intro-asteroid-level';
-import { SingleShipFormation } from '../../../../../src/scenes/shoot-em-ups/formations/single-ship-formation';
+import { DiamondFormation } from '../../../../../src/scenes/shoot-em-ups/formations/diamond-formation';
 
 vi.mock('phaser', () => ({
     default: {
@@ -27,10 +27,10 @@ describe('IntroAsteroidLevel', () => {
         expect(IntroAsteroidLevel.formations.length).toBe(7);
     });
 
-    it('should use AsteroidFieldFormation for all waves', () => {
+    it('should use DiamondFormation for all waves', () => {
         IntroAsteroidLevel.formations.forEach(wave => {
             wave.forEach(formation => {
-                expect(formation.formationType).toBe(SingleShipFormation);
+                expect(formation.formationType).toBe(DiamondFormation);
             });
         });
     });
@@ -38,20 +38,20 @@ describe('IntroAsteroidLevel', () => {
     it('should configure wave 1 (warmup) correctly', () => {
         const wave = IntroAsteroidLevel.formations[0];
         expect(wave).toHaveLength(1);
-        expect(wave[0].shipConfigs).toHaveLength(1);
-        expect(wave[0].formationType).toBe(SingleShipFormation);
+        expect(wave[0].config?.shipFormationGrid).toBeDefined();
+        expect(wave[0].config?.shipFormationGrid).toHaveLength(1);
+        expect(wave[0].formationType).toBe(DiamondFormation);
     });
 
     it('should configure wave 7 (chaos) correctly', () => {
         const wave = IntroAsteroidLevel.formations[6];
-        expect(wave).toHaveLength(35); // Now array of 35 formations
-        expect(wave[0].formationType).toBe(SingleShipFormation);
+        expect(wave).toHaveLength(35);
+        expect(wave[0].formationType).toBe(DiamondFormation);
         expect(wave[0].startDelay).toBe(600);
     });
 
     it('should decrease start delay for later waves', () => {
         const delays = IntroAsteroidLevel.formations.slice(3).map(wave => wave[0].startDelay);
-        // Waves 4, 5, 6, 7 -> delays should be 1500, 1200, 900, 600
         expect(delays).toEqual([1500, 1200, 900, 600]);
     });
 });

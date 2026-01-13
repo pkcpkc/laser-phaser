@@ -19,10 +19,9 @@ export const PathTacticDemoLevel: LevelConfig = {
                     ]
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 startDelay: 3000,
                 config: {
-                    formationGrid: [1],
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
                     spacing: 50
                 }
             },
@@ -36,10 +35,9 @@ export const PathTacticDemoLevel: LevelConfig = {
                     ]
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 startDelay: 3500,
                 config: {
-                    formationGrid: [1],
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
                     spacing: 50
                 }
             }
@@ -58,9 +56,8 @@ export const PathTacticDemoLevel: LevelConfig = {
                     faceMovement: true
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 config: {
-                    formationGrid: [1], // Single ship
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
                     spacing: 50
                 }
             }
@@ -83,17 +80,18 @@ export const PathTacticDemoLevel: LevelConfig = {
                     ]
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 startDelay: 2000,
                 config: {
-                    formationGrid: [1, 2], // 3 ships
+                    shipFormationGrid: [
+                        [BloodHunterRedLaserConfig],
+                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
+                    ],
                     spacing: 60,
                     verticalSpacing: 50
                 }
             }
         ],
         // Wave 3: Crossing Paths with multiple Start Points
-        // Note: Array of configs allow multiple formations in one wave
         [
             // Left to Right
             {
@@ -105,10 +103,9 @@ export const PathTacticDemoLevel: LevelConfig = {
                     ]
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 startDelay: 2000,
                 config: {
-                    formationGrid: [1],
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
                     spacing: 50
                 }
             },
@@ -122,10 +119,9 @@ export const PathTacticDemoLevel: LevelConfig = {
                     ]
                 },
                 formationType: DiamondFormation,
-                shipConfigs: [BloodHunterRedLaserConfig],
                 startDelay: 2000,
                 config: {
-                    formationGrid: [1],
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
                     spacing: 50
                 }
             }

@@ -5,13 +5,13 @@ import { glob } from 'glob';
 const SRC_DIR = 'src';
 const TESTS_DIR = 'tests/unit';
 
-const SRC_GEN_DIR = 'src-generated';
+const SRC_GEN_DIR = 'src/generated';
 
 async function checkTests() {
     console.log('🔍 Checking test coverage...');
 
-    // 1. Find all Source Files
-    const srcFiles = await glob(`${SRC_DIR}/**/*.ts`, { ignore: ['**/*.d.ts'] });
+    // 1. Find all Source Files (exclude generated files)
+    const srcFiles = await glob(`${SRC_DIR}/**/*.ts`, { ignore: ['**/*.d.ts', `${SRC_GEN_DIR}/**`] });
     const scriptFiles = await glob('scripts/*.ts');
 
     // Combine src and scripts
@@ -51,15 +51,17 @@ async function checkTests() {
     // 3. Check for Orphaned Tests
     for (const testFile of testFiles) {
         // Construct expected source file path
-        // tests/foo/bar.test.ts -> src/foo/bar.ts
-        // tests/scripts/foo.test.ts -> scripts/foo.ts
-        // tests/src-generated/foo.test.ts -> src-generated/foo.ts
+        // tests/unit/foo/bar.test.ts -> src/foo/bar.ts
+        // tests/unit/scripts/foo.test.ts -> scripts/foo.ts
+        // tests/unit/generated/foo.test.ts -> src/generated/foo.ts
         const relPath = path.relative(TESTS_DIR, testFile);
         const srcRelPath = relPath.replace(/\.test\.ts$/, '.ts');
 
         let expectedSrcPath: string;
-        if (srcRelPath.startsWith('scripts' + path.sep) || srcRelPath.startsWith(SRC_GEN_DIR + path.sep)) {
+        if (srcRelPath.startsWith('scripts' + path.sep)) {
             expectedSrcPath = srcRelPath;
+        } else if (srcRelPath.startsWith('generated' + path.sep)) {
+            expectedSrcPath = path.join(SRC_DIR, srcRelPath);
         } else {
             expectedSrcPath = path.join(SRC_DIR, srcRelPath);
         }

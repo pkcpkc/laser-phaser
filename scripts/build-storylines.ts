@@ -51,7 +51,7 @@ export function getStoryline(galaxyId: string, planetId: string, locale: string 
 `;
 
 // Ensure output directory
-const TS_OUT_FILE = path.resolve('src-generated/storylines/storylines.ts');
+const TS_OUT_FILE = path.resolve('src/generated/storylines/storylines.ts');
 const TS_OUT_DIR = path.dirname(TS_OUT_FILE);
 
 if (!fs.existsSync(TS_OUT_DIR)) {

@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 # Generated files
-src-generated/
+src/generated/
 docs/
 
 # Tests
