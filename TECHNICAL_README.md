@@ -71,12 +71,12 @@ graph TD
 
 ## Key Components
 
-*   **Dependency Injection**: The core architecture relies on a DI container (`di/container.ts`) to manage dependencies. Scenes bind themselves to the container, and components (like `PlanetNavigator`, `PlayerShipController`) are injected, promoting loose coupling and easier testing.
+*   **Dependency Injection**: The core architecture relies on a DI container (`di/container.ts`) to manage dependencies. Scenes bind themselves to the container using `bindScene(this)` in their `create` methods, and components (like `PlanetNavigator`, `PlayerShipController`) are injected, promoting loose coupling and easier testing.
 *   **Galaxy System**: A modular configuration-driven map. Each galaxy (e.g., *Blood Hunters*) defines its own physics, backgrounds, and planet layouts. The `GalaxyScene` has been decomposed into specialized managers (`PlanetVisuals`, `PlanetNavigator`, etc.) to avoid "God Class" issues.
 *   **Wormhole Transition**: A cinematic transition scene used when jumping between galaxies, ensuring a smooth visual bridge.
-*   **Storyline & Intros**: Managed by `StorylineManager`. Markdown storylines are **compiled to TypeScript** (`src-generated/storylines/storylines.ts`) during build, eliminating runtime parsing overhead.
+*   **Storyline & Intros**: Managed by `StorylineManager`. Markdown storylines are **compiled to TypeScript** (`src/generated/storylines/storylines.ts`) during build, eliminating runtime parsing overhead.
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
-*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`.
+*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`. Level configurations now use a `shipFormationGrid` for precise placement, and firing rates are controlled by the ships' own weapon modules rather than the formation itself (via the `autoFire` toggle).
 
 ### Dependency Injection
 
@@ -107,7 +107,7 @@ We use custom decorators to handle specific scopes and lifecycle management.
 ### Storyline Management
 
 Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
-The build process (`npm run build:storylines`) compiles these files into `src-generated/storylines/storylines.ts` for type-safe, synchronous access.
+The build process (`npm run build:storylines`) compiles these files into `src/generated/storylines/storylines.ts` for type-safe, synchronous access.
 
 **Format:**
 ```markdown
@@ -183,7 +183,7 @@ We use a custom asset pipeline and various tools to optimize game performance an
 *   **Image Processing**: Uses `pngjs` for low-level pixel analysis during marker and palette generation.
 
 ### Generated Code
-*   `src-generated/`: Contains auto-generated source files (e.g., compiled storylines, marker data). These should not be edited manually.
+*   `src/generated/`: Contains auto-generated source files (e.g., compiled storylines, marker data). These should not be edited manually.
 
 ## Testing Stack
 
@@ -195,7 +195,8 @@ We maintain a high standard of code quality through a comprehensive testing suit
 *   **End-to-End (E2E) Testing**: [Playwright](https://playwright.dev/) - Reliable testing for modern web apps. Used to verify game interactions and scene transitions across different browsers.
 
 ### Test Integrity & Automation
-*   **Test Check Script**: `scripts/check-tests.ts` - Ensures that every source file in `src/` has a corresponding test file in `tests/`, maintaining 100% file coverage.
+*   **Test Check Script**: `scripts/check-tests.ts` - Ensures that every source file in `src/` has a corresponding test file in `tests/`. Pure interface and type-only files are automatically ignored.
+*   **Pragmatic Coverage**: We use `scripts/filter-coverage.ts` to enforce sensible coverage targets rather than a strict 100% across all files, focusing quality efforts where they matter most.
 *   **Linter**: `tsc --noEmit` - Used for static type checking across the entire codebase.
 *   **Timer Safety**: `src/utils/time-utils.ts` - A wrapper class (`TimeUtils`) that manages `delayedCall` and `setTimeout`. It automatically switches to `setTimeout` in E2E environments (`TEST_E2E=true`) to prevent timeouts caused by browser background throttling, while maintaining safe scene access checks. Always use `TimeUtils.delayedCall` instead of `scene.time.delayedCall` for game logic.
 
@@ -228,12 +229,13 @@ To fire up the engines and start developing, use the following commands:
 *   `npm run build`: Full production build (generates atlases, markers, and bundles the app).
 *   `npm run build:atlases`: Manually regenerate texture atlases from `public/assets`.
 *   `npm run build:markers`: Manually extract marker data from ship PNGs.
-*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to TypeScript in `src-generated/`.
+*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to TypeScript in `src/generated/`.
 *   `npm run build:colors`: Analyze assets for UI color matching.
 
 #### Testing & Quality Commands
 *   `npm test`: Run all unit tests with Vitest.
 *   `npm run test:watch`: Run unit tests in watch mode.
+*   `npm run test:coverage`: Run unit tests and filter for pragmatic coverage targets.
 *   `npm run test:check`: Verify that every source file has a corresponding test file.
 *   `npm run test:e2e`: Run end-to-end tests with Playwright.
 *   `npm run test:e2e-ui`: Run E2E tests with the Playwright UI.

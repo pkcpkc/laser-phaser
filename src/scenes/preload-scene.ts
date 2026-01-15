@@ -191,14 +191,8 @@ export default class PreloadScene extends Phaser.Scene {
         if (this.loadingEvent) this.loadingEvent.destroy();
 
         // Check for galaxyId in URL parameters (for debugging)
-        // Also support legacy 'universeId' parameter for backward compatibility
         const params = new URLSearchParams(window.location.search);
-        let galaxyId = params.get('galaxyId') || params.get('universeId');
-
-        // Handle legacy ID format (e.g., 'demo-universe' -> 'demo-galaxy')
-        if (galaxyId && galaxyId.endsWith('-universe')) {
-            galaxyId = galaxyId.replace('-universe', '-galaxy');
-        }
+        let galaxyId = params.get('galaxyId');
 
         // Check for God Mode (disable collision except loot)
         const godModeParam = params.get('godMode');
