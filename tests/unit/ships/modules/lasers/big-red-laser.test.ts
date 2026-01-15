@@ -1,52 +1,77 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
+// Mock Phaser
+vi.mock('phaser', () => ({
+    default: {
+        Scene: class { },
+        Physics: {
+            Matter: {
+                Image: class { }
             }
+        },
+        Math: {
+            Between: vi.fn()
         }
-    };
-});
+    }
+}));
 
-describe('Placeholder Test for big-red-laser.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+// Mock TimeUtils
+vi.mock('../../../../../src/utils/time-utils', () => ({
+    TimeUtils: {
+        delayedCall: vi.fn()
+    }
+}));
+
+import Phaser from 'phaser';
+import { BigRedLaser } from '../../../../../src/ships/modules/lasers/big-red-laser';
+import { TimeUtils } from '../../../../../src/utils/time-utils';
+import { ModuleType } from '../../../../../src/ships/modules/module-types';
+
+describe('BigRedLaser', () => {
+    let laser: BigRedLaser;
+    let mockScene: any;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        laser = new BigRedLaser();
+        mockScene = {};
+    });
+
+    it('should have correct static properties', () => {
+        expect(laser.TEXTURE_KEY).toBe('big-red-laser');
+        expect(laser.COLOR).toBe(0xff0000);
+        expect(laser.SPEED).toBe(5);
+        expect(laser.damage).toBe(10);
+        expect(laser.width).toBe(4);
+        expect(laser.height).toBe(4);
+        expect(laser.reloadTime).toBe(300);
+        expect(laser.firingDelay).toEqual({ min: 500, max: 900 });
+        expect(laser.type).toBe(ModuleType.LASER);
+    });
+
+    it('should fire immediately if delay is 0', () => {
+        (Phaser.Math.Between as any).mockReturnValue(0);
+        const superFireSpy = vi.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(laser)), 'fire').mockImplementation(() => ({}));
+
+        laser.fire(mockScene, 100, 100, 0, 1, 2);
+
+        expect(Phaser.Math.Between).toHaveBeenCalledWith(0, 100);
+        expect(superFireSpy).toHaveBeenCalled();
+        expect(TimeUtils.delayedCall).not.toHaveBeenCalled();
+    });
+
+    it('should use delayedCall if delay is not 0', () => {
+        (Phaser.Math.Between as any).mockReturnValue(50);
+        const superFireSpy = vi.spyOn(Object.getPrototypeOf(Object.getPrototypeOf(laser)), 'fire').mockImplementation(() => ({}));
+
+        laser.fire(mockScene, 100, 100, 0, 1, 2);
+
+        expect(Phaser.Math.Between).toHaveBeenCalledWith(0, 100);
+        expect(TimeUtils.delayedCall).toHaveBeenCalledWith(mockScene, 50, expect.any(Function));
+
+        // Check if the callback calls super.fire
+        const callback = (TimeUtils.delayedCall as any).mock.calls[0][2];
+        callback();
+        expect(superFireSpy).toHaveBeenCalled();
     });
 });

@@ -191,4 +191,47 @@ describe('DiamondFormation', () => {
         // Only 3 non-null positions
         expect(enemies).toHaveLength(3);
     });
+
+    it('should fire lasers continuously in update when autoFire is true', () => {
+        const formation = new DiamondFormation(mockScene, mockShipClass, mockCollisionConfig, {
+            shipFormationGrid: [[mockShipConfig]],
+            autoFire: true,
+            startWidthPercentage: 0.5,
+            endWidthPercentage: 0.5,
+        });
+
+        formation.spawn();
+        const enemies = formation.getShips();
+        const ship = enemies[0].ship;
+
+        // Clear mock calls from spawn
+        (ship.fireLasers as any).mockClear();
+
+        // Update
+        formation.update(16);
+
+        // Expect fireLasers to be called
+        expect(ship.fireLasers).toHaveBeenCalled();
+    });
+
+    it('should NOT fire lasers in update when autoFire is false', () => {
+        const formation = new DiamondFormation(mockScene, mockShipClass, mockCollisionConfig, {
+            shipFormationGrid: [[mockShipConfig]],
+            autoFire: false,
+            startWidthPercentage: 0.5,
+            endWidthPercentage: 0.5,
+        });
+
+        formation.spawn();
+        const enemies = formation.getShips();
+        const ship = enemies[0].ship;
+
+        (ship.fireLasers as any).mockClear();
+
+        // Update
+        formation.update(16);
+
+        // Expect fireLasers NOT to be called
+        expect(ship.fireLasers).not.toHaveBeenCalled();
+    });
 });

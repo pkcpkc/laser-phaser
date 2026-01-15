@@ -1,52 +1,31 @@
 import { describe, it, expect, vi } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
+// Mock Phaser
+vi.mock('phaser', () => ({
+    default: {
+        Scene: class { },
+        Physics: {
+            Matter: {
+                Image: class { }
             }
         }
-    };
-});
+    }
+}));
 
-describe('Placeholder Test for red-laser.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+import { RedLaser } from '../../../../../src/ships/modules/lasers/red-laser';
+import { ModuleType } from '../../../../../src/ships/modules/module-types';
+
+describe('RedLaser', () => {
+    it('should have correct static properties', () => {
+        const laser = new RedLaser();
+
+        expect(laser.TEXTURE_KEY).toBe('red-laser-v2');
+        expect(laser.COLOR).toBe(0xff0000);
+        expect(laser.SPEED).toBe(5);
+        expect(laser.damage).toBe(5);
+        expect(laser.width).toBe(3);
+        expect(laser.height).toBe(3);
+        expect(laser.reloadTime).toBe(650);
+        expect(laser.type).toBe(ModuleType.LASER);
     });
 });

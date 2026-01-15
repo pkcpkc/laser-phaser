@@ -1,52 +1,87 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
-            }
+// Mock Phaser
+vi.mock('phaser', () => ({
+    default: {
+        Scene: class { },
+        GameObjects: {
+            Image: class { }
         }
-    };
-});
+    }
+}));
 
-describe('Placeholder Test for base-drive.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+import { BaseDrive } from '../../../../../src/ships/modules/drives/base-drive';
+import { ModuleType } from '../../../../../src/ships/modules/module-types';
+
+// Create a concrete implementation for testing the abstract class
+class TestDrive extends BaseDrive {
+    readonly thrust = 3;
+    readonly name = 'Test Drive';
+    readonly description = 'A test drive for testing purposes.';
+    readonly TEXTURE_KEY = 'test-drive-v1';
+}
+
+describe('BaseDrive', () => {
+    let drive: TestDrive;
+    let mockScene: any;
+    let mockSprite: any;
+    let mockGraphics: any;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        drive = new TestDrive();
+
+        mockGraphics = {
+            fillStyle: vi.fn(),
+            fillRect: vi.fn(),
+            generateTexture: vi.fn()
+        };
+
+        mockScene = {
+            textures: {
+                exists: vi.fn().mockReturnValue(false)
+            },
+            make: {
+                graphics: vi.fn().mockReturnValue(mockGraphics)
+            }
+        };
+
+        mockSprite = {};
+    });
+
+    it('should have ModuleType.DRIVE as type', () => {
+        expect(drive.type).toBe(ModuleType.DRIVE);
+    });
+
+    it('should have default visibleOnMount as true', () => {
+        expect(drive.visibleOnMount).toBe(true);
+    });
+
+    it('should have undefined mountTextureKey and scale by default', () => {
+        expect(drive.mountTextureKey).toBeUndefined();
+        expect(drive.scale).toBeUndefined();
+    });
+
+    it('should create placeholder texture when texture does not exist', () => {
+        drive.createTexture(mockScene);
+
+        expect(mockScene.textures.exists).toHaveBeenCalledWith('test-drive-v1');
+        expect(mockScene.make.graphics).toHaveBeenCalledWith({ x: 0, y: 0 });
+        expect(mockGraphics.fillStyle).toHaveBeenCalledWith(0x00ffff, 1);
+        expect(mockGraphics.fillRect).toHaveBeenCalledWith(0, 0, 10, 20);
+        expect(mockGraphics.generateTexture).toHaveBeenCalledWith('test-drive-v1', 10, 20);
+    });
+
+    it('should not create texture when it already exists', () => {
+        mockScene.textures.exists.mockReturnValue(true);
+
+        drive.createTexture(mockScene);
+
+        expect(mockScene.make.graphics).not.toHaveBeenCalled();
+    });
+
+    it('should have empty addMountEffect implementation by default', () => {
+        // Should not throw
+        expect(() => drive.addMountEffect(mockScene, mockSprite)).not.toThrow();
     });
 });

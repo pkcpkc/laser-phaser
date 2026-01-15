@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import type { ShipDefinition, ShipMarker } from '../types';
 import { AsteroidTexture } from '../textures/asteroid-texture';
 import { AsteroidMorphEffect } from '../effects/asteroid-morph-effect';

@@ -216,6 +216,85 @@ describe('Ship', () => {
         expect(ship.sprite.setCollidesWith).toHaveBeenCalledWith([2]);
     });
 
+    it('should use randomizeAssetKey if provided', () => {
+        const randomizeMock = vi.fn().mockReturnValue('random-ship');
+        const randomConfig = {
+            ...mockConfig,
+            definition: {
+                ...mockConfig.definition,
+                randomizeAssetKey: randomizeMock
+            }
+        };
+        new Ship(mockScene, 100, 100, randomConfig, mockCollisionConfig);
+        expect(randomizeMock).toHaveBeenCalledWith(mockScene);
+        expect(mockScene.matter.add.image).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'random-ship', undefined);
+    });
+
+    it('should handle massRange', () => {
+        const massRangeConfig = {
+            ...mockConfig,
+            definition: {
+                ...mockConfig.definition,
+                physics: { ...mockConfig.definition.physics, mass: undefined, massRange: { min: 20, max: 30 } }
+            }
+        };
+        const rangeShip = new Ship(mockScene, 100, 100, massRangeConfig, mockCollisionConfig);
+        expect(rangeShip.sprite.setMass).toHaveBeenCalled();
+        const mass = vi.mocked(rangeShip.sprite.setMass).mock.calls[0][0];
+        expect(mass).toBeGreaterThanOrEqual(20);
+        expect(mass).toBeLessThanOrEqual(30);
+    });
+
+    it('should set origin from markers', () => {
+        const originMarkerConfig = {
+            ...mockConfig,
+            definition: {
+                ...mockConfig.definition,
+                markers: [{ type: 'origin', x: 16, y: 16 }]
+            }
+        };
+        const originShip = new Ship(mockScene, 100, 100, originMarkerConfig, mockCollisionConfig);
+        // Sprite width/height are 32 in mock
+        expect(originShip.sprite.setOrigin).toHaveBeenCalledWith(0.5, 0.5);
+    });
+
+    it('should apply spawn protection if enemy spawns off-screen', () => {
+        const enemyCollisionConfig = { ...mockCollisionConfig, isEnemy: true };
+        const spawningShip = new Ship(mockScene, 100, -50, mockConfig, enemyCollisionConfig);
+
+        expect(spawningShip.sprite.setCollidesWith).toHaveBeenCalledWith(0);
+        expect(mockScene.events.on).toHaveBeenCalledWith('postupdate', expect.any(Function));
+
+        // Simulate entering screen
+        const checkSpawn = vi.mocked(mockScene.events.on).mock.calls.find((call: any[]) => call[0] === 'postupdate')![1];
+        spawningShip.sprite.y = 10;
+        checkSpawn();
+
+        expect(spawningShip.sprite.setCollidesWith).toHaveBeenCalledWith([2]);
+    });
+
+    it('should create effect if defined', () => {
+        const effectMock = { destroy: vi.fn() };
+        const createEffectMock = vi.fn().mockReturnValue(effectMock);
+        const effectConfig = {
+            ...mockConfig,
+            definition: {
+                ...mockConfig.definition,
+                createEffect: createEffectMock
+            }
+        };
+        new Ship(mockScene, 100, 100, effectConfig, mockCollisionConfig);
+        expect(createEffectMock).toHaveBeenCalled();
+    });
+
+    it('should log error if texture does not exist', () => {
+        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => { });
+        mockScene.textures.exists.mockReturnValue(false);
+        new Ship(mockScene, 100, 100, mockConfig, mockCollisionConfig);
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Texture \'ship\' not found'));
+        consoleSpy.mockRestore();
+    });
+
     it('should fire lasers', () => {
         ship.fireLasers();
         expect(mockLaserInstance.fire).toHaveBeenCalledWith(
@@ -244,8 +323,19 @@ describe('Ship', () => {
     });
 
     it('should destroy correctly', () => {
+        const effectMock = { destroy: vi.fn() };
+        ship.setEffect(effectMock as any);
         ship.destroy();
         expect(ship.sprite.destroy).toHaveBeenCalled();
+        expect(effectMock.destroy).toHaveBeenCalled();
+    });
+
+    it('should override existing effect when setEffect is called', () => {
+        const effect1 = { destroy: vi.fn() };
+        const effect2 = { destroy: vi.fn() };
+        ship.setEffect(effect1 as any);
+        ship.setEffect(effect2 as any);
+        expect(effect1.destroy).toHaveBeenCalled();
     });
 
     it('should fire lasers from multiple mount points', () => {
@@ -350,6 +440,11 @@ describe('Ship', () => {
         // Penalty = 30% -> Multiplier 0.7.
         // Expected Acceleration = 10 * 0.7 = 7.
         expect(multiDriveShip.acceleration).toBe(7);
+    });
+
+    it('should calculate maxSpeed correctly', () => {
+        // acceleration 5, frictionAir 0.1 -> maxSpeed 50
+        expect(ship.maxSpeed).toBe(50);
     });
 
     it('should have unlimited ammo if isEnemy is true', () => {

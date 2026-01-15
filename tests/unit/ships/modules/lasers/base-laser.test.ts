@@ -54,8 +54,20 @@ class TestLaser extends BaseLaser {
 describe('BaseLaser', () => {
     let laser: TestLaser;
     let mockScene: any;
+    let mockParticles: any;
+    let mockEvents: any;
 
     beforeEach(() => {
+        mockEvents = {
+            on: vi.fn(),
+            off: vi.fn()
+        };
+
+        mockParticles = {
+            emitParticleAt: vi.fn(),
+            destroy: vi.fn()
+        };
+
         const mockWorld = { scene: null };
 
         mockScene = {
@@ -76,7 +88,8 @@ describe('BaseLaser', () => {
             },
             time: {
                 now: 1000,
-                delayedCall: vi.fn()
+                delayedCall: vi.fn((_delay, callback) => callback())
+
             },
             scale: {
                 width: 800,
@@ -84,15 +97,9 @@ describe('BaseLaser', () => {
             },
             add: {
                 existing: vi.fn(),
-                particles: vi.fn().mockReturnValue({
-                    emitParticleAt: vi.fn(),
-                    destroy: vi.fn()
-                })
+                particles: vi.fn().mockReturnValue(mockParticles)
             },
-            events: {
-                on: vi.fn(),
-                off: vi.fn()
-            },
+            events: mockEvents,
             cameras: {
                 main: {
                     scrollX: 0,
@@ -113,8 +120,8 @@ describe('BaseLaser', () => {
         expect(mockScene.textures.exists).toHaveBeenCalledWith('test-laser');
     });
 
-    it('should fire and setup projectile', () => {
-        const result = laser.fire(mockScene, 100, 100, 0, 2, 4);
+    it('should fire and setup projectile with trail effects', () => {
+        const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
 
         expect(result).toBeDefined();
         // Check if added to scene
@@ -128,13 +135,55 @@ describe('BaseLaser', () => {
         expect(result?.setVelocity).toHaveBeenCalledWith(10, 0);
         expect(result?.setCollisionCategory).toHaveBeenCalledWith(2);
         expect(result?.setCollidesWith).toHaveBeenCalledWith(4);
+
+        // Check Trail Effect
+        expect(mockScene.add.particles).toHaveBeenCalledWith(0, 0, 'test-laser-trail', expect.objectContaining({
+            lifespan: 150,
+            blendMode: 'ADD',
+            emitting: false
+        }));
+
+        // Check Update Listener registration
+        expect(mockEvents.on).toHaveBeenCalledWith('update', expect.any(Function));
     });
 
-    it('should handle boundary checks in preUpdate', () => {
-        // We need to simulate the Projectile behavior. 
-        // Since we are mocking Phaser.Physics.Matter.Image, we need to ensure our Mock class or the returned object has preUpdate.
-        // But Projectile defines preUpdate. So 'result' is an instance of Projectile (which extends Mock Image).
+    it('should emit particles during update', () => {
+        const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
 
+        // Get the update listener
+        const updateListener = mockEvents.on.mock.calls.find((call: any[]) => call[0] === 'update')[1];
+
+
+        // Simulate update with active laser
+        result.active = true;
+        result.x = 150;
+        result.y = 150;
+        updateListener();
+
+        expect(mockParticles.emitParticleAt).toHaveBeenCalledWith(150, 150);
+    });
+
+    it('should clean up trail effects on destroy', () => {
+        const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
+
+        // Get the destroy listener (laser.once('destroy', ...))
+        // Since we are mocking Phaser Image which keeps event emitters, we need to check how we can trigger 'destroy' event.
+        // However, we mock Phaser.Physics.Matter.Image class in file scope. 
+        // We need to spy on 'once' properly or just call the callback passed to it.
+
+        const destroyListener = result.once.mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
+
+
+        // Trigger destroy
+        destroyListener();
+
+        expect(mockEvents.off).toHaveBeenCalledWith('update', expect.any(Function));
+        expect(mockScene.time.delayedCall).toHaveBeenCalledWith(200, expect.any(Function), undefined, mockScene);
+        // mocked delayedCall executes callback immediately
+        expect(mockParticles.destroy).toHaveBeenCalled();
+    });
+
+    it('should handle boundary checks', () => {
         const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
 
         // In bounds logic
@@ -144,10 +193,7 @@ describe('BaseLaser', () => {
         result.preUpdate(2000, 16);
         expect(result.destroy).not.toHaveBeenCalled();
 
-        // Out of bounds logic (camera bounds + margin 100)
-        // Camera 0,0 800x600. Margin 100.
-        // Bounds: -100 to 900 x, -100 to 700 y.
-
+        // Out of bounds logic
         result.x = -200; // Left
         result.preUpdate(3000, 16);
         expect(result.destroy).toHaveBeenCalled();

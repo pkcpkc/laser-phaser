@@ -74,7 +74,7 @@ export const BloodHuntersLevel: LevelConfig = {
                 ],
                 spacing: 100,
                 verticalSpacing: 70,
-                continuousFire: true
+                autoFire: true
             }
         }
     ],
@@ -95,7 +95,7 @@ export const BloodHuntersLevel: LevelConfig = {
                 ],
                 spacing: 100,
                 verticalSpacing: 70,
-                continuousFire: true
+                autoFire: true
             }
         }
     ],
@@ -116,7 +116,7 @@ export const BloodHuntersLevel: LevelConfig = {
                 ],
                 spacing: 80,
                 verticalSpacing: 60,
-                continuousFire: true
+                autoFire: true
             }
         },
         {
@@ -135,7 +135,7 @@ export const BloodHuntersLevel: LevelConfig = {
                 ],
                 spacing: 80,
                 verticalSpacing: 60,
-                continuousFire: true
+                autoFire: true
             }
         }
     ]

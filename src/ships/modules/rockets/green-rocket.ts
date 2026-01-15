@@ -136,7 +136,6 @@ export class GreenRocket extends BaseRocket {
 
         scene.events.on('update', updateListener);
 
-        // Ensure cleanup if scene shuts down
         rocket.once('destroy', () => {
             orbitingPixels.forEach(p => p.destroy());
             scene.events.off('update', updateListener);

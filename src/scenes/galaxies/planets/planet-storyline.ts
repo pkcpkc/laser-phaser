@@ -128,6 +128,9 @@ export class PlanetStoryline {
         scene.input.on('pointerdown', this.handlePointerDown, this);
         scene.input.on('pointermove', this.handlePointerMove, this);
         scene.input.on('pointerup', this.handlePointerUp, this);
+
+        // Keyboard handling for skip/dismiss
+        scene.input.keyboard?.on('keydown-SPACE', this.handleSpaceKey, this);
         // Note: We use scene input to capture drags even if started on background
 
         // Update loop for kinetic scroll or bounds check could go here if needed, 
@@ -143,6 +146,7 @@ export class PlanetStoryline {
         this.scene.input.off('pointerdown', this.handlePointerDown, this);
         this.scene.input.off('pointermove', this.handlePointerMove, this);
         this.scene.input.off('pointerup', this.handlePointerUp, this);
+        this.scene.input.keyboard?.off('keydown-SPACE', this.handleSpaceKey, this);
 
         if (this.timerEvent) this.timerEvent.remove();
         this.scrollMaskGraphics.destroy();
@@ -763,6 +767,11 @@ export class PlanetStoryline {
             // Only dismiss if we are done typing
             this.hide();
         }
+    }
+
+    private handleSpaceKey() {
+        if (!this.visible || this.borrowedPlanet === undefined) return;
+        this.handleTap();
     }
 
     private clampScroll() {

@@ -1,5 +1,13 @@
 
 export class TimeUtils {
+    private static forceE2E: boolean = false;
+
+    /**
+     * For testing purposes only. Forces E2E mode behavior.
+     */
+    static setForceE2EForTesting(value: boolean) {
+        this.forceE2E = value;
+    }
     /**
      * A wrapper for delayed calls that handles environment-specific timing behavior.
      * 
@@ -24,7 +32,7 @@ export class TimeUtils {
         // Double check we are in the E2E environment (injected via vite define)
         const isE2E = import.meta.env.TEST_E2E;
 
-        if (isE2E === true || isE2E === 'true') {
+        if (this.forceE2E || isE2E === true || isE2E === 'true') {
             const id = window.setTimeout(() => {
                 // Safety guard: ensure scene is still valid
                 if (scene.sys && scene.sys.isActive()) {

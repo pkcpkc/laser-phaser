@@ -4,7 +4,7 @@ import { GameStatus } from './game-status';
 /**
  * Recursively logs all children from a game object, including nested containers.
  */
-function logChildRecursive(obj: Phaser.GameObjects.GameObject, depth: number = 0): void {
+export function logChildRecursive(obj: Phaser.GameObjects.GameObject, depth: number = 0): void {
     const gameObj = obj as any;
     const indent = '  '.repeat(depth);
     const typeName = gameObj.type || gameObj.constructor?.name || 'Unknown';
@@ -44,32 +44,34 @@ function logChildRecursive(obj: Phaser.GameObjects.GameObject, depth: number = 0
  * When pressed in debug mode, pauses the physics world and dumps the full scene tree.
  */
 export function setupDebugKey(scene: Phaser.Scene): void {
-    if (import.meta.env.MODE !== 'debug') {
+    if (import.meta.env.MODE !== 'debug' && scene.registry?.get('debug') !== true) {
         return;
     }
 
-    scene.input.keyboard?.on('keydown-B', () => {
-        // Pause physics if available
-        if (scene.matter?.world) {
-            scene.matter.world.pause();
-        }
+    const input = scene.input as any;
+    if (input?.keyboard) {
+        input.keyboard.on('keydown-B', () => {
+            // Pause physics if available
+            if (scene.matter?.world) {
+                scene.matter.world.pause();
+            }
 
-        console.log('--- DEBUG STATE DUMP ---');
-        console.log('Scene: ' + scene.scene.key);
+            console.log('--- DEBUG STATE DUMP ---');
+            console.log('Scene: ' + scene.scene.key);
 
-        // Log full rendering tree
-        console.group('🌳 Render Tree (' + scene.children.list.length + ' root objects)');
-        for (const child of scene.children.list) {
-            logChildRecursive(child);
-        }
-        console.groupEnd();
+            // Log full rendering tree
+            console.group('🌳 Render Tree (' + scene.children.list.length + ' root objects)');
+            for (const child of scene.children.list) {
+                logChildRecursive(child);
+            }
+            console.groupEnd();
 
-        // Log GameStatus as raw object
-        console.group('📊 GameStatus');
-        console.log(GameStatus.getInstance());
-        console.groupEnd();
+            // Log GameStatus as raw object
+            console.group('📊 GameStatus');
+            console.log(GameStatus.getInstance());
+            console.groupEnd();
 
-        console.log('--- END DEBUG STATE DUMP ---');
-    });
+            console.log('--- END DEBUG STATE DUMP ---');
+        });
+    }
 }
-

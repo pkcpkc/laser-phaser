@@ -88,8 +88,8 @@ export class PlanetVisual {
         }
 
         // Adjust planet depth
-        visualObject.setDepth(this.PLANET_DEPTH);
-        overlay.setDepth(this.PLANET_DEPTH);
+        visualObject.setDepth(this.effectiveBaseDepth);
+        overlay.setDepth(this.effectiveBaseDepth);
 
         // Add Lock Icon if locked
         if (isLocked) {

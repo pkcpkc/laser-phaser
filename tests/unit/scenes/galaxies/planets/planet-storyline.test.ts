@@ -161,6 +161,7 @@ describe('PlanetStoryline', () => {
 
         expect(scene.scale.on).toHaveBeenCalledWith('resize', expect.any(Function), expect.any(Object));
         expect(scene.events.on).toHaveBeenCalledWith('postupdate', expect.any(Function), expect.any(Object));
+        expect(scene.input.keyboard.on).toHaveBeenCalledWith('keydown-SPACE', expect.any(Function), expect.any(Object));
     });
 
     it('show should setup visuals and start animation', () => {

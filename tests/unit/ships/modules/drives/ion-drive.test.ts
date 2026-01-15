@@ -1,52 +1,83 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
-            }
+// Mock Phaser and dependencies
+vi.mock('phaser', () => ({
+    default: {
+        Scene: class { },
+        GameObjects: {
+            Image: class { }
         }
-    };
-});
+    }
+}));
 
-describe('Placeholder Test for ion-drive.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+vi.mock('../../../../../src/ships/effects/ion-effect', () => ({
+    IonEffect: vi.fn()
+}));
+
+import { IonDrive } from '../../../../../src/ships/modules/drives/ion-drive';
+import { IonEffect } from '../../../../../src/ships/effects/ion-effect';
+import { ModuleType } from '../../../../../src/ships/modules/module-types';
+
+describe('IonDrive', () => {
+    let ionDrive: IonDrive;
+    let mockScene: any;
+    let mockSprite: any;
+    let mockGraphics: any;
+
+    beforeEach(() => {
+        vi.clearAllMocks();
+        ionDrive = new IonDrive();
+
+        mockGraphics = {
+            fillStyle: vi.fn(),
+            fillRect: vi.fn(),
+            generateTexture: vi.fn(),
+            destroy: vi.fn()
+        };
+
+        mockScene = {
+            textures: {
+                exists: vi.fn().mockReturnValue(false)
+            },
+            make: {
+                graphics: vi.fn().mockReturnValue(mockGraphics)
+            }
+        };
+
+        mockSprite = {};
+    });
+
+    it('should have correct static properties', () => {
+        expect(ionDrive.thrust).toBe(2);
+        expect(ionDrive.name).toBe('Ion Drive');
+        expect(ionDrive.description).toBe('Standard Ion Drive. Reliable and efficient.');
+        expect(ionDrive.TEXTURE_KEY).toBe('ion-drive-v10');
+        expect(ionDrive.type).toBe(ModuleType.DRIVE);
+        expect(ionDrive.visibleOnMount).toBe(true);
+    });
+
+    it('should create texture when it does not exist', () => {
+        ionDrive.createTexture(mockScene);
+
+        expect(mockScene.textures.exists).toHaveBeenCalledWith('ion-drive-v10');
+        expect(mockScene.make.graphics).toHaveBeenCalledWith({ x: 0, y: 0 });
+        expect(mockGraphics.fillStyle).toHaveBeenCalledWith(0x000000, 0);
+        expect(mockGraphics.fillRect).toHaveBeenCalledWith(0, 0, 8, 12);
+        expect(mockGraphics.generateTexture).toHaveBeenCalledWith('ion-drive-v10', 8, 12);
+        expect(mockGraphics.destroy).toHaveBeenCalled();
+    });
+
+    it('should not create texture when it already exists', () => {
+        mockScene.textures.exists.mockReturnValue(true);
+
+        ionDrive.createTexture(mockScene);
+
+        expect(mockScene.make.graphics).not.toHaveBeenCalled();
+    });
+
+    it('should add IonEffect on mount', () => {
+        ionDrive.addMountEffect(mockScene, mockSprite);
+
+        expect(IonEffect).toHaveBeenCalledWith(mockScene, mockSprite);
     });
 });

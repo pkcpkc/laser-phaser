@@ -1,52 +1,44 @@
 import { describe, it, expect, vi } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
-            }
-        }
-    };
-});
+// Mock Dependencies
+vi.mock('../../../../src/ships/definitions/blood-hunter', () => ({
+    BloodHunterDefinition: {
+        id: 'blood-hunter',
+        markers: [
+            { type: 'laser' },
+            { type: 'drive' }
+        ]
+    }
+}));
+vi.mock('../../../../src/ships/modules/lasers/red-laser', () => ({
+    RedLaser: class { }
+}));
+vi.mock('../../../../src/ships/modules/drives/red-thruster-drive', () => ({
+    RedThrusterDrive: class { }
+}));
 
-describe('Placeholder Test for blood-hunter-red-laser.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+import { BloodHunterRedLaserConfig } from '../../../../src/ships/configurations/blood-hunter-red-laser';
+import { RedLaser } from '../../../../src/ships/modules/lasers/red-laser';
+import { RedThrusterDrive } from '../../../../src/ships/modules/drives/red-thruster-drive';
+import { LootType } from '../../../../src/ships/types';
+
+describe('BloodHunterRedLaserConfig', () => {
+    it('should have correct definition', () => {
+        expect(BloodHunterRedLaserConfig.definition.id).toBe('blood-hunter');
+    });
+
+    it('should map lasers and drives correctly', () => {
+        const modules = BloodHunterRedLaserConfig.modules;
+        expect(modules.length).toBe(2);
+
+        const lasers = modules.filter(m => m.module === RedLaser);
+        const drives = modules.filter(m => m.module === RedThrusterDrive);
+
+        expect(lasers.length).toBe(1);
+        expect(drives.length).toBe(1);
+    });
+
+    it('should have silver loot', () => {
+        expect(BloodHunterRedLaserConfig.loot?.[0].type).toBe(LootType.SILVER);
     });
 });

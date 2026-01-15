@@ -27,7 +27,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             visualScale: 1.0,
             centralPlanet: true,
             interaction: {
-                levelId: 'ship-demo-level',
                 warpGalaxyId: 'blood-hunters-galaxy', // Warp to Blood Hunter Galaxy
                 showAlways: true
             },
@@ -42,9 +41,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             name: 'Aurelia',
             tint: 0xB8860B, // Dark Golden Rod
             visualScale: 0.8,
-            interaction: {
-                levelId: 'debug-aurelia-level'
-            },
             effects: [
                 {
                     type: 'solid-ring',
@@ -58,9 +54,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             id: 'veridia',
             name: 'Veridia',
             tint: 0xeeeeee, // Green-ish
-            interaction: {
-                levelId: 'debug-veridia-level'
-            },
             effects: [
                 {
                     type: 'rectangles',
@@ -120,7 +113,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             visualScale: 1,
             hidden: false,
             interaction: {
-                levelId: 'path-tactic-demo-level',
+                levelId: 'path-tactic-debug-level',
                 hasShipyard: true,
                 showAlways: true
             },
@@ -139,9 +132,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             tint: 0x333333,
             visualScale: 0.6,
             hidden: false,
-            interaction: {
-                levelId: 'debug-pulsar-level'
-            },
             effects: [
                 {
                     type: 'ghost-shade',
@@ -172,9 +162,7 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             tint: 0x333333,
             visualScale: 0.6,
             hidden: false,
-            interaction: {
-                levelId: 'debug-umbra-level'
-            },
+            interaction: {},
             effects: [
                 {
                     type: 'ghost-shade',

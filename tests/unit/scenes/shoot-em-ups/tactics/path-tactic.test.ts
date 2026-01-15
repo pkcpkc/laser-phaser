@@ -199,4 +199,204 @@ describe('PathTactic', () => {
         expect(x2).toBeCloseTo(y2, 1);
         expect(x2).toBeCloseTo(169.7, 1); // 240 * 0.707
     });
+
+    describe('formation speed calculation', () => {
+        it('should use minimum speed across all ships in the formation', () => {
+            // Create two ships with different speeds
+            // Use scene from the beforeEach mock
+            const mockScene = mockEnemy.ship.sprite.scene;
+
+            const fastEnemy = {
+                ship: {
+                    sprite: {
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
+                        setVelocity: vi.fn(),
+                        setVisible: vi.fn(),
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        active: true
+                    },
+                    maxSpeed: 4, // Fast ship: 4 px/frame -> 240 px/sec
+                    fireLasers: vi.fn()
+                },
+                startX: 0, // Start at path origin
+                startY: 0,
+                spawnTime: 0
+            };
+
+            const slowEnemy = {
+                ship: {
+                    sprite: {
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
+                        setVelocity: vi.fn(),
+                        setVisible: vi.fn(),
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        active: true
+                    },
+                    maxSpeed: 1, // Slow ship: 1 px/frame -> 60 px/sec
+                    fireLasers: vi.fn()
+                },
+                startX: 50, // Slightly offset
+                startY: 0,
+                spawnTime: 0
+            };
+
+            const mixedFormation = {
+                getShips: vi.fn().mockReturnValue([fastEnemy, slowEnemy]),
+                update: vi.fn(),
+                isComplete: vi.fn().mockReturnValue(false),
+                spawn: vi.fn(),
+                destroy: vi.fn()
+            };
+
+            pathTactic = new PathTactic({
+                points: [[0, 0], [1, 0]] // Move right across full width (800px)
+            });
+            // Use proper scene initialization
+            pathTactic.initialize(mockScene, null as any, {}, null, [], {} as any);
+            pathTactic.addFormation(mixedFormation as any);
+
+            // Update 1s -> slow ship speed (60 px/sec) should be used
+            pathTactic.update(1000, 1000);
+
+            // Both ships should move at the slow ship's speed (60px in 1 sec)
+            const fastCall = (fastEnemy.ship.sprite.setPosition as any).mock.calls[0];
+            const slowCall = (slowEnemy.ship.sprite.setPosition as any).mock.calls[0];
+
+            // Fast ship started at 0, displacement should be 60
+            expect(fastCall[0]).toBeCloseTo(60, 1);
+            // Slow ship started at 50, displacement should be 60
+            expect(slowCall[0]).toBeCloseTo(110, 1);
+        });
+
+        it('should recalculate speed when slow ship is destroyed', () => {
+            // Use scene from the beforeEach mock
+            const mockScene = mockEnemy.ship.sprite.scene;
+
+            const fastEnemy = {
+                ship: {
+                    sprite: {
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
+                        setVelocity: vi.fn(),
+                        setVisible: vi.fn(),
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        active: true
+                    },
+                    maxSpeed: 4, // Fast ship: 4 px/frame -> 240 px/sec
+                    fireLasers: vi.fn()
+                },
+                startX: 0, // Start at path origin
+                startY: 0,
+                spawnTime: 0
+            };
+
+            const slowEnemy = {
+                ship: {
+                    sprite: {
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
+                        setVelocity: vi.fn(),
+                        setVisible: vi.fn(),
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        active: true
+                    },
+                    maxSpeed: 1, // Slow ship: 1 px/frame -> 60 px/sec
+                    fireLasers: vi.fn()
+                },
+                startX: 50,
+                startY: 0,
+                spawnTime: 0
+            };
+
+            let currentShips = [fastEnemy, slowEnemy];
+            const mixedFormation = {
+                getShips: vi.fn(() => currentShips),
+                update: vi.fn(),
+                isComplete: vi.fn().mockReturnValue(false),
+                spawn: vi.fn(),
+                destroy: vi.fn()
+            };
+
+            pathTactic = new PathTactic({
+                points: [[0, 0], [1, 0]] // Move right (long distance)
+            });
+            pathTactic.initialize(mockScene, null as any, {}, null, [], {} as any);
+            pathTactic.addFormation(mixedFormation as any);
+
+            // First update: both ships, slow speed (60 px/sec)
+            pathTactic.update(1000, 1000);
+
+            // "Destroy" slow ship by removing it from the formation
+            currentShips = [fastEnemy];
+
+            // Second update: only fast ship, fast speed (240 px/sec)
+            pathTactic.update(2000, 1000);
+
+            const calls = (fastEnemy.ship.sprite.setPosition as any).mock.calls;
+            // Fast ship started at X=0
+            const firstPosition = calls[0][0]; // After first update
+            const secondPosition = calls[1][0]; // After second update
+
+            // First position should be 60px (slow speed: 1 * 60 = 60)
+            expect(firstPosition).toBeCloseTo(60, 1);
+            // Second position should be 60 + 240 = 300px (slow + fast speed: 4 * 60 = 240)
+            expect(secondPosition).toBeCloseTo(300, 1);
+        });
+
+        it('should use default speed when ship has no maxSpeed defined', () => {
+            // Use scene from the beforeEach mock
+            const mockScene = mockEnemy.ship.sprite.scene;
+
+            const noSpeedEnemy = {
+                ship: {
+                    sprite: {
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
+                        setVelocity: vi.fn(),
+                        setVisible: vi.fn(),
+                        x: 0,
+                        y: 0,
+                        rotation: 0,
+                        active: true
+                    },
+                    maxSpeed: undefined, // No speed defined
+                    fireLasers: vi.fn()
+                },
+                startX: 0, // Start at path origin
+                startY: 0,
+                spawnTime: 0
+            };
+
+            const noSpeedFormation = {
+                getShips: vi.fn().mockReturnValue([noSpeedEnemy]),
+                update: vi.fn(),
+                isComplete: vi.fn().mockReturnValue(false),
+                spawn: vi.fn(),
+                destroy: vi.fn()
+            };
+
+            pathTactic = new PathTactic({
+                points: [[0, 0], [1, 0]] // Move right
+            });
+            pathTactic.initialize(mockScene, null as any, {}, null, [], {} as any);
+            pathTactic.addFormation(noSpeedFormation as any);
+
+            // Update 1s -> should use default speed (2 px/frame -> 120 px/sec)
+            pathTactic.update(1000, 1000);
+
+            const call = (noSpeedEnemy.ship.sprite.setPosition as any).mock.calls[0];
+            // Started at 0, displacement should be 120
+            expect(call[0]).toBeCloseTo(120, 1);
+        });
+    });
 });

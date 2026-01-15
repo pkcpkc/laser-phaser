@@ -29,6 +29,8 @@ vi.mock('phaser', () => {
                         setDepth: vi.fn(),
                         setTint: vi.fn(),
                         setRandomPosition: vi.fn(),
+                        setPosition: vi.fn(),
+                        setRotation: vi.fn(),
                     })),
                 };
                 tweens = {
@@ -106,6 +108,8 @@ describe('WormholeScene', () => {
                 setDepth: vi.fn(),
                 setTint: vi.fn(),
                 setRandomPosition: vi.fn(),
+                setPosition: vi.fn(),
+                setRotation: vi.fn(),
             })),
         };
         (scene as any).tweens = { add: vi.fn() };
@@ -129,23 +133,86 @@ describe('WormholeScene', () => {
         expect((scene as any).stars.length).toBeGreaterThan(0);
     });
 
-    it('should start animation sequence', () => {
+
+    it('should handle update loop correctly', () => {
         scene.create();
 
-        // We expect multiple delayed calls now.
-        // 1. Static Start (1000ms)
-        // 2. Color/Center (2000ms)
-        // 3. Decel (4500ms)
-        // 4. White Return (5000ms)
+        // Mock data for update interaction
+        (scene as any).warpSpeed = 20;
+        (scene as any).centerMoveIntensity = 1;
+
+        // Call update
+        scene.update(1000, 16);
+
+        // Check if graphics were cleared and redrawn
+        expect((scene as any).graphics.clear).toHaveBeenCalled();
+        expect((scene as any).graphics.strokePath).toHaveBeenCalled();
+
+        // Check nebula updates if any exist
+        if ((scene as any).nebulas.length > 0) {
+            const nebula = (scene as any).nebulas[0];
+            expect(nebula.setPosition).toHaveBeenCalled();
+            expect(nebula.setRotation).toHaveBeenCalled();
+        }
+    });
+
+    it('should generate nebula texture if missing', () => {
+        // Force texture check to return false
+        (scene as any).textures.exists.mockReturnValue(false);
+
+        scene.create();
+
+        expect((scene as any).textures.createCanvas).toHaveBeenCalledWith('nebula-cloud', 256, 256);
+    });
+
+    it('should execute full animation sequence via delayed calls', () => {
+        scene.create();
 
         const delayedCalls = (scene as any).time.delayedCall.mock.calls;
-        expect(delayedCalls.length).toBeGreaterThanOrEqual(4);
 
-        const startCall = delayedCalls.find((c: any[]) => c[0] === 1000);
-        expect(startCall).toBeDefined();
+        // sort calls by delay to ensure order
+        delayedCalls.sort((a: any[], b: any[]) => a[0] - b[0]);
 
-        // Manually trigger the start callback to verify tween addition
-        startCall[1]();
-        expect((scene as any).tweens.add).toHaveBeenCalled();
+        // 1. Acceleration (1000ms)
+        const accelCall = delayedCalls.find((c: any[]) => c[0] === 1000);
+        expect(accelCall).toBeDefined();
+        accelCall[1](); // Execute callback
+        expect((scene as any).tweens.add).toHaveBeenCalledWith(expect.objectContaining({
+            warpSpeed: 50,
+            duration: 1500
+        }));
+
+        // 2. Color/Center (2000ms)
+        const colorCall = delayedCalls.find((c: any[]) => c[0] === 2000);
+        expect(colorCall).toBeDefined();
+        colorCall[1]();
+        expect((scene as any).tweens.add).toHaveBeenCalledWith(expect.objectContaining({
+            colorIntensity: 1,
+            centerMoveIntensity: 1
+        }));
+
+        // 3. Deceleration (4500ms) - Nested inside is the scene start
+        const decelCall = delayedCalls.find((c: any[]) => c[0] === 4500);
+        expect(decelCall).toBeDefined();
+        decelCall[1]();
+        expect((scene as any).tweens.add).toHaveBeenCalledWith(expect.objectContaining({
+            warpSpeed: 0,
+            duration: 1500
+        }));
+
+        // Find the tween config for deceleration to trigger onComplete
+        const decelTweenConfig = (scene as any).tweens.add.mock.calls.find((call: any[]) => call[0].warpSpeed === 0)[0];
+        // Trigger onComplete to test camera fade
+        decelTweenConfig.onComplete();
+
+        expect((scene as any).cameras.main.fade).toHaveBeenCalledWith(
+            500, 0, 0, 0, false, expect.any(Function)
+        );
+
+        // Trigger camera fade complete callback
+        const fadeCallback = (scene as any).cameras.main.fade.mock.calls[0][5];
+        fadeCallback({} as any, 1); // progress = 1
+
+        expect((scene as any).scene.start).toHaveBeenCalledWith('GalaxyScene', { galaxyId: '' });
     });
 });

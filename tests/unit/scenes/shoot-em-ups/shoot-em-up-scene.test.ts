@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ShootEmUpScene } from '../../../../src/scenes/shoot-em-ups/shoot-em-up-scene';
 import { Level } from '../../../../src/scenes/shoot-em-ups/levels/level';
+import { Loot } from '../../../../src/ships/loot';
+import { GameStatus } from '../../../../src/logic/game-status';
+import * as LevelRegistry from '../../../../src/scenes/shoot-em-ups/level-registry';
 
 const MockPhaser = vi.hoisted(() => {
     const mock = {
@@ -149,6 +152,19 @@ describe('ShootEmUpScene', () => {
                 lootCategory: 16
             })
         };
+        scene.registry = {
+            get: vi.fn(),
+            set: vi.fn()
+        } as any;
+        scene.scene = {
+            start: vi.fn(),
+            key: 'ShootEmUpScene'
+        } as any;
+        scene.events = {
+            on: vi.fn(),
+            once: vi.fn(),
+            off: vi.fn()
+        } as any;
     });
 
     it('should start level on create', () => {
@@ -288,5 +304,93 @@ describe('ShootEmUpScene', () => {
             galaxyId: 'source-galaxy',
             autoStart: false
         });
+    });
+
+    it('should override background in init if level entry has it', () => {
+        // Mock getLevel to return background
+        vi.spyOn(LevelRegistry, 'getLevel').mockReturnValue({ backgroundTexture: 'level-bg' } as any);
+
+        scene.init({ levelId: 'some-level' });
+        expect((scene as any).backgroundTexture).toBe('level-bg');
+    });
+
+    it('should handle ship-debug-level config and UI', () => {
+        const categories = {
+            shipCategory: 1,
+            enemyCategory: 2,
+            laserCategory: 4,
+            enemyLaserCategory: 8,
+            lootCategory: 16
+        };
+        (scene as any).collisionManager.getCategories.mockReturnValue(categories);
+        (scene as any).createPlayerShip = vi.fn();
+        (scene as any).createUI = vi.fn();
+        (scene as any).setupControls = vi.fn();
+        scene.scale.on = vi.fn();
+
+        scene.init({ levelId: 'ship-debug-level' });
+
+        const collisionConfig = (scene as any).getShipCollisionConfig();
+        expect(collisionConfig.hasUnlimitedAmmo).toBe(true);
+
+        // create() should call createShipDebugUI
+        const documentSpy = vi.spyOn(document, 'createElement');
+        scene.create();
+        expect(documentSpy).toHaveBeenCalledWith('select');
+
+        // Mocking DOM is tricky but this verifies the branch was hit
+        documentSpy.mockRestore();
+    });
+
+    it('should record victory in GameStatus', () => {
+        const gameStatusMock = {
+            addVictory: vi.fn(),
+            markIntroSeen: vi.fn(),
+            markPlanetDefeated: vi.fn()
+        };
+
+        vi.spyOn(GameStatus, 'getInstance').mockReturnValue(gameStatusMock as any);
+
+        // Use a registry mock that actually stores something
+        let activeGalaxyId = 'test-galaxy';
+        vi.mocked(scene.registry.get).mockImplementation((key: string | string[]) => key === 'activeGalaxyId' ? activeGalaxyId : undefined);
+
+        scene.init({ returnPlanetId: 'test-planet', galaxyId: activeGalaxyId });
+        scene.scene = { start: vi.fn() } as any;
+
+        (scene as any).finishLevel(true);
+
+        expect(gameStatusMock.addVictory).toHaveBeenCalledWith('test-galaxy');
+        expect(gameStatusMock.markIntroSeen).toHaveBeenCalledWith('test-planet');
+    });
+
+    it('should prevent continuing victory if loot remains', () => {
+        (scene as any).gameManager.isVictoryState = vi.fn().mockReturnValue(true);
+        (scene as any).gameManager.isGameActive = vi.fn().mockReturnValue(false);
+        (scene as any).gameManager.setRestartMessage = vi.fn();
+
+        // Simulate loot child using the real class prototype for instanceof check
+        const loot = Object.create(Loot.prototype);
+        loot.active = true;
+        (scene as any).children = { list: [loot] };
+
+        // Test onGameOverInput
+        (scene as any).onGameOverInput();
+        // Should NOT call scene.start
+        expect(scene.scene.start).not.toHaveBeenCalled();
+
+        // Test update message
+        scene.update(0, 16);
+        expect((scene as any).gameManager.setRestartMessage).toHaveBeenCalledWith('COLLECT ALL LOOT');
+    });
+
+    it('should handle getLevelClass fallback', () => {
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+        scene.init({ levelId: 'invalid-level' });
+
+        const config = (scene as any).getLevelClass();
+        expect(config.name).toBe('Unknown');
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('not found'));
+        consoleSpy.mockRestore();
     });
 });

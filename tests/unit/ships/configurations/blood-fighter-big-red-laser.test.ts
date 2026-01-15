@@ -1,52 +1,44 @@
 import { describe, it, expect, vi } from 'vitest';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
-            }
-        }
-    };
-});
+// Mock Dependencies
+vi.mock('../../../../src/ships/definitions/blood-fighter', () => ({
+    BloodFighterDefinition: {
+        id: 'blood-fighter',
+        markers: [
+            { type: 'laser' },
+            { type: 'drive' }
+        ]
+    }
+}));
+vi.mock('../../../../src/ships/modules/lasers/big-red-laser', () => ({
+    BigRedLaser: class { }
+}));
+vi.mock('../../../../src/ships/modules/drives/red-thruster-drive', () => ({
+    RedThrusterDrive: class { }
+}));
 
-describe('Placeholder Test for blood-fighter-big-red-laser.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+import { BloodFighterBigRedLaserConfig } from '../../../../src/ships/configurations/blood-fighter-big-red-laser';
+import { BigRedLaser } from '../../../../src/ships/modules/lasers/big-red-laser';
+import { RedThrusterDrive } from '../../../../src/ships/modules/drives/red-thruster-drive';
+import { LootType } from '../../../../src/ships/types';
+
+describe('BloodFighterBigRedLaserConfig', () => {
+    it('should have correct definition', () => {
+        expect(BloodFighterBigRedLaserConfig.definition.id).toBe('blood-fighter');
+    });
+
+    it('should map lasers and drives correctly', () => {
+        const modules = BloodFighterBigRedLaserConfig.modules;
+        expect(modules.length).toBe(2);
+
+        const lasers = modules.filter(m => m.module === BigRedLaser);
+        const drives = modules.filter(m => m.module === RedThrusterDrive);
+
+        expect(lasers.length).toBe(1);
+        expect(drives.length).toBe(1);
+    });
+
+    it('should have silver loot', () => {
+        expect(BloodFighterBigRedLaserConfig.loot?.[0].type).toBe(LootType.SILVER);
     });
 });

@@ -1,52 +1,20 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
+import { BloodFighterDefinition } from '../../../../src/ships/definitions/blood-fighter';
 
-// Mock Phaser by default as many files depend on it
-vi.mock('phaser', () => {
-    return {
-        default: {
-            Scene: class {},
-            GameObjects: {
-                Image: class {
-                    setOrigin = vi.fn();
-                    setDepth = vi.fn();
-                    setScale = vi.fn();
-                    setVisible = vi.fn();
-                },
-                Container: class {
-                    add = vi.fn();
-                    setDepth = vi.fn();
-                    setPosition = vi.fn();
-                },
-                Sprite: class {
-                    play = vi.fn();
-                    setOrigin = vi.fn();
-                }
-            },
-            Math: {
-                Vector2: class {
-                    x = 0;
-                    y = 0;
-                    constructor(x = 0, y = 0) {
-                        this.x = x;
-                        this.y = y;
-                    }
-                    normalize() { return this; }
-                    scale() { return this; }
-                },
-                Between: vi.fn(),
-                FloatBetween: vi.fn(),
-                RadToDeg: vi.fn(),
-                DegToRad: vi.fn(),
-                Angle: {
-                    Between: vi.fn()
-                }
-            }
-        }
-    };
-});
+describe('BloodFighterDefinition', () => {
+    it('should have correct id and asset details', () => {
+        expect(BloodFighterDefinition.id).toBe('blood-fighter');
+        expect(BloodFighterDefinition.assetKey).toBe('ships');
+        expect(BloodFighterDefinition.frame).toBe('blood-fighter');
+    });
 
-describe('Placeholder Test for blood-fighter.ts', () => {
-    it('should pass', () => {
-        expect(true).toBe(true);
+    it('should have valid physics configuration', () => {
+        expect(BloodFighterDefinition.physics.mass).toBeGreaterThan(0);
+        expect(BloodFighterDefinition.physics.frictionAir).toBeDefined();
+    });
+
+    it('should have valid gameplay stats', () => {
+        expect(BloodFighterDefinition.gameplay.health).toBeGreaterThan(0);
+        expect(BloodFighterDefinition.gameplay.rotationSpeed).toBeGreaterThan(0);
     });
 });

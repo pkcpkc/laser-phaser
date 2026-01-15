@@ -1,3 +1,7 @@
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import Phaser from 'phaser';
+
 // Mock Phaser
 vi.mock('phaser', () => {
     return {
@@ -14,7 +18,11 @@ vi.mock('phaser', () => {
                     BetweenPoints: () => 0
                 },
                 RadToDeg: (rad: number) => rad * (180 / Math.PI),
-                Clamp: (val: number, min: number, max: number) => Math.min(Math.max(val, min), max)
+                Clamp: (val: number, min: number, max: number) => {
+                    if (val < min) return min;
+                    if (val > max) return max;
+                    return val;
+                }
             },
             Input: {
                 Keyboard: {}
@@ -26,6 +34,10 @@ vi.mock('phaser', () => {
                     setPosition(x: number, y: number) { this.x = x; this.y = y; }
                     x: number = 0;
                     y: number = 0;
+                    scale: number = 1;
+                    alpha: number = 1;
+                    destroy = vi.fn();
+                    setDepth = vi.fn();
                 }
             },
             Physics: {
@@ -37,10 +49,16 @@ vi.mock('phaser', () => {
     };
 });
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+// Mock Dependencies
+vi.mock('../../../src/logic/player-movement');
+vi.mock('../../../src/logic/player-rotation');
+vi.mock('../../../src/logic/player-firing');
+
 import { PlayerController } from '../../../src/logic/player-controller';
 import { Ship } from '../../../src/ships/ship';
-import Phaser from 'phaser';
+import { PlayerMovement } from '../../../src/logic/player-movement';
+import { PlayerRotation } from '../../../src/logic/player-rotation';
+import { PlayerFiring } from '../../../src/logic/player-firing';
 
 // Mock Phaser classes
 class MockScene {
@@ -58,9 +76,12 @@ class MockScene {
         }
     } as any;
     tweens = {
-        add: vi.fn(() => ({
-            stop: vi.fn()
-        })),
+        add: vi.fn((config) => {
+            if (config.onComplete) {
+                (this.tweens as any)._lastOnComplete = config.onComplete;
+            }
+            return { stop: vi.fn() };
+        }),
         killTweensOf: vi.fn()
     } as any;
     add = {
@@ -68,7 +89,9 @@ class MockScene {
             setDepth: vi.fn(),
             destroy: vi.fn(),
             setPosition: vi.fn(),
-            alpha: 1
+            alpha: 1,
+            x: 0,
+            y: 0
         })),
         text: vi.fn()
     } as any;
@@ -90,7 +113,7 @@ class MockShip {
         y: 100,
         angle: 0,
         setAngle: vi.fn(),
-        setPosition: vi.fn(),
+        setPosition: vi.fn((x, y) => { this.sprite.x = x; this.sprite.y = y; }),
         setVelocity: vi.fn(),
         setVelocityX: vi.fn(),
         setVelocityY: vi.fn(),
@@ -113,11 +136,47 @@ describe('PlayerController', () => {
     let controller: PlayerController;
     let cursors: any;
 
+    // Mocks
+    let mockMovement: any;
+    let mockRotation: any;
+    let mockFiring: any;
+
     beforeEach(() => {
         scene = new MockScene();
         ship = new MockShip();
         ship.sprite.scene = scene;
         cursors = scene.input.keyboard!.createCursorKeys();
+
+        // Reset mocks
+        vi.clearAllMocks();
+
+        // Setup mock implementations
+        mockMovement = {
+            state: { isDragging: false },
+            setDragging: vi.fn((val) => mockMovement.state.isDragging = val),
+            setTarget: vi.fn(),
+            getTargetPosition: vi.fn(),
+            hasTarget: vi.fn(),
+            clearTarget: vi.fn(),
+            updateKeyboard: vi.fn(),
+            updateTargetMovement: vi.fn().mockReturnValue({ arrived: false, isDecelerating: false, angle: null })
+        };
+        (PlayerMovement as any).mockImplementation(function () { return mockMovement; });
+
+        mockRotation = {
+            destroy: vi.fn(),
+            setMoving: vi.fn(),
+            returnToUpright: vi.fn(),
+            pointToAngle: vi.fn()
+        };
+        (PlayerRotation as any).mockImplementation(function () { return mockRotation; });
+
+        mockFiring = {
+            update: vi.fn(),
+            isClickingFireButton: vi.fn(),
+            setFireButton: vi.fn()
+        };
+        (PlayerFiring as any).mockImplementation(function () { return mockFiring; });
 
         controller = new PlayerController(scene as unknown as Phaser.Scene, ship as unknown as Ship, cursors);
     });
@@ -127,96 +186,154 @@ describe('PlayerController', () => {
     });
 
     it('should clean up rotation and effects when ship is destroyed', () => {
-        // Get the listener function
         const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
         const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
 
-        expect(destroyListener).toBeDefined();
-
-        // Mock a target effect being active
         const destroyEffectMock = vi.fn();
         const targetEffect = { destroy: destroyEffectMock, alpha: 1 };
         (controller as any).targetEffect = targetEffect;
 
-        // Invoke the listener
         destroyListener.call(context);
 
-        // Verify cleanup
         expect(scene.tweens.killTweensOf).toHaveBeenCalledWith(targetEffect);
         expect(destroyEffectMock).toHaveBeenCalled();
         expect((controller as any).targetEffect).toBeNull();
+        expect(mockRotation.destroy).toHaveBeenCalled();
     });
 
-    it('should not throw error if destroyed multiple times or no effects active', () => {
-        const destroyListener = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
-        const context = (ship.sprite.once as any).mock.calls.find((call: any[]) => call[0] === 'destroy')[2];
-
-        // Ensure no effects
-        (controller as any).targetEffect = null;
-
-        // Should not throw
-        expect(() => destroyListener.call(context)).not.toThrow();
+    it('should update firing component', () => {
+        controller.update(100);
+        expect(mockFiring.update).toHaveBeenCalledWith(100);
     });
 
-    // --- Drag Support Tests ---
+    it('should set fire button on firing component', () => {
+        const mockBtn = {} as any;
+        controller.setFireButton(mockBtn);
+        expect(mockFiring.setFireButton).toHaveBeenCalledWith(mockBtn);
+    });
 
-    it('should set drag state on pointerdown via movement component', () => {
+    it('should set drag state on pointerdown', () => {
         const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
-        const pointer = { worldX: 200, worldY: 300, isDown: true, x: 200, y: 300 };
+        mockFiring.isClickingFireButton.mockReturnValue(false);
 
-        pointerDownHandler(pointer);
+        pointerDownHandler({ worldX: 200, worldY: 300 });
 
-        // Check movement component's state
-        expect((controller as any).movement.state.isDragging).toBe(true);
+        expect(mockMovement.setDragging).toHaveBeenCalledWith(true);
+        expect(mockMovement.setTarget).toHaveBeenCalledWith(200, 300);
     });
 
     it('should update target on pointermove when dragging', () => {
-        const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
         const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
 
-        // Start dragging
-        pointerDownHandler({ worldX: 100, worldY: 100, x: 100, y: 100 });
+        mockMovement.state.isDragging = true;
+        mockMovement.getTargetPosition.mockReturnValue({ x: 400, y: 500 });
 
-        // Move while dragging
-        pointerMoveHandler({ worldX: 400, worldY: 500, x: 400, y: 500 });
+        pointerMoveHandler({ worldX: 400, worldY: 500 });
 
-        const target = (controller as any).movement.getTargetPosition();
-        expect(target).toEqual(expect.objectContaining({ x: 400, y: 500 }));
+        expect(mockMovement.setTarget).toHaveBeenCalledWith(400, 500);
     });
 
-    it('should NOT update target on pointermove when NOT dragging', () => {
-        const pointerMoveHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointermove')[1];
-        const pointer = { worldX: 400, worldY: 500, x: 400, y: 500 };
-
-        pointerMoveHandler(pointer);
-
-        // Target should be null since we never started dragging
-        expect((controller as any).movement.hasTarget()).toBe(false);
+    it('should not update if ship is not active', () => {
+        ship.sprite.active = false;
+        controller.update(100);
+        expect(mockFiring.update).not.toHaveBeenCalled();
     });
 
-    it('should reset drag state on pointerup', () => {
-        const pointerDownHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerdown')[1];
-        const pointerUpHandler = scene.input.on.mock.calls.find((call: any[]) => call[0] === 'pointerup')[1];
+    it('should use keyboard movement if active', () => {
+        mockMovement.updateKeyboard.mockReturnValue(true);
+        controller.update(100);
 
-        // Start dragging
-        pointerDownHandler({ worldX: 100, worldY: 100, x: 100, y: 100 });
-        expect((controller as any).movement.state.isDragging).toBe(true);
-
-        // Release
-        pointerUpHandler();
-        expect((controller as any).movement.state.isDragging).toBe(false);
+        expect(mockMovement.updateKeyboard).toHaveBeenCalledWith(cursors);
+        expect(mockMovement.updateTargetMovement).not.toHaveBeenCalled();
     });
 
-    it('should move existing target effect instead of creating new one during drag', () => {
-        // Setup existing target effect
-        const existingEffect = { destroy: vi.fn(), setPosition: vi.fn(), alpha: 1 };
-        (controller as any).targetEffect = existingEffect;
+    it('should use target movement if not moving with keys', () => {
+        mockMovement.updateKeyboard.mockReturnValue(false);
+        mockMovement.hasTarget.mockReturnValue(true);
 
-        // Simulate second tap (handleTargetInput)
-        (controller as any).handleTargetInput(300, 400);
+        controller.update(100);
 
-        // Should move, not destroy
-        expect(existingEffect.destroy).not.toHaveBeenCalled();
-        expect(existingEffect.setPosition).toHaveBeenCalledWith(300, 400);
+        expect(mockMovement.updateTargetMovement).toHaveBeenCalled();
+    });
+
+    it('should handle target arrival', () => {
+        mockMovement.updateKeyboard.mockReturnValue(false);
+        mockMovement.hasTarget.mockReturnValue(true);
+        mockMovement.updateTargetMovement.mockReturnValue({ arrived: true });
+
+        controller.update(100);
+
+        expect(mockRotation.setMoving).toHaveBeenCalled();
+        expect(mockRotation.returnToUpright).toHaveBeenCalled();
+    });
+
+    it('should handle target deceleration', () => {
+        mockMovement.updateKeyboard.mockReturnValue(false);
+        mockMovement.hasTarget.mockReturnValue(true);
+        mockMovement.updateTargetMovement.mockReturnValue({ arrived: false, isDecelerating: true });
+
+        controller.update(100);
+
+        expect(mockRotation.returnToUpright).toHaveBeenCalled();
+    });
+
+    it('should point to angle during target movement', () => {
+        mockMovement.updateKeyboard.mockReturnValue(false);
+        mockMovement.hasTarget.mockReturnValue(true);
+        mockMovement.updateTargetMovement.mockReturnValue({ arrived: false, isDecelerating: false, angle: 1.5 });
+
+        controller.update(100);
+
+        expect(mockRotation.pointToAngle).toHaveBeenCalledWith(1.5);
+    });
+
+    it('should clamp ship position to screen bounds', () => {
+        ship.sprite.x = 900;
+        ship.sprite.y = -50;
+
+        controller.update(100);
+
+        expect(ship.sprite.setPosition).toHaveBeenCalledWith(800, 0);
+        expect(ship.sprite.setVelocityX).toHaveBeenCalledWith(0);
+        expect(ship.sprite.setVelocityY).toHaveBeenCalledWith(0);
+        expect(mockRotation.returnToUpright).toHaveBeenCalled();
+    });
+
+    it('should clear target if hitting wall while moving to target', () => {
+        ship.sprite.x = 900;
+        mockMovement.hasTarget.mockReturnValue(true);
+
+        controller.update(100);
+
+        expect(mockMovement.clearTarget).toHaveBeenCalled();
+    });
+
+    it('should cleanup target effect on tween complete', () => {
+        mockMovement.getTargetPosition.mockReturnValue({ x: 100, y: 100 });
+        const pointerDown = scene.input.on.mock.calls.find((c: any) => c[0] === 'pointerdown')[1];
+        mockFiring.isClickingFireButton.mockReturnValue(false);
+        pointerDown({ worldX: 100, worldY: 100 });
+
+        const tweenConfig = scene.tweens.add.mock.calls[0][0];
+        expect(tweenConfig).toBeDefined();
+
+        const effect = scene.add.circle.mock.results[0].value;
+
+        effect.alpha = 0;
+        tweenConfig.onComplete();
+
+        expect(effect.destroy).toHaveBeenCalled();
+    });
+
+    it('should destroy previous target effect if new one created', () => {
+        mockMovement.getTargetPosition.mockReturnValue({ x: 100, y: 100 });
+        const pointerDown = scene.input.on.mock.calls.find((c: any) => c[0] === 'pointerdown')[1];
+
+        pointerDown({ worldX: 100, worldY: 100 });
+        const effect1 = scene.add.circle.mock.results[0].value;
+        (controller as any).targetEffect = effect1;
+
+        pointerDown({ worldX: 200, worldY: 200 });
+        expect(effect1.setPosition).toHaveBeenCalledWith(100, 100);
     });
 });

@@ -15,7 +15,7 @@ export interface LevelEntry {
 /** Level registry - auto-discovers all level files using Vite's import.meta.glob */
 
 const levelModules = import.meta.glob<{ [key: string]: LevelConfig }>(
-    './levels/*-level.ts',
+    './levels/**/*-level.ts',
     { eager: true }
 );
 
@@ -26,7 +26,8 @@ for (const path in levelModules) {
     const module = levelModules[path];
 
     // Extract level ID from filename: ./levels/blood-hunters-level.ts -> blood-hunters-level
-    const match = path.match(/\.\/levels\/(.+)\.ts$/);
+    // Also handles subdirectories: ./levels/debug/ship-debug-level.ts -> ship-debug-level
+    const match = path.match(/\/([^/]+)\.ts$/);
     if (!match) continue;
 
     const levelId = match[1];

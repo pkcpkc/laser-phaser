@@ -78,13 +78,30 @@ export class PathTactic extends BaseTactic {
         return null;
     }
 
+    /**
+     * Calculate formation speed as the minimum maxSpeed across all active ships.
+     * This ensures mixed formations travel at the slowest ship's speed.
+     */
+    private getFormationSpeed(validEnemies: { ship: { maxSpeed: number } }[]): number {
+        if (validEnemies.length === 0) return 2;
+
+        let minSpeed = Infinity;
+        for (const enemy of validEnemies) {
+            const speed = enemy.ship.maxSpeed || 2;
+            if (speed < minSpeed) {
+                minSpeed = speed;
+            }
+        }
+        return minSpeed === Infinity ? 2 : minSpeed;
+    }
+
     protected updateFormation(formation: IFormation, time: number, delta: number): void {
         const enemies = formation.getShips();
         const scene = this.initData?.scene;
 
         if (!scene) return;
 
-        // 1. Get leader for reference
+        // 1. Get valid enemies for reference
         const validEnemies = enemies.filter(e => e.ship && e.ship.sprite);
         if (validEnemies.length === 0) return;
 
@@ -139,9 +156,9 @@ export class PathTactic extends BaseTactic {
             this.originalAnchorY = (leaderData as any).startY ?? 0;
         }
 
-        // 3. Move along path
+        // 3. Move along path - use minimum speed across all active ships
         const dt = delta / 1000;
-        const rawSpeed = leaderData.ship.maxSpeed || 2;
+        const rawSpeed = this.getFormationSpeed(validEnemies);
         const speedPxPerSec = rawSpeed * 60;
 
         let targetAngle = this.lastAngle;

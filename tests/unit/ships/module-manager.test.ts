@@ -264,4 +264,145 @@ describe('ModuleManager', () => {
         expect(weapon.fire).toHaveBeenCalledTimes(1); // Still 1 call because subsequent loop check skips call
         expect(weapon.currentAmmo).toBe(0);
     });
+
+    it('should respect reloadTime in fireLasers', () => {
+        const ReloadWeapon = class extends mockLaserClass {
+            reloadTime = 500;
+        };
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 0, y: 0, angle: 0, type: 'laser' }, module: ReloadWeapon as any }],
+            mockCollisionConfig
+        );
+
+        const weapon = manager.getActiveModules()[0].module as any;
+
+        // First fire: success
+        manager.fireLasers();
+        expect(weapon.fire).toHaveBeenCalledTimes(1);
+
+        // Second fire immediately: should be blocked by reload
+        manager.fireLasers();
+        expect(weapon.fire).toHaveBeenCalledTimes(1);
+
+        // Advance time
+        mockScene.time.now += 600;
+        manager.fireLasers();
+        expect(weapon.fire).toHaveBeenCalledTimes(2);
+    });
+
+    it('should sync module sprite positions in update', () => {
+        class VisibleWeapon extends mockLaserClass {
+            visibleOnMount = true;
+        }
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: VisibleWeapon as any }],
+            mockCollisionConfig
+        );
+
+        const moduleSprite = vi.mocked(mockScene.add.image).mock.results[0].value;
+
+        mockSprite.x = 200;
+        mockSprite.y = 300;
+        mockSprite.rotation = Math.PI / 2;
+
+        manager.update();
+
+        expect(moduleSprite.setPosition).toHaveBeenCalled();
+        expect(moduleSprite.setRotation).toHaveBeenCalled();
+    });
+
+    it('should hide module sprites if ship is inactive or invisible', () => {
+        class VisibleWeapon extends mockLaserClass {
+            visibleOnMount = true;
+        }
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: VisibleWeapon as any }],
+            mockCollisionConfig
+        );
+
+        const moduleSprite = vi.mocked(mockScene.add.image).mock.results[0].value;
+
+        mockSprite.active = false;
+        manager.update();
+        expect(moduleSprite.setVisible).toHaveBeenCalledWith(false);
+
+        mockSprite.active = true;
+        mockSprite.visible = false;
+        manager.update();
+        expect(moduleSprite.setVisible).toHaveBeenCalledWith(false);
+    });
+
+    it('should hide weapon sprite if out of ammo or reloading', () => {
+        class AmmoWeapon extends mockLaserClass {
+            visibleOnMount = true;
+            currentAmmo = 0;
+            reloadTime = 500;
+        }
+        const manager = new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 10, y: 0, angle: 0, type: 'laser' }, module: AmmoWeapon as any }],
+            mockCollisionConfig
+        );
+
+        const moduleSprite = vi.mocked(mockScene.add.image).mock.results[0].value;
+        const module = manager.getActiveModules()[0];
+
+        // 1. Out of ammo
+        manager.update();
+        expect(moduleSprite.setVisible).toHaveBeenCalledWith(false);
+
+        // 2. Has ammo but reloading
+        (module.module as any).currentAmmo = 10;
+        module.lastFired = mockScene.time.now - 100;
+        manager.update();
+        expect(moduleSprite.setVisible).toHaveBeenCalledWith(false);
+
+        // 3. Ready to show
+        module.lastFired = mockScene.time.now - 1000;
+        manager.update();
+        expect(moduleSprite.setVisible).toHaveBeenCalledWith(true);
+    });
+
+    it('should apply scale and mount effect', () => {
+        const mountEffectMock = vi.fn();
+        class EffectWeapon extends mockLaserClass {
+            visibleOnMount = true;
+            scale = 2;
+            addMountEffect = mountEffectMock;
+        }
+        new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 0, y: 0, angle: 0, type: 'laser' }, module: EffectWeapon as any }],
+            mockCollisionConfig
+        );
+
+        const moduleSprite = vi.mocked(mockScene.add.image).mock.results[0].value;
+        expect(moduleSprite.setScale).toHaveBeenCalledWith(2);
+        expect(mountEffectMock).toHaveBeenCalledWith(mockScene, moduleSprite);
+    });
+
+    it('should warn and skip if visible module has no texture key', () => {
+        const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => { });
+        class NoTextureWeapon extends mockLaserClass {
+            visibleOnMount = true;
+            TEXTURE_KEY = '';
+        }
+        new ModuleManager(
+            mockScene,
+            mockSprite,
+            [{ marker: { x: 0, y: 0, angle: 0, type: 'laser' }, module: NoTextureWeapon as any }],
+            mockCollisionConfig
+        );
+
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('No texture key'));
+        consoleSpy.mockRestore();
+    });
 });

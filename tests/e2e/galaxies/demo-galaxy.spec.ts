@@ -38,7 +38,7 @@ test.describe('Demo Galaxy Smoke Test', () => {
         expect(consoleErrors).toEqual([]);
     });
 
-    test('should transition to ship-demo-level when astra is clicked', async ({ page }, testInfo) => {
+    test('should transition to ship-debug-level when ship-debug is clicked', async ({ page }, testInfo) => {
         // Handle Auto-Intro
         await handleIntro(page);
 
@@ -46,9 +46,9 @@ test.describe('Demo Galaxy Smoke Test', () => {
         await page.waitForTimeout(500);
         await takeScreenshot(page, testInfo, '1-intro-passed.png');
 
-        // 2. Click on the planet astra
-        await clickPlanet(page, 'astra');
-        await takeScreenshot(page, testInfo, '2-astra-dialog.png');
+        // 2. Click on the planet ship-debug
+        await clickPlanet(page, 'ship-debug');
+        await takeScreenshot(page, testInfo, '2-ship-debug-dialog.png');
 
         // 3. Start Level
         await startLevel(page);

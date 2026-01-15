@@ -39,6 +39,13 @@ export default defineConfig(({ command }) => ({
         globals: true,
         include: ['tests/unit/**/*.{test,spec}.ts', 'tests/integration/**/*.{test,spec}.ts'],
         setupFiles: ['./tests/setup.ts'],
+        coverage: {
+            provider: 'v8',
+            reporter: ['text', 'html', 'lcov'],
+            reportsDirectory: './coverage',
+            include: ['src/**/*.ts'],
+            exclude: ['src/generated/**', 'src/**/*.d.ts'],
+        },
     },
     build: {
         outDir: 'docs',

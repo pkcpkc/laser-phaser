@@ -2,8 +2,7 @@ import Phaser from 'phaser';
 import { Ship, type ShipCollisionConfig } from '../../../ships/ship';
 import type { ShipConfig } from '../../../ships/types';
 import type { IFormation, BaseEnemyData } from './types';
-import { isWeapon } from '../../../ships/modules/module-types';
-import { TimeUtils } from '../../../utils/time-utils';
+
 
 const BOUNDS_BUFFER = 200;
 const SPAWN_Y = -200;
@@ -13,9 +12,7 @@ export interface DiamondFormationConfig {
     verticalSpacing?: number;
     startWidthPercentage: number;
     endWidthPercentage: number;
-    shotsPerEnemy?: number;
-    shotDelay?: { min: number; max: number };
-    continuousFire?: boolean;
+    autoFire?: boolean;
     rotation?: number;
 
     /** 2D grid defining ships per row. null = empty position (spacing preserved) */
@@ -29,20 +26,13 @@ export interface DiamondEnemyData extends BaseEnemyData {
     startY: number;
 }
 
-interface ShootingConfig {
-    shotsPerEnemy: number;
-    shotDelay: { min: number; max: number };
-    continuousFire?: boolean;
-}
-
 export class DiamondFormation implements IFormation {
     protected scene: Phaser.Scene;
     protected enemies: DiamondEnemyData[] = [];
     protected shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship;
     protected collisionConfig: ShipCollisionConfig;
-    protected timers: Phaser.Time.TimerEvent[] = [];
 
-    private config: Required<Pick<DiamondFormationConfig, 'spacing' | 'verticalSpacing' | 'startWidthPercentage' | 'shotsPerEnemy' | 'shotDelay' | 'continuousFire' | 'shipFormationGrid' | 'rotation'>>;
+    private config: Required<Pick<DiamondFormationConfig, 'spacing' | 'verticalSpacing' | 'startWidthPercentage' | 'autoFire' | 'shipFormationGrid' | 'rotation'>>;
 
     constructor(
         scene: Phaser.Scene,
@@ -74,9 +64,7 @@ export class DiamondFormation implements IFormation {
             verticalSpacing: 60,
             startWidthPercentage: config?.startWidthPercentage ?? 0.5,
             endWidthPercentage: config?.endWidthPercentage ?? 0.5,
-            shotsPerEnemy: 1,
-            shotDelay: { min: 1000, max: 3000 },
-            continuousFire: false,
+            autoFire: config?.autoFire || false,
             shipFormationGrid: config?.shipFormationGrid || [[null]],
             rotation: defaultRotation,
             ...config
@@ -134,12 +122,6 @@ export class DiamondFormation implements IFormation {
                     startX: x,
                     startY: y
                 });
-
-                this.scheduleShootingBehavior(ship, enemy, {
-                    shotsPerEnemy: this.config.shotsPerEnemy,
-                    shotDelay: this.config.shotDelay,
-                    continuousFire: this.config.continuousFire
-                });
             }
         }
     }
@@ -157,6 +139,11 @@ export class DiamondFormation implements IFormation {
 
             const enemy = enemyData.ship.sprite;
 
+            // Handle auto-fire
+            if (this.config.autoFire) {
+                this.fireEnemyLaser(enemyData.ship);
+            }
+
             if (enemy.y > height + BOUNDS_BUFFER || enemy.x < -BOUNDS_BUFFER || enemy.x > this.scene.scale.width + BOUNDS_BUFFER) {
                 enemyData.ship.destroy();
                 this.enemies.splice(i, 1);
@@ -173,79 +160,14 @@ export class DiamondFormation implements IFormation {
     }
 
     destroy(): void {
-        this.timers.forEach(timer => timer.remove());
-        this.timers = [];
         this.enemies.forEach(enemyData => {
             enemyData.ship.destroy();
         });
         this.enemies = [];
     }
 
-    protected scheduleShootingBehavior(ship: Ship, enemy: Phaser.Physics.Matter.Image, config: ShootingConfig): void {
-        if (config.continuousFire) {
-            const startDelay = Phaser.Math.Between(0, 2000);
-            this.scheduleContinuousFire(ship, config.shotDelay, startDelay);
-        } else if (config.shotsPerEnemy > 0) {
-            for (let j = 0; j < config.shotsPerEnemy; j++) {
-                const delay = Phaser.Math.Between(
-                    config.shotDelay.min,
-                    config.shotDelay.max
-                ) + j * 500;
-
-                const timer = TimeUtils.delayedCall(this.scene, delay, () => {
-                    if (enemy.active) {
-                        this.fireEnemyLaser(ship);
-                    }
-                });
-                this.timers.push(timer);
-            }
-        }
-    }
-
     protected fireEnemyLaser(ship: Ship): void {
         if (!ship.sprite.active) return;
         ship.fireLasers();
-    }
-
-    private getEffectiveShotDelay(ship: Ship, formationDelay: { min: number; max: number }): { min: number; max: number } {
-        let moduleMinDelay = 0;
-        let moduleMaxDelay = 0;
-
-        for (const module of ship.config.modules) {
-            const shipModule = new module.module();
-            if (isWeapon(shipModule) && shipModule.firingDelay) {
-                moduleMinDelay = Math.max(moduleMinDelay, shipModule.firingDelay.min);
-                moduleMaxDelay = Math.max(moduleMaxDelay, shipModule.firingDelay.max);
-            }
-        }
-
-        if (moduleMaxDelay > 0) {
-            return {
-                min: Math.max(formationDelay.min, moduleMinDelay),
-                max: Math.max(formationDelay.max, moduleMaxDelay)
-            };
-        }
-
-        return formationDelay;
-    }
-
-    protected scheduleContinuousFire(ship: Ship, shotDelay: { min: number; max: number }, delayOverride?: number): void {
-        if (!ship.sprite.active) return;
-
-        const effectiveDelay = this.getEffectiveShotDelay(ship, shotDelay);
-        const delay = delayOverride ?? Phaser.Math.Between(
-            effectiveDelay.min,
-            effectiveDelay.max
-        );
-
-        const timer = TimeUtils.delayedCall(this.scene, delay, () => {
-            this.timers = this.timers.filter(t => t !== timer);
-
-            if (ship.sprite.active) {
-                this.fireEnemyLaser(ship);
-                this.scheduleContinuousFire(ship, shotDelay);
-            }
-        });
-        this.timers.push(timer);
     }
 }
