@@ -1,16 +1,20 @@
 import type { LevelConfig } from './level';
 import { DiamondFormation } from '../formations/diamond-formation';
 
-import { SinusTactic } from '../tactics/sinus-tactic';
+import { PathTactic } from '../tactics/path-tactic';
+import { SinusSegment } from '../tactics/path-segments/sinus-segment';
+import { CoordinateSegment } from '../tactics/path-segments/coordinate-segment';
 import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
 
 export const BloodHuntersLevel: LevelConfig = {
     name: 'Blood Hunters',
     formations: [[{
-        tacticType: SinusTactic,
+        tacticType: PathTactic,
         tacticConfig: {
-            amplitude: 50,
-            frequency: 0.002
+            points: [
+                new CoordinateSegment(0.5, -0.1),
+                new SinusSegment(new CoordinateSegment(0.5, 1.2), 50, 0.002)
+            ]
         },
         formationType: DiamondFormation,
         config: {
@@ -19,10 +23,12 @@ export const BloodHuntersLevel: LevelConfig = {
         }
     }],
     [{
-        tacticType: SinusTactic,
+        tacticType: PathTactic,
         tacticConfig: {
-            amplitude: 50,
-            frequency: 0.002
+            points: [
+                new CoordinateSegment(0.5, -0.1),
+                new SinusSegment(new CoordinateSegment(0.5, 1.2), 50, 0.002)
+            ]
         },
         formationType: DiamondFormation,
         config: {
@@ -31,10 +37,12 @@ export const BloodHuntersLevel: LevelConfig = {
         }
     }],
     [{
-        tacticType: SinusTactic,
+        tacticType: PathTactic,
         tacticConfig: {
-            amplitude: 60,
-            frequency: 0.002
+            points: [
+                new CoordinateSegment(0.5, -0.1),
+                new SinusSegment(new CoordinateSegment(0.5, 1.2), 60, 0.002)
+            ]
         },
         formationType: DiamondFormation,
         config: {
@@ -44,10 +52,12 @@ export const BloodHuntersLevel: LevelConfig = {
     }],
     [
         {
-            tacticType: SinusTactic,
+            tacticType: PathTactic,
             tacticConfig: {
-                amplitude: 70,
-                frequency: 0.002
+                points: [
+                    new CoordinateSegment(0.5, -0.1),
+                    new SinusSegment(new CoordinateSegment(0.5, 1.2), 70, 0.002)
+                ]
             },
             formationType: DiamondFormation,
             config: {
@@ -58,16 +68,16 @@ export const BloodHuntersLevel: LevelConfig = {
     ],
     [
         {
-            tacticType: SinusTactic,
+            tacticType: PathTactic,
             tacticConfig: {
-                amplitude: 40,
-                frequency: 0.0015
+                points: [
+                    new CoordinateSegment(0.3, -0.1),
+                    new SinusSegment(new CoordinateSegment(0.7, 1.2), 40, 0.0015)
+                ]
             },
             formationType: DiamondFormation,
             startDelay: 1000,
             config: {
-                startWidthPercentage: 0.3,
-                endWidthPercentage: 0.7,
                 shipFormationGrid: [
                     [BloodHunterRedLaserConfig],
                     [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
@@ -80,15 +90,15 @@ export const BloodHuntersLevel: LevelConfig = {
     ],
     [
         {
-            tacticType: SinusTactic,
+            tacticType: PathTactic,
             tacticConfig: {
-                amplitude: 40,
-                frequency: 0.0015
+                points: [
+                    new CoordinateSegment(0.2, -0.1),
+                    new SinusSegment(new CoordinateSegment(0.8, 1.2), 40, 0.0015)
+                ]
             },
             formationType: DiamondFormation,
             config: {
-                startWidthPercentage: 0.2,
-                endWidthPercentage: 0.8,
                 shipFormationGrid: [
                     [BloodHunterRedLaserConfig],
                     [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
@@ -101,15 +111,15 @@ export const BloodHuntersLevel: LevelConfig = {
     ],
     [
         {
-            tacticType: SinusTactic,
+            tacticType: PathTactic,
             tacticConfig: {
-                amplitude: 30,
-                frequency: 0.0015
+                points: [
+                    new CoordinateSegment(0.25, -0.1),
+                    new SinusSegment(new CoordinateSegment(0.25, 1.2), 30, 0.0015)
+                ]
             },
             formationType: DiamondFormation,
             config: {
-                startWidthPercentage: 0.25,
-                endWidthPercentage: 0.25,
                 shipFormationGrid: [
                     [BloodHunterRedLaserConfig],
                     [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
@@ -120,15 +130,15 @@ export const BloodHuntersLevel: LevelConfig = {
             }
         },
         {
-            tacticType: SinusTactic,
+            tacticType: PathTactic,
             tacticConfig: {
-                amplitude: 30,
-                frequency: 0.0015
+                points: [
+                    new CoordinateSegment(0.75, -0.1),
+                    new SinusSegment(new CoordinateSegment(0.75, 1.2), 30, 0.0015)
+                ]
             },
             formationType: DiamondFormation,
             config: {
-                startWidthPercentage: 0.75,
-                endWidthPercentage: 0.75,
                 shipFormationGrid: [
                     [BloodHunterRedLaserConfig],
                     [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]

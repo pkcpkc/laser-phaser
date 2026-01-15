@@ -1,7 +1,11 @@
 import { BaseTactic } from './base-tactic';
 import type { IFormation } from '../formations/types';
+import type { IPathSegment } from './path-segments/types';
+import { CoordinateSegment } from './path-segments/coordinate-segment';
+import { PlayerTargetSegment } from './path-segments/player-target-segment';
 
 export type PathPoint =
+    | IPathSegment
     | [number, number] // Standard coordinate (width%, height%)
     | { type: 'player', approach: number }; // Target player, approach is 0-1 (percentage of distance)
 
@@ -11,6 +15,7 @@ export interface PathTacticConfig {
 }
 
 export class PathTactic extends BaseTactic {
+    private points: IPathSegment[] = [];
     private config: PathTacticConfig;
     private currentTargetIndex: number = 0;
 
@@ -34,48 +39,30 @@ export class PathTactic extends BaseTactic {
     constructor(config: PathTacticConfig = {}) {
         super();
         this.config = config;
+        this.points = (config.points || []).map(p => this.ensureSegment(p));
     }
 
-    private resolveTarget(index: number, scene: Phaser.Scene): { x: number, y: number } | null {
-        if (!this.config.points || index >= this.config.points.length) return null;
-
-        const point = this.config.points[index];
-
+    private ensureSegment(point: PathPoint): IPathSegment {
         if (Array.isArray(point)) {
-            // [width%, height%]
-            return {
-                x: scene.scale.width * point[0],
-                y: scene.scale.height * point[1]
-            };
-        } else if (typeof point === 'object' && point.type === 'player') {
-            // Target Player
-            const player = (scene as any).ship?.sprite as Phaser.GameObjects.Sprite | undefined;
-            if (player && player.active) {
-                // Determine direction to player
-                const dx = player.x - this.currentAnchorX;
-                const dy = player.y - this.currentAnchorY;
-                // const dist = Math.sqrt(dx * dx + dy * dy); 
-
-
-                // Calculate target point based on approach percentage
-                // If approach is 0.7, we travel 0.7 * dist towards player
-                // Target = current + vector * approach
-                const approach = point.approach ?? 1.0;
-
-                return {
-                    x: this.currentAnchorX + dx * approach,
-                    y: this.currentAnchorY + dy * approach
-                };
-            } else {
-                // Fallback if no player? Down? or Just continue?
-                // Let's assume standard down movement or target center?
-                return {
-                    x: scene.scale.width * 0.5,
-                    y: scene.scale.height + 200 // Exit screen
-                };
-            }
+            return new CoordinateSegment(point[0], point[1]);
         }
-        return null;
+        if (typeof point === 'object' && 'type' in point && point.type === 'player') {
+            return new PlayerTargetSegment(point.approach);
+        }
+        return point as IPathSegment;
+    }
+
+    private resolveTarget(index: number, scene: Phaser.Scene, time: number, speed: number): { x: number, y: number } | null {
+        if (index >= this.points.length) return null;
+
+        const segment = this.points[index];
+        return segment.resolve({
+            scene,
+            currentAnchorX: this.currentAnchorX,
+            currentAnchorY: this.currentAnchorY,
+            time,
+            speed
+        });
     }
 
     /**
@@ -108,6 +95,10 @@ export class PathTactic extends BaseTactic {
         const leaderData = validEnemies[0];
 
         // 2. Initialize State
+        const rawSpeed = this.getFormationSpeed(validEnemies);
+        const speedPxPerSec = rawSpeed * 60;
+        const speedPxPerMs = speedPxPerSec / 1000;
+
         if (!this.hasStarted) {
             this.hasStarted = true;
 
@@ -117,9 +108,9 @@ export class PathTactic extends BaseTactic {
             // "once a point has reached, the next point..." implies we spawn at point 0.
             // Let's assume Point 0 is always coordinate for simplicity, or we treat it as spawn pos.
 
-            if (this.config.points && this.config.points.length > 0) {
+            if (this.points.length > 0) {
                 // We treat Index 0 as the spawn point.
-                const startPoint = this.resolveTarget(0, scene);
+                const startPoint = this.resolveTarget(0, scene, time, speedPxPerMs);
                 if (startPoint) {
                     this.currentAnchorX = startPoint.x;
                     this.currentAnchorY = startPoint.y;
@@ -129,7 +120,7 @@ export class PathTactic extends BaseTactic {
                 this.currentTargetIndex = 1;
 
                 // Resolve Index 1 immediately
-                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene);
+                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene, time, speedPxPerMs);
 
                 // If we have a target, calculate angle
                 if (this.resolvedTarget) {
@@ -158,8 +149,6 @@ export class PathTactic extends BaseTactic {
 
         // 3. Move along path - use minimum speed across all active ships
         const dt = delta / 1000;
-        const rawSpeed = this.getFormationSpeed(validEnemies);
-        const speedPxPerSec = rawSpeed * 60;
 
         let targetAngle = this.lastAngle;
         let distToMove = speedPxPerSec * dt;
@@ -180,7 +169,7 @@ export class PathTactic extends BaseTactic {
 
                 // Resolve Next Target (Dynamic resolution happens HERE)
                 // This ensures "playerShipPosition considered once only"
-                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene);
+                this.resolvedTarget = this.resolveTarget(this.currentTargetIndex, scene, time, speedPxPerMs);
 
                 if (this.resolvedTarget) {
                     // Recalculate target angle for NEXT segment
@@ -191,12 +180,7 @@ export class PathTactic extends BaseTactic {
                         this.resolvedTarget.y
                     );
                     targetAngle = this.lastAngle;
-                } else {
-                    // End of path.
-                    // Angle remains same (last approach angle).
-                    // distToMove will be applied in "No targets left" block or below loop
                 }
-
             } else {
                 // Move towards current target
                 targetAngle = Math.atan2(dy, dx);
@@ -214,13 +198,38 @@ export class PathTactic extends BaseTactic {
             this.currentAnchorY += Math.sin(this.lastAngle) * distToMove;
         }
 
+        // Apply Offset if available from current segment
+        let offsetX = 0;
+        let offsetY = 0;
+        let effectiveAngle = this.lastAngle;
+        const currentSegment = this.points[this.currentTargetIndex] || this.points[this.points.length - 1];
+        if (currentSegment) {
+            const ctx = {
+                scene,
+                currentAnchorX: this.currentAnchorX,
+                currentAnchorY: this.currentAnchorY,
+                time,
+                speed: speedPxPerMs
+            };
+
+            if (currentSegment.getOffset) {
+                const offset = currentSegment.getOffset(ctx, this.lastAngle);
+                offsetX = offset.x;
+                offsetY = offset.y;
+            }
+
+            if (currentSegment.getRotation) {
+                effectiveAngle = currentSegment.getRotation(ctx, this.lastAngle);
+            }
+        }
+
         // Calculate Displacement relative to ORIGINAL Anchor (Consistently)
         // Check if originalAnchorX is set (it should be if hasStarted is true, but TS might complain or runtime edge case)
         const startX = this.originalAnchorX ?? 0;
         const startY = this.originalAnchorY ?? 0;
 
-        this.displacementX = this.currentAnchorX - startX;
-        this.displacementY = this.currentAnchorY - startY;
+        this.displacementX = (this.currentAnchorX + offsetX) - startX;
+        this.displacementY = (this.currentAnchorY + offsetY) - startY;
 
         // 4. Apply to enemies
         const sceneWidth = scene.scale.width;
@@ -251,7 +260,7 @@ export class PathTactic extends BaseTactic {
             // Rotation
             if (this.config.faceMovement !== false) {
                 const currentRot = enemy.rotation;
-                enemy.setRotation(Phaser.Math.Angle.RotateTo(currentRot, this.lastAngle, 3 * dt));
+                enemy.setRotation(Phaser.Math.Angle.RotateTo(currentRot, effectiveAngle, 3 * dt));
             }
             enemy.setVelocity(0, 0);
 
