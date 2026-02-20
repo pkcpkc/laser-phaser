@@ -57,8 +57,8 @@ export abstract class WeaponBase {
     ): Phaser.Physics.Matter.Image | undefined {
         this.createTexture(scene);
 
-        // Instantiate projectile
-        const projectile = new Projectile(
+        // Instantiate projectile using Pool
+        const projectile = Projectile.getFromPool(
             scene,
             x,
             y,

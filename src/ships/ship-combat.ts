@@ -86,7 +86,7 @@ export class ShipCombat {
                 try {
                     const chance = lootItem.dropChance ?? 1;
                     if (Math.random() <= chance) {
-                        const loot = new Loot(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
+                        const loot = Loot.getFromPool(this.sprite.scene, this.sprite.x, this.sprite.y, lootItem.type);
 
                         if (this.collisionConfig.lootCategory) {
                             loot.setCollisionCategory(this.collisionConfig.lootCategory);

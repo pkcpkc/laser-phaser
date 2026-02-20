@@ -1,65 +1,15 @@
-import Phaser from 'phaser';
-import type { LevelConfig, FormationConfig, IFormationConstructor } from './level';
+import type { LevelConfig, FormationConfig } from './level';
 import { BloodBossTactic } from '../tactics/blood-boss-tactic';
 import { BloodBossConfig } from '../../../ships/configurations/blood-boss-config';
-import { Ship } from '../../../ships/ship';
-import type { ShipCollisionConfig, ShipConfig } from '../../../ships/types';
 import { DiamondFormation } from '../formations/diamond-formation';
+import { SingleShipFormation } from '../formations/single-ship-formation';
 import { PathTactic } from '../tactics/path-tactic';
 import { CoordinateSegment } from '../tactics/path-segments/coordinate-segment';
 import { SinusSegment } from '../tactics/path-segments/sinus-segment';
 import { PlayerTargetSegment } from '../tactics/path-segments/player-target-segment';
 import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
 import { BloodBomberBloodRocketConfig } from '../../../ships/configurations/blood-bomber-blood-rocket';
-import { SmallAsteroidDustConfig } from '../../../ships/configurations/asteroid-small-dust';
-import { MediumAsteroidDustConfig } from '../../../ships/configurations/asteroid-medium-dust';
-import { LargeAsteroidDustConfig } from '../../../ships/configurations/asteroid-large-dust';
-
-// Simple Single Ship Formation
-class SingleShipFormation {
-    private ship: Ship | null = null;
-
-    constructor(
-        private scene: Phaser.Scene,
-        private shipClass: new (scene: Phaser.Scene, x: number, y: number, config: ShipConfig, collisionConfig: ShipCollisionConfig) => Ship,
-        private collisionConfig: ShipCollisionConfig,
-        _config: any,
-        private shipConfigs?: ShipConfig[]
-    ) { }
-
-    spawn() {
-        if (this.shipConfigs && this.shipConfigs.length > 0) {
-            console.log('BloodBossLevel: Spawning boss!');
-            // Spawn off-screen at random X, tactic will move it in
-            const startX = Phaser.Math.Between(0, this.scene.scale.width);
-            const startY = -200;
-            this.ship = new this.shipClass(this.scene, startX, startY, this.shipConfigs[0], this.collisionConfig);
-            console.log(`BloodBossLevel: Boss spawned at ${startX}, ${startY}`);
-        }
-    }
-
-    getShips() {
-        if (this.ship) {
-            return [{ ship: this.ship, spawnTime: this.scene.time.now }];
-        }
-        return [];
-    }
-
-    isComplete(): boolean {
-        return !this.ship || !this.ship.sprite.active;
-    }
-
-    update(_time: number, _delta: number): void {
-        // Tactic handles all movement; no formation-specific logic needed
-    }
-
-    destroy() {
-        if (this.ship) {
-            this.ship.destroy();
-            this.ship = null;
-        }
-    }
-}
+import { createAsteroidWave } from './helpers/asteroid-formation-helper';
 
 const createBloodBossFormation = (startDelay: number = 0): FormationConfig => {
     return {
@@ -69,59 +19,12 @@ const createBloodBossFormation = (startDelay: number = 0): FormationConfig => {
             screenFractionY: 0.66,
             movementRadiusFraction: 0.5
         },
-        formationType: SingleShipFormation as any as IFormationConstructor,
+        formationType: SingleShipFormation,
         shipConfigs: [BloodBossConfig],
         startDelay
     };
 };
 
-/**
- * Helper to pick a random asteroid config based on weights.
- */
-function getAsteroidConfig(sizeWeights: { small: number; medium: number; large: number }): ShipConfig {
-    const random = Math.random();
-    if (random < sizeWeights.small) return SmallAsteroidDustConfig;
-    if (random < sizeWeights.small + sizeWeights.medium) return MediumAsteroidDustConfig;
-    return LargeAsteroidDustConfig;
-}
-
-/**
- * Helper to create a wave of individual asteroids.
- */
-function createAsteroidWave(
-    count: number,
-    startDelay: number,
-    spawnWidth: number,
-    sizeWeights: { small: number; medium: number; large: number },
-    minInterval: number = 200,
-    maxInterval: number = 600
-): FormationConfig[] {
-    const wave: FormationConfig[] = [];
-    let currentDelay = startDelay;
-
-    for (let i = 0; i < count; i++) {
-        const shipConfig = getAsteroidConfig(sizeWeights);
-        const xPos = (Math.random() * spawnWidth) + (1 - spawnWidth) / 2;
-
-        wave.push({
-            tacticType: PathTactic,
-            tacticConfig: { points: [], faceMovement: false },
-            formationType: DiamondFormation,
-            startDelay: currentDelay,
-            config: {
-                shipFormationGrid: [[shipConfig]],
-                startWidthPercentage: xPos,
-                endWidthPercentage: xPos,
-                rotation: 0
-            }
-        });
-
-        const delay = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-        currentDelay += delay;
-    }
-
-    return wave;
-}
 
 export const BloodBossLevel: LevelConfig = {
     name: 'Blood Boss',

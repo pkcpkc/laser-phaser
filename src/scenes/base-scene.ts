@@ -245,9 +245,9 @@ export default class BaseScene extends Phaser.Scene {
         if (!lootGameObject.active) return;
 
         const loot = lootGameObject as Loot;
-        if (loot.type) {
+        if (loot.lootType) {
             const value = loot.value || 1;
-            const type: LootType = loot.type || LootType.SILVER;
+            const type: LootType = loot.lootType || LootType.SILVER;
             const gameStatus = GameStatus.getInstance();
 
             if (type === LootType.GOLD) {

@@ -1,21 +1,32 @@
 import Phaser from 'phaser';
 import { LootType } from './types';
-
+import { ObjectPool } from '../utils/object-pool';
 
 export class Loot extends Phaser.Physics.Matter.Image {
-    public readonly type: LootType;
+    public lootType!: LootType;
     public readonly value: number = 1; // Default value as requested
 
-    constructor(scene: Phaser.Scene, x: number, y: number, type: LootType) {
-        // Resolve text based on type - now simpler as type IS the text/emoji
-        const text = type;
+    private static scenePools: WeakMap<Phaser.Scene, Record<string, ObjectPool<Loot>>> = new WeakMap();
+    private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
 
-        // Generate a safe unique key for the texture based on the emoji char code
+    constructor(scene: Phaser.Scene, textureKey: string) {
+        // Spawn offscreen natively
+        super(scene.matter.world, -9999, -9999, textureKey);
+        scene.add.existing(this);
+
+        // Physics properties
+        this.setFrictionAir(0.05);
+        this.setBounce(0.5);
+        this.setSensor(true);
+        this.setIgnoreGravity(true);
+    }
+
+    public static getFromPool(scene: Phaser.Scene, x: number, y: number, lootType: LootType): Loot {
+        const text = lootType;
         const charCode = text.codePointAt(0)?.toString() || 'loot';
         const textureKey = `loot-${charCode}`;
 
         if (!scene.textures.exists(textureKey)) {
-            // console.log('Generating Loot Texture', textureKey);
             const textObj = scene.make.text({ text: text, style: { fontSize: '32px' } }, false);
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
@@ -33,47 +44,63 @@ export class Loot extends Phaser.Physics.Matter.Image {
             textObj.destroy();
         }
 
-        super(scene.matter.world, x, y, textureKey);
-        this.type = type;
-        scene.add.existing(this);
+        if (!Loot.scenePools.has(scene)) {
+            Loot.scenePools.set(scene, {});
+            scene.events.once('shutdown', () => {
+                Loot.scenePools.delete(scene);
+            });
+        }
 
-        // Physics properties
-        this.setFrictionAir(0.05);
-        this.setBounce(0.5);
-        this.setSensor(true); // Make it a sensor so it doesn't physically collide
+        const pools = Loot.scenePools.get(scene)!;
+        if (!pools[textureKey]) {
+            pools[textureKey] = new ObjectPool<Loot>(() => new Loot(scene, textureKey), 20);
+        }
 
+        const loot = pools[textureKey].get();
+        loot.spawn(x, y, lootType);
+        return loot;
+    }
+
+    public spawn(x: number, y: number, lootType: LootType) {
+        this.lootType = lootType;
+        this.setPosition(x, y);
+        this.setActive(true);
+        this.setVisible(true);
+        this.setAwake();
+        this.setAlpha(1);
+        this.setScale(1);
 
         const lifespan = 3000;
 
-        if (type === LootType.MODULE) {
-            const particles = scene.add.particles(0, 0, 'flare-white', {
-                color: [0xffffff],
-                lifespan: 1000,
-                angle: { min: 0, max: 360 },
-                scale: { start: 0.3, end: 0 },
-                speed: { min: 10, max: 30 },
-                blendMode: 'ADD',
-                follow: this,
-                frequency: 100
-            });
+        if (lootType === LootType.MODULE) {
+            if (!this.particles) {
+                this.particles = this.scene.add.particles(0, 0, 'flare-white', {
+                    color: [0xffffff],
+                    lifespan: 1000,
+                    angle: { min: 0, max: 360 },
+                    scale: { start: 0.3, end: 0 },
+                    speed: { min: 10, max: 30 },
+                    blendMode: 'ADD',
+                    follow: this,
+                    frequency: 100
+                });
+            } else {
+                this.particles.start();
+            }
 
-            this.on('destroy', () => particles.destroy());
-
-            scene.tweens.add({
+            this.scene.tweens.add({
                 targets: this,
                 alpha: 0,
                 duration: 500,
                 delay: lifespan - 500,
                 onComplete: () => {
-                    if (this.active) {
-                        this.destroy();
-                    }
+                    if (this.active) this.destroy();
                 }
             });
         } else {
             const flipDuration = lifespan / 4.5;
 
-            scene.tweens.chain({
+            this.scene.tweens.chain({
                 targets: this,
                 tweens: [
                     {
@@ -88,23 +115,38 @@ export class Loot extends Phaser.Physics.Matter.Image {
                         duration: flipDuration / 2,
                         ease: 'Sine.easeIn',
                         onComplete: () => {
-                            if (this.active) {
-                                this.destroy();
-                            }
+                            if (this.active) this.destroy();
                         }
                     }
                 ]
             });
         }
-
-        // Removed fixed lifespan timer as it's now controlled by the animation
-
     }
 
-    destroy(fromScene?: boolean) {
+    override destroy(fromScene?: boolean) {
         if (this.scene) {
             this.scene.tweens.killTweensOf(this);
         }
-        super.destroy(fromScene);
+
+        if (this.particles) {
+            this.particles.stop();
+        }
+
+        let poolForRelease: ObjectPool<Loot> | undefined;
+
+        // Use this.texture.key to get the texture key used for pooling
+        if (!fromScene && this.texture && this.scene && Loot.scenePools.has(this.scene)) {
+            const pools = Loot.scenePools.get(this.scene);
+            if (pools && pools[this.texture.key]) {
+                poolForRelease = pools[this.texture.key];
+            }
+        }
+
+        if (poolForRelease) {
+            poolForRelease.release(this);
+        } else {
+            if (this.particles) this.particles.destroy();
+            super.destroy(fromScene);
+        }
     }
 }

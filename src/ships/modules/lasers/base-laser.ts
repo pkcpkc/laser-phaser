@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import type { Laser } from './types';
 import { WeaponBase } from '../weapon-base';
-import { TimeUtils } from '../../../utils/time-utils';
+
 import { ModuleType } from '../module-types';
 
 // Trail Effect Constants
@@ -10,7 +10,7 @@ const TRAIL_SIZE = 4;
 const TRAIL_LIFESPAN = 150;
 const TRAIL_SCALE_START = 0.8;
 const TRAIL_ALPHA_START = 0.6;
-const CLEANUP_DELAY = 200;
+
 
 /**
  * Base class for laser weapons.
@@ -18,6 +18,8 @@ const CLEANUP_DELAY = 200;
  */
 export abstract class BaseLaser extends WeaponBase implements Laser {
     readonly type: ModuleType.LASER | ModuleType.ROCKET = ModuleType.LASER;
+    private static globalEmitters: Map<Phaser.Scene, Map<number, Phaser.GameObjects.Particles.ParticleEmitter>> = new Map();
+
     /**
      * Add a glowing trail effect behind the laser.
      */
@@ -32,29 +34,54 @@ export abstract class BaseLaser extends WeaponBase implements Laser {
             g.destroy();
         }
 
-        const particles = scene.add.particles(0, 0, trailTextureKey, {
-            lifespan: TRAIL_LIFESPAN,
-            scale: { start: TRAIL_SCALE_START, end: 0 },
-            alpha: { start: TRAIL_ALPHA_START, end: 0 },
-            tint: this.COLOR,
-            speed: 0,
-            blendMode: 'ADD',
-            emitting: false
-        });
+        // Initialize global emitters for this scene if not exists
+        if (!BaseLaser.globalEmitters.has(scene)) {
+            BaseLaser.globalEmitters.set(scene, new Map());
 
-        const updateListener = () => {
+            // Cleanup on scene shutdown
+            scene.events.once('shutdown', () => {
+                BaseLaser.globalEmitters.delete(scene);
+            });
+        }
+
+        const sceneEmitters = BaseLaser.globalEmitters.get(scene)!;
+
+        // Ensure an emitter exists for this specific color color
+        if (!sceneEmitters.has(this.COLOR)) {
+            const particles = scene.add.particles(0, 0, trailTextureKey, {
+                lifespan: TRAIL_LIFESPAN,
+                scale: { start: TRAIL_SCALE_START, end: 0 },
+                alpha: { start: TRAIL_ALPHA_START, end: 0 },
+                tint: this.COLOR,
+                speed: 0,
+                blendMode: 'ADD',
+                emitting: false
+            });
+            // Ensure particles render behind ships
+            particles.setDepth(-1);
+            sceneEmitters.set(this.COLOR, particles);
+        }
+
+        const emitter = sceneEmitters.get(this.COLOR)!;
+
+        // Since we are pooling projectiles, we just register an update hook on the projectile itself
+        // Or we can let the projectile's preUpdate emit particles
+        // For simplicity, we can inject a custom update function into the laser if pooling is active
+        (laser as any).emitTrail = () => {
             if (laser.active) {
-                particles.emitParticleAt(laser.x, laser.y);
+                emitter.emitParticleAt(laser.x, laser.y);
             }
         };
 
-        scene.events.on('update', updateListener);
-
-        laser.once('destroy', () => {
-            scene.events.off('update', updateListener);
-            TimeUtils.delayedCall(scene, CLEANUP_DELAY, () => {
-                particles.destroy();
-            });
-        });
+        if (!(laser as any).hasTrailHook) {
+            (laser as any).hasTrailHook = true;
+            const originalPreUpdate = (laser as any).preUpdate;
+            (laser as any).preUpdate = function (time: number, delta: number) {
+                if (originalPreUpdate) originalPreUpdate.call(this, time, delta);
+                if (this.active && this.emitTrail) {
+                    this.emitTrail();
+                }
+            };
+        }
     }
 }
