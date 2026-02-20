@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PathTactic } from '../../../../../src/scenes/shoot-em-ups/tactics/path-tactic';
+import { SinusSegment } from '../../../../../src/scenes/shoot-em-ups/tactics/path-segments/sinus-segment';
+import { CoordinateSegment } from '../../../../../src/scenes/shoot-em-ups/tactics/path-segments/coordinate-segment';
 
 // Mock Phaser global (minimal needed for PathTactic)
 global.Phaser = {
@@ -397,6 +399,50 @@ describe('PathTactic', () => {
             const call = (noSpeedEnemy.ship.sprite.setPosition as any).mock.calls[0];
             // Started at 0, displacement should be 120
             expect(call[0]).toBeCloseTo(120, 1);
+        });
+    });
+
+    describe('sinus movement speed correction', () => {
+        it('should move the anchor slower when following a high-amplitude sinus wave', () => {
+            // Start (0, 0) -> Target (1, 0) (Right)
+            // Use Sinus with high amplitude
+            // pathSpeed = 2 px/frame = 120 px/sec
+            const target = new CoordinateSegment(1, 0);
+            const sinus = new SinusSegment(target, 400, 0.01); // High amplitude 400
+
+            pathTactic = new PathTactic({
+                points: [[0, 0], sinus]
+            });
+
+            mockEnemy.startX = 0;
+            mockEnemy.startY = 0;
+            const mockScene = mockEnemy.ship.sprite.scene;
+            pathTactic.initialize(mockScene, null as any, {}, null, [], {} as any);
+            pathTactic.addFormation(mockFormation);
+
+            // Update 1s.
+            // Expected distance without Sinus: 120px.
+            // With Sinus amplitude 400, frequency 0.01:
+            // v_offset_max = A * f = 400 * 0.01 = 4 px/ms = 4000 px/sec!
+            // multiplier = sqrt(1 + (4000/120)^2) ~= 33.3
+            // Anchor speed should be significantly reduced.
+
+            pathTactic.update(1000, 1000);
+
+            const call = (mockEnemy.ship.sprite.setPosition as any).mock.calls[0];
+
+            // Let's just check displacementX
+            // The ship's X position includes both anchor movement and sinus offset.
+            // But since the path is strictly horizontal (0,0 -> 1,0),
+            // and the sinus offset is perpendicular (vertical),
+            // then displacementX is JUST the anchor movement.
+
+            expect(call[0]).toBeLessThan(120);
+            expect(call[0]).toBeGreaterThan(0);
+
+            // Without fix, it would be exactly 120 (since anchor distance is 120).
+            // With fix, it should be significantly less (around 120/33 = 3.6px).
+            expect(call[0]).toBeLessThan(20);
         });
     });
 });

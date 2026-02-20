@@ -37,44 +37,45 @@ describe('BloodBossLevel', () => {
         expect(BloodBossLevel.name).toBe('Blood Boss');
     });
 
-    it('should have one formation wave', () => {
-        expect(BloodBossLevel.formations.length).toBe(1);
-        expect(BloodBossLevel.formations[0].length).toBe(1);
+    it('should have three formation waves', () => {
+        expect(BloodBossLevel.formations.length).toBe(3);
     });
 
-    describe('Formation', () => {
+    it('should have hunters in wave 1', () => {
+        expect(BloodBossLevel.formations[0].length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should have mixed formations in wave 2', () => {
+        expect(BloodBossLevel.formations[1].length).toBeGreaterThanOrEqual(1);
+    });
+
+    describe('Boss Formation (Wave 3)', () => {
         let formationConfig: any;
         let FormationClass: any;
         let mockScene: any;
 
 
         beforeEach(() => {
-            formationConfig = BloodBossLevel.formations[0][0];
+            // The boss is in the third wave
+            formationConfig = BloodBossLevel.formations[2][0];
+            expect(formationConfig.shipConfigs[0].definition.id).toBe('blood-boss');
+
             FormationClass = formationConfig.formationType;
 
             mockScene = {
                 scale: { width: 800, height: 600 },
+                time: { now: 1000 },
                 add: {
                     existing: vi.fn()
                 }
             };
-
-            // mockShipClass definition removed (unused)
         });
 
-        it('should create formation with correct config', () => {
+        it('should create boss formation with correct config', () => {
             expect(formationConfig.tacticConfig.fireDuration).toBe(4000);
         });
 
-        it('should spawn ship off-screen', () => {
-            // Instantiate the internal formation class
-            // It expects: scene, shipClass, collisionConfig, _config, shipConfig
-            // Instantiate the internal formation class
-            // It expects: scene, shipClass, collisionConfig, _config, shipConfig
-            // (Skipping unused instantiation check)
-
-            // Spy on ship constructor or console log if we can't easily spy on constructor passed as arg without more complex setup
-            // Easier: Stub the ship class to verify instantiation
+        it('should spawn boss ship off-screen', () => {
             const shipSpy = vi.fn();
             const spyClass = class {
                 constructor(scene: any, x: number, y: number) {

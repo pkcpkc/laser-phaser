@@ -24,6 +24,7 @@ export class PathTactic extends BaseTactic {
     private lastAngle: number = Math.PI / 2;
     private displacementX: number = 0;
     private displacementY: number = 0;
+    private pathTime: number = 0;
 
     // The "virtual" position of the formation anchor (leader start position) relative to path
     private currentAnchorX: number = 0;
@@ -101,6 +102,7 @@ export class PathTactic extends BaseTactic {
 
         if (!this.hasStarted) {
             this.hasStarted = true;
+            this.pathTime = time;
 
             // Resolve 1st point (Start Position)
             // It MUST be a coordinate, not a Player target (doesn't make sense to start at Player relative?)
@@ -148,7 +150,21 @@ export class PathTactic extends BaseTactic {
         }
 
         // 3. Move along path - use minimum speed across all active ships
-        const dt = delta / 1000;
+        let currentSegment = this.points[this.currentTargetIndex] || this.points[this.points.length - 1];
+        let multiplier = 1;
+        if (currentSegment && currentSegment.getSpeedMultiplier) {
+            multiplier = currentSegment.getSpeedMultiplier({
+                scene,
+                currentAnchorX: this.currentAnchorX,
+                currentAnchorY: this.currentAnchorY,
+                time: this.pathTime,
+                speed: speedPxPerMs
+            }, this.lastAngle);
+        }
+
+        const effectiveDelta = delta / multiplier;
+        this.pathTime += effectiveDelta;
+        const dt = effectiveDelta / 1000;
 
         let targetAngle = this.lastAngle;
         let distToMove = speedPxPerSec * dt;
@@ -202,13 +218,13 @@ export class PathTactic extends BaseTactic {
         let offsetX = 0;
         let offsetY = 0;
         let effectiveAngle = this.lastAngle;
-        const currentSegment = this.points[this.currentTargetIndex] || this.points[this.points.length - 1];
+        currentSegment = this.points[this.currentTargetIndex] || this.points[this.points.length - 1];
         if (currentSegment) {
             const ctx = {
                 scene,
                 currentAnchorX: this.currentAnchorX,
                 currentAnchorY: this.currentAnchorY,
-                time,
+                time: this.pathTime,
                 speed: speedPxPerMs
             };
 

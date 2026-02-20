@@ -97,18 +97,29 @@ describe('PlayerMovement', () => {
     });
 
     describe('updateKeyboard', () => {
-        it('should apply thrust when left key is down', () => {
-            const cursors = {
-                left: { isDown: true },
-                right: { isDown: false },
-                up: { isDown: false },
-                down: { isDown: false }
-            } as any;
+        it('should apply thrust for all directions', () => {
+            const directions = ['left', 'right', 'up', 'down'] as const;
+            directions.forEach(dir => {
+                ship.sprite.thrustLeft.mockClear();
+                ship.sprite.thrustRight.mockClear();
+                ship.sprite.thrust.mockClear();
+                ship.sprite.thrustBack.mockClear();
 
-            const moving = movement.updateKeyboard(cursors);
+                const cursors = {
+                    left: { isDown: dir === 'left' },
+                    right: { isDown: dir === 'right' },
+                    up: { isDown: dir === 'up' },
+                    down: { isDown: dir === 'down' }
+                } as any;
 
-            expect(moving).toBe(true);
-            expect(ship.sprite.thrustLeft).toHaveBeenCalled();
+                const moving = movement.updateKeyboard(cursors);
+                expect(moving).toBe(true);
+
+                if (dir === 'left') expect(ship.sprite.thrustLeft).toHaveBeenCalled();
+                if (dir === 'right') expect(ship.sprite.thrustRight).toHaveBeenCalled();
+                if (dir === 'up') expect(ship.sprite.thrust).toHaveBeenCalled();
+                if (dir === 'down') expect(ship.sprite.thrustBack).toHaveBeenCalled();
+            });
         });
 
         it('should cancel target when keys are pressed', () => {
@@ -158,14 +169,47 @@ describe('PlayerMovement', () => {
             expect(ship.sprite.setVelocity).toHaveBeenCalledWith(0, 0);
         });
 
-        it('should return angle and set velocity when moving toward target', () => {
-            movement.setTarget(300, 100); // Target to the right
+        it('should accelerate toward target', () => {
+            movement.setTarget(500, 500);
+            (movement as any).currentSpeed = 0;
 
             const result = movement.updateTargetMovement();
 
             expect(result.arrived).toBe(false);
-            expect(result.angle).toBeDefined();
-            expect(ship.sprite.setVelocity).toHaveBeenCalled();
+            expect((movement as any).currentSpeed).toBeGreaterThan(0);
+            expect(result.isDecelerating).toBe(false);
+        });
+
+        it('should clamp to max speed during acceleration', () => {
+            movement.setTarget(1000, 1000);
+            const maxSpeed = ship.maxSpeed * 3; // TAP_SPEED_MULTIPLIER = 3
+            (movement as any).currentSpeed = maxSpeed - 1;
+
+            movement.updateTargetMovement();
+
+            expect((movement as any).currentSpeed).toBe(maxSpeed);
+        });
+
+        it('should decelerate when close to target braking distance', () => {
+            movement.setTarget(150, 150);
+            // distance is sqrt(50^2 + 50^2) = 70.7
+            // currentSpeed = 30. DECELERATION = 3.0.
+            // brakingDistance = (30 * 30) / (2 * 3) = 900 / 6 = 150.
+            // 70.7 <= 150 -> should decelerate.
+            (movement as any).currentSpeed = 30;
+
+            const result = movement.updateTargetMovement();
+
+            expect(result.isDecelerating).toBe(true);
+            expect((movement as any).currentSpeed).toBe(27); // 30 - 3
+        });
+
+
+        it('should return correct state', () => {
+            movement.setTarget(200, 200);
+            const state = movement.state;
+            expect(state.targetPosition).toBeDefined();
+            expect(state.isDecelerating).toBeDefined();
         });
     });
 });

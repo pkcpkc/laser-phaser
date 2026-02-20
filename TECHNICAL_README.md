@@ -76,7 +76,7 @@ graph TD
 *   **Wormhole Transition**: A cinematic transition scene used when jumping between galaxies, ensuring a smooth visual bridge.
 *   **Storyline & Intros**: Managed by `StorylineManager`. Markdown storylines are **compiled to TypeScript** (`src/generated/storylines/storylines.ts`) during build, eliminating runtime parsing overhead.
 *   **Module System**: Ships are dynamically built using category-based modules (Drives, Lasers, Rockets), allowing for deep customization in the Shipyard.
-*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`. Level configurations now use a `shipFormationGrid` for precise placement, and firing rates are controlled by the ships' own weapon modules rather than the formation itself (via the `autoFire` toggle).
+*   **Tactic & Formation System**: Decouples enemy movement logic (`Tactics`) from spawn patterns (`Formations`). `WaveRunner` manages the lifecycle of a `Tactic`. Level configurations now use a `shipFormationGrid` for precise placement, and firing rates are controlled by the ships' own weapon modules rather than the formation itself (via the `autoFire` toggle). `PathTactic` supports complex paths with segments like `SinusSegment`, which automatically adjusts the anchor movement speed to maintain a constant total ship speed even during high-amplitude oscillations.
 
 ### Dependency Injection
 

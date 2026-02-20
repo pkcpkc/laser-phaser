@@ -68,7 +68,7 @@ function createAsteroidWave(
  *
  * Refactored to use individual formations per asteroid for independent speeds.
  */
-export const IntroAsteroidLevel: LevelConfig = {
+export const AsteroidLevel: LevelConfig = {
     name: 'Asteroid Field',
     formations: [
         // Wave 1: Warmup - 1 Asteroid
@@ -87,9 +87,6 @@ export const IntroAsteroidLevel: LevelConfig = {
         createAsteroidWave(12, 1200, 0.9, { small: 0.3, medium: 0.4, large: 0.3 }, 100, 300),
 
         // Wave 6: Heavy - 20 Asteroids
-        createAsteroidWave(20, 900, 0.95, { small: 0.2, medium: 0.5, large: 0.3 }, 80, 250),
-
-        // Wave 7: Chaos - 35 Asteroids
-        createAsteroidWave(35, 600, 1.0, { small: 0.1, medium: 0.4, large: 0.5 }, 50, 200)
+        createAsteroidWave(20, 900, 0.95, { small: 0.2, medium: 0.5, large: 0.3 }, 80, 250)
     ]
 };

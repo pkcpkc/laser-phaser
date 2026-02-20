@@ -35,4 +35,15 @@ export class SinusSegment implements IPathSegment {
 
         return angle + angleAdjustment;
     }
+
+    getSpeedMultiplier(context: PathSegmentContext): number {
+        const phase = context.time * this.frequency;
+        const waveVelocity = this.amplitude * this.frequency * Math.cos(phase);
+        const pathSpeed = context.speed || 0.1;
+
+        // The ship speed along the actual path is sqrt(pathSpeed^2 + waveVelocity^2)
+        // We want this to be equal to the desired pathSpeed.
+        // So we need to slow down time by the ratio of actual speed to desired speed.
+        return Math.sqrt(1 + Math.pow(waveVelocity / pathSpeed, 2));
+    }
 }

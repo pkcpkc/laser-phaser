@@ -1,4 +1,5 @@
 import { injectable, inject } from 'inversify';
+import Phaser from 'phaser';
 
 export interface IStarfield {
     update(): void;

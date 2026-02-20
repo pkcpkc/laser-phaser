@@ -15,40 +15,44 @@ vi.mock('phaser', () => {
 });
 
 import { BloodHuntersLevel } from '../../../../../src/scenes/shoot-em-ups/levels/blood-hunters-level.ts';
-import { DiamondFormation } from '../../../../../src/scenes/shoot-em-ups/formations/diamond-formation';
-import { BloodHunterRedLaserConfig } from '../../../../../src/ships/configurations/blood-hunter-red-laser';
 
 describe('BloodHuntersLevel', () => {
     it('should have correct name', () => {
         expect(BloodHuntersLevel.name).toBe('Blood Hunters');
     });
 
-    it('should have valid formations', () => {
-        expect(BloodHuntersLevel.formations).toHaveLength(7);
+    it('should have valid formations (5 waves, max 3 ships per formation)', () => {
+        expect(BloodHuntersLevel.formations).toHaveLength(5);
 
-        // First step: DiamondFormation with 2 ships
-        const step1 = BloodHuntersLevel.formations[0];
-        expect(step1[0].formationType).toBe(DiamondFormation);
-        expect(step1[0].config?.shipFormationGrid).toBeDefined();
-        expect(step1[0].config?.shipFormationGrid[0]).toHaveLength(2);
-        expect(step1[0].config?.shipFormationGrid[0][0]).toBe(BloodHunterRedLaserConfig);
+        // Verification of ship counts to ensure they don't exceed 3 per wave item
+        for (const step of BloodHuntersLevel.formations) {
+            for (const formation of step) {
+                const grid = formation.config?.shipFormationGrid;
+                if (grid) {
+                    let totalShips = 0;
+                    for (const row of grid) {
+                        totalShips += (row as any[]).filter(c => c !== null).length;
+                    }
+                    expect(totalShips).toBeLessThanOrEqual(3);
+                }
+            }
+        }
 
-        // Fourth step: Diamond with 5 ships in a row
-        const step4 = BloodHuntersLevel.formations[3];
-        expect(step4[0].formationType).toBe(DiamondFormation);
-        expect(step4[0].config?.shipFormationGrid[0]).toHaveLength(5);
+        // Specific wave checks
+        // Wave 1: 2 Blood Hunters
+        const wave1 = BloodHuntersLevel.formations[0];
+        expect(wave1[0].config?.shipFormationGrid[0]).toHaveLength(2);
 
-        // Fifth step: Diamond [1, 2] pattern (2 rows)
-        const step5 = BloodHuntersLevel.formations[4];
-        expect(step5[0].formationType).toBe(DiamondFormation);
-        expect(step5[0].config?.shipFormationGrid).toHaveLength(2);
-        expect(step5[0].config?.shipFormationGrid[0]).toHaveLength(1);
-        expect(step5[0].config?.shipFormationGrid[1]).toHaveLength(2);
+        // Wave 5: 2 separate formations
+        const wave5 = BloodHuntersLevel.formations[4];
+        expect(wave5).toHaveLength(2);
 
-        // Last step: 2 formations
-        const lastStep = BloodHuntersLevel.formations[6];
-        expect(lastStep).toHaveLength(2);
-        expect(lastStep[0].formationType).toBe(DiamondFormation);
-        expect(lastStep[1].formationType).toBe(DiamondFormation);
+        // Formation A: 3 Blood Hunters
+        expect(wave5[0].config?.shipFormationGrid[0]).toHaveLength(3);
+
+        // Formation B: 2 Blood Bombers
+        expect(wave5[1].config?.shipFormationGrid).toHaveLength(2);
+        expect(wave5[1].config?.shipFormationGrid[0]).toHaveLength(1);
+        expect(wave5[1].config?.shipFormationGrid[1]).toHaveLength(1);
     });
 });

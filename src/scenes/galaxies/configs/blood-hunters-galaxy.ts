@@ -14,7 +14,7 @@ export const BloodHuntersGalaxyConfig: GalaxyConfig = {
             visualScale: 0.7,
             centralPlanet: true,
             requiredVictories: 0,
-            interaction: { levelId: 'intro-asteroid-level' },
+            interaction: { levelId: 'asteroid-level' },
             effects: [
                 {
                     type: 'asteroid-belt',
@@ -40,7 +40,7 @@ export const BloodHuntersGalaxyConfig: GalaxyConfig = {
             tint: 0x880000,
             visualScale: 1.2,
             requiredVictories: 1,
-            interaction: { levelId: 'blood-hunters-level' },
+            interaction: { levelId: 'blood-hunters-discovery-level' },
             effects: [
                 { type: 'hurricane', color: 0xff0000 }
             ]

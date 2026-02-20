@@ -1,6 +1,5 @@
 import type { LevelConfig } from './level';
 import { DiamondFormation } from '../formations/diamond-formation';
-
 import { PathTactic } from '../tactics/path-tactic';
 import { SinusSegment } from '../tactics/path-segments/sinus-segment';
 import { CoordinateSegment } from '../tactics/path-segments/coordinate-segment';
@@ -8,28 +7,27 @@ import { PlayerTargetSegment } from '../tactics/path-segments/player-target-segm
 import { BloodHunterRedLaserConfig } from '../../../ships/configurations/blood-hunter-red-laser';
 import { BloodBomberBloodRocketConfig } from '../../../ships/configurations/blood-bomber-blood-rocket';
 
-export const BloodHuntersLevel: LevelConfig = {
-    name: 'Blood Hunters',
+export const BloodHuntersDiscoveryLevel: LevelConfig = {
+    name: 'Blood Hunters Discovery',
     formations: [
-        // Wave 1: 2 Blood Hunters, fast Sinus pattern
+        // Wave 1: single blood hunter straight down, a little to the left
         [
             {
                 tacticType: PathTactic,
                 tacticConfig: {
                     points: [
-                        new CoordinateSegment(0.5, -0.1),
-                        new SinusSegment(new CoordinateSegment(0.5, 1.2), 70, 0.003)
+                        new CoordinateSegment(0.4, -0.1),
+                        new CoordinateSegment(0.4, 1.2)
                     ]
                 },
                 formationType: DiamondFormation,
                 config: {
-                    shipFormationGrid: [[BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]],
-                    spacing: 120,
-                    autoFire: true
+                    shipFormationGrid: [[BloodHunterRedLaserConfig]],
+                    spacing: 0
                 }
             }
         ],
-        // Wave 2: 3 Blood Hunters (1,2 formation), Sinus pattern combined with a downward path
+        // Wave 2: two blood hunters with sinus
         [
             {
                 tacticType: PathTactic,
@@ -41,26 +39,21 @@ export const BloodHuntersLevel: LevelConfig = {
                 },
                 formationType: DiamondFormation,
                 config: {
-                    shipFormationGrid: [
-                        [BloodHunterRedLaserConfig],
-                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
-                    ],
-                    spacing: 120,
-                    verticalSpacing: 80,
-                    autoFire: true
+                    shipFormationGrid: [[BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]],
+                    spacing: 120
                 }
             }
         ],
-        // Wave 3: 3 Blood Hunters (1,2 formation), Aggressive 3-step approach to player
+        // Wave 3: three blood hunters in 1,2 formation approaching players ship 50% 80% 100% in three steps
         [
             {
                 tacticType: PathTactic,
                 tacticConfig: {
                     points: [
                         new CoordinateSegment(0.5, -0.1),
-                        new PlayerTargetSegment(0.6),
-                        new PlayerTargetSegment(0.9),
-                        new PlayerTargetSegment(1.2)
+                        new PlayerTargetSegment(0.5),
+                        new PlayerTargetSegment(0.8),
+                        new PlayerTargetSegment(1.0)
                     ]
                 },
                 formationType: DiamondFormation,
@@ -69,55 +62,13 @@ export const BloodHuntersLevel: LevelConfig = {
                         [BloodHunterRedLaserConfig],
                         [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
                     ],
-                    spacing: 100,
-                    verticalSpacing: 70,
-                    autoFire: true
+                    spacing: 120,
+                    verticalSpacing: 80
                 }
             }
         ],
-        // Wave 4: 1 Blood Hunter + 2 Blood Bombers (mixed 3-ship formation), Sinus pattern + Player approach
+        // Wave 4: some blood hunters in 2,2 formation... approaching in three steps 40% 70% 110%
         [
-            {
-                tacticType: PathTactic,
-                tacticConfig: {
-                    points: [
-                        new CoordinateSegment(0.5, -0.1),
-                        new SinusSegment(new PlayerTargetSegment(0.5), 50, 0.002),
-                        new SinusSegment(new PlayerTargetSegment(0.8), 50, 0.002),
-                        new CoordinateSegment(0.5, 1.2)
-                    ]
-                },
-                formationType: DiamondFormation,
-                config: {
-                    shipFormationGrid: [
-                        [BloodHunterRedLaserConfig],
-                        [BloodBomberBloodRocketConfig, BloodBomberBloodRocketConfig]
-                    ],
-                    spacing: 100,
-                    verticalSpacing: 80,
-                    autoFire: true
-                }
-            }
-        ],
-        // Wave 5: High Pressure. Two simultaneous formations
-        [
-            {
-                tacticType: PathTactic,
-                tacticConfig: {
-                    points: [
-                        new CoordinateSegment(0.2, -0.1),
-                        new SinusSegment(new CoordinateSegment(0.8, 1.2), 100, 0.004)
-                    ]
-                },
-                formationType: DiamondFormation,
-                config: {
-                    shipFormationGrid: [
-                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
-                    ],
-                    spacing: 100,
-                    autoFire: true
-                }
-            },
             {
                 tacticType: PathTactic,
                 tacticConfig: {
@@ -125,20 +76,63 @@ export const BloodHuntersLevel: LevelConfig = {
                         new CoordinateSegment(0.5, -0.1),
                         new PlayerTargetSegment(0.4),
                         new PlayerTargetSegment(0.7),
-                        new PlayerTargetSegment(1.0),
-                        new PlayerTargetSegment(1.3)
+                        new PlayerTargetSegment(1.1)
                     ]
                 },
                 formationType: DiamondFormation,
                 config: {
                     shipFormationGrid: [
-                        [BloodBomberBloodRocketConfig],
-                        [BloodBomberBloodRocketConfig]
+                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig],
+                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig]
                     ],
-                    spacing: 0,
-                    verticalSpacing: 100,
-                    autoFire: true,
-                    startDelay: 2000
+                    spacing: 100,
+                    verticalSpacing: 80
+                }
+            }
+        ],
+        // Wave 5: some blood hunters in 2 formation and sinus pretty straight, 2 formations of: two blood hunters, two blood bombers, 50% 70% approach player, then exit screen
+        // "2 formations" might mean two separate WaveRunners in this step, or just one with a larger grid.
+        // I'll use two separate runners to make them feel like "2 formations".
+        [
+            {
+                tacticType: PathTactic,
+                tacticConfig: {
+                    points: [
+                        new CoordinateSegment(0.3, -0.1),
+                        new SinusSegment(new PlayerTargetSegment(0.5), 30, 0.001),
+                        new SinusSegment(new PlayerTargetSegment(0.7), 30, 0.001),
+                        new CoordinateSegment(0.3, 1.2)
+                    ]
+                },
+                formationType: DiamondFormation,
+                config: {
+                    shipFormationGrid: [
+                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig],
+                        [BloodBomberBloodRocketConfig, BloodBomberBloodRocketConfig]
+                    ],
+                    spacing: 100,
+                    verticalSpacing: 80
+                }
+            },
+            {
+                tacticType: PathTactic,
+                tacticConfig: {
+                    points: [
+                        new CoordinateSegment(0.7, -0.1),
+                        new SinusSegment(new PlayerTargetSegment(0.5), 30, 0.001),
+                        new SinusSegment(new PlayerTargetSegment(0.7), 30, 0.001),
+                        new CoordinateSegment(0.7, 1.2)
+                    ]
+                },
+                formationType: DiamondFormation,
+                config: {
+                    shipFormationGrid: [
+                        [BloodHunterRedLaserConfig, BloodHunterRedLaserConfig],
+                        [BloodBomberBloodRocketConfig, BloodBomberBloodRocketConfig]
+                    ],
+                    spacing: 100,
+                    verticalSpacing: 80,
+                    startDelay: 1000 // Offset the second formation slightly
                 }
             }
         ]
