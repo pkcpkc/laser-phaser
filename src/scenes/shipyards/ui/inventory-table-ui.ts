@@ -3,6 +3,9 @@ import { GameStatus } from '../../../logic/game-status';
 import { ModuleRegistry, calculateSellPrice } from '../../../ships/modules/module-registry';
 import { MerchantAnimator } from '../merchant-animator';
 import { LootType } from '../../../ships/types';
+import { MountIconComponent } from './components/mount-icon-component';
+import { LocaleManager } from '../../../config/locale-manager';
+import { getText } from '../../../generated/merchant/merchant';
 
 export class InventoryTableUI {
     private unifiedInvContainer!: Phaser.GameObjects.Container;
@@ -25,7 +28,10 @@ export class InventoryTableUI {
         this.unifiedInvContainer.removeAll(true);
         const gameStatus = GameStatus.getInstance();
 
-        const title = this.scene.add.text(this.x, this.y, 'MERCHANT WARES', {
+        const locale = LocaleManager.getInstance().getLocale();
+
+        const titleText = getText('merchant', 'merchant_wares', locale) || 'MERCHANT WARES';
+        const title = this.scene.add.text(this.x, this.y, titleText, {
             fontFamily: 'Oswald, sans-serif', fontSize: '24px', color: '#aaa', fontStyle: 'bold'
         });
         this.unifiedInvContainer.add(title);
@@ -36,18 +42,18 @@ export class InventoryTableUI {
         const isEquipMode = selectedMountIndex !== null;
 
         const headers = [
-            this.scene.add.text(this.x + 5, headerY, 'Module', headerStyle),
-            this.scene.add.text(this.x + 95, headerY, 'Dmg', headerStyle),
-            this.scene.add.text(this.x + 130, headerY, 'Rate', headerStyle),
-            this.scene.add.text(this.x + 170, headerY, 'Thr', headerStyle),
+            this.scene.add.text(this.x + 5, headerY, getText('merchant', 'module', locale) || 'Module', headerStyle),
+            this.scene.add.text(this.x + 95, headerY, getText('merchant', 'dmg', locale) || 'Dmg', headerStyle),
+            this.scene.add.text(this.x + 130, headerY, getText('merchant', 'rate', locale) || 'Rate', headerStyle),
+            this.scene.add.text(this.x + 170, headerY, getText('merchant', 'thr', locale) || 'Thr', headerStyle),
         ];
 
         if (isEquipMode) {
-            headers.push(this.scene.add.text(this.x + 250, headerY, 'Mount', headerStyle).setOrigin(0.5, 0));
+            headers.push(this.scene.add.text(this.x + 250, headerY, getText('merchant', 'mount', locale) || 'Mount', headerStyle).setOrigin(0.5, 0));
         } else {
             headers.push(
-                this.scene.add.text(this.x + 225, headerY, 'Buy', headerStyle),
-                this.scene.add.text(this.x + 285, headerY, 'Sell', headerStyle)
+                this.scene.add.text(this.x + 225, headerY, getText('merchant', 'buy', locale) || 'Buy', headerStyle),
+                this.scene.add.text(this.x + 285, headerY, getText('merchant', 'sell', locale) || 'Sell', headerStyle)
             );
         }
 
@@ -93,32 +99,13 @@ export class InventoryTableUI {
                     const iconX = this.x + 250; // Center of the Buy column
                     const iconY = yPos + 17;
 
-                    const iconLabel = this.scene.add.text(0, 0, '⚫️', {
-                        fontSize: '24px',
-                        padding: { x: 5, y: 5 },
-                        shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: false, fill: true }
-                    }).setOrigin(0.5);
-
-                    const plusLabel = this.scene.add.text(0, -2, '+', {
-                        fontFamily: 'Oswald, sans-serif',
-                        fontSize: '28px',
-                        color: '#ffffff',
-                        fontStyle: 'bold',
-                        align: 'center',
-                        shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 3, stroke: false, fill: true }
-                    }).setOrigin(0.5);
-
-                    const mountPoint = this.scene.add.container(iconX, iconY, [iconLabel, plusLabel])
-                        .setSize(30, 30)
-                        .setInteractive({ useHandCursor: true });
-
-                    this.scene.tweens.add({
-                        targets: mountPoint,
-                        alpha: 0.2,
-                        duration: 400,
-                        yoyo: true,
-                        repeat: -1,
-                        ease: 'Sine.easeInOut'
+                    const mountPoint = new MountIconComponent({
+                        scene: this.scene,
+                        x: iconX,
+                        y: iconY,
+                        type: 'plus',
+                        interactive: true,
+                        blink: true
                     });
 
                     mountPoint.on('pointerdown', () => {
@@ -129,7 +116,7 @@ export class InventoryTableUI {
                         this.refreshUI();
                     });
 
-                    this.unifiedInvContainer.add(mountPoint);
+                    this.unifiedInvContainer.add(mountPoint.container);
                 }
             } else {
                 if (mCount > 0) {
@@ -210,7 +197,7 @@ export class InventoryTableUI {
 
                             if (!confirmSell) {
                                 confirmSell = true;
-                                sellText.setText('Sell?');
+                                sellText.setText(getText('merchant', 'sell_confirm', locale) || 'Sell?');
                                 sellText.setColor('#ff4444');
                                 sellBox.setStrokeStyle(1, 0xff0000);
                                 sellBox.setFillStyle(0x551111);

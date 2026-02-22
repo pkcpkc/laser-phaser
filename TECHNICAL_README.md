@@ -106,7 +106,7 @@ We use custom decorators to handle specific scopes and lifecycle management.
 
 ### Storyline Management
 
-Planet intro texts are managed in `res/storylines/storylines.md`. Grouped by galaxy and planet ID.
+Planet intro texts are managed in `res/i18n/storylines/storylines.md`. Grouped by galaxy and planet ID.
 The build process (`npm run build:storylines`) compiles these files into `src/generated/storylines/storylines.ts` for type-safe, synchronous access.
 
 **Format:**
@@ -229,7 +229,7 @@ To fire up the engines and start developing, use the following commands:
 *   `npm run build`: Full production build (generates atlases, markers, and bundles the app).
 *   `npm run build:atlases`: Manually regenerate texture atlases from `public/assets`.
 *   `npm run build:markers`: Manually extract marker data from ship PNGs.
-*   `npm run build:storylines`: Convert markdown storylines in `res/storylines/` to TypeScript in `src/generated/`.
+*   `npm run build:storylines`: Convert markdown storylines in `res/i18n/storylines/` to TypeScript in `src/generated/`.
 *   `npm run build:colors`: Analyze assets for UI color matching.
 
 #### Testing & Quality Commands
@@ -245,7 +245,7 @@ To fire up the engines and start developing, use the following commands:
 
 We use **Antigravity** workflows to automate complex agentic tasks. These are defined in `.agent/workflows/`.
 
-*   **/translate_storylines**: Automates the translation of the default English storyline (`storylines.md`) into all supported locales found in `res/storylines/`. Preserves markdown structure and proper nouns.
+*   **/translate_storylines**: Automates the translation of the default English storyline (`storylines.md`) into all supported locales found in `res/i18n/storylines/`. Preserves markdown structure and proper nouns.
 *   **/add_ship**: Automates the process of adding a new ship from an existing PNG asset. Generates markers, updates atlases, and creates the TypeScript definition and configuration files. Requires the ship name as a parameter (e.g., "firefly").
 
 ---

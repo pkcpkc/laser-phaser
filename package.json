@@ -19,7 +19,7 @@
     "build:markers": "tsx scripts/generate-markers.ts",
     "build:atlases": "node scripts/generate-atlases.js",
     "build:colors": "tsx scripts/generate-color-palette.ts",
-    "build:storylines": "tsx scripts/build-storylines.ts"
+    "build:i18n": "tsx scripts/build-i18n.ts"
   },
   "devDependencies": {
     "@0xbigboss/vite-console-forward-plugin": "^2.3.3",

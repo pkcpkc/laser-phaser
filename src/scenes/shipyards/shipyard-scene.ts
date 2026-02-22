@@ -7,6 +7,8 @@ import { CurrencyHeaderUI } from './ui/currency-header-ui';
 import { MerchantPortraitUI } from './ui/merchant-portrait-ui';
 import { InventoryTableUI } from './ui/inventory-table-ui';
 import { ShipPreviewUI } from './ui/ship-preview-ui';
+import { LocaleManager } from '../../config/locale-manager';
+import { getText } from '../../generated/merchant/merchant';
 
 export default class ShipyardScene extends Phaser.Scene {
     private gameStatus!: GameStatus;
@@ -63,13 +65,14 @@ export default class ShipyardScene extends Phaser.Scene {
 
     create() {
         this.gameStatus = GameStatus.getInstance();
+        const locale = LocaleManager.getInstance().getLocale();
         const { width, height } = this.scale;
 
         // Background
         this.add.tileSprite(0, 0, width, height, 'metal-bg').setOrigin(0).setTint(0x444455);
 
         // Back Button
-        const backButton = this.add.text(10, 30, '◀ Back', {
+        const backButton = this.add.text(10, 30, getText('merchant', 'back', locale) || '◀ Back', {
             fontFamily: 'Oswald, sans-serif',
             fontSize: '20px',
             color: '#00ff00',

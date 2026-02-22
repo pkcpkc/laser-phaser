@@ -1,4 +1,4 @@
-import { getStoryline } from '../generated/storylines/storylines';
+import { getText as getStoryline } from '../generated/storylines/storylines';
 
 export class StorylineManager {
     private static instance: StorylineManager;

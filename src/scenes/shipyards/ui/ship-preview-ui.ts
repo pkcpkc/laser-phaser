@@ -4,17 +4,9 @@ import { BigCruiserDefinition } from '../../../ships/definitions/big-cruiser';
 import { ModuleRegistry } from '../../../ships/modules/module-registry';
 import { MerchantAnimator } from '../merchant-animator';
 
-export enum MountIcon {
-    Unmount = '⚫️',  // Occupied — click to unmount
-    Empty = '⚫️',   // Empty slot — click to enter mount mode
-    Selected = '⚫️'  // Selected slot waiting for module (blinks)
-}
-
-const MOUNT_ICON_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
-    fontSize: '24px',
-    padding: { x: 5, y: 5 },
-    shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: false, fill: true }
-};
+import { MountIconComponent } from './components/mount-icon-component';
+import { LocaleManager } from '../../../config/locale-manager';
+import { getText } from '../../../generated/merchant/merchant';
 
 export class ShipPreviewUI {
     private centerContainer!: Phaser.GameObjects.Container;
@@ -60,9 +52,8 @@ export class ShipPreviewUI {
 
         const loadout = gameStatus.getShipLoadout();
 
+        this.centerContainer.add(hull);
         this.createEngineEffects(hull, shipYOffset, loadout);
-
-        this.centerContainer.add([hull]);
 
         const markers = BigCruiserDefinition.markers;
         const originMarker = markers.find(m => m.type === 'origin');
@@ -86,47 +77,14 @@ export class ShipPreviewUI {
             const isSelected = this.selectedMountIndex === index;
             const currentlyEquippedId = loadout[index];
 
-            const icon = currentlyEquippedId ? MountIcon.Unmount : MountIcon.Empty;
-
-            const iconLabel = this.scene.add.text(0, 0, icon, MOUNT_ICON_STYLE).setOrigin(0.5);
-            const containerItems: Phaser.GameObjects.GameObject[] = [iconLabel];
-
-            if (!currentlyEquippedId) {
-                const plusLabel = this.scene.add.text(0, 1, '+', {
-                    fontFamily: 'Oswald, sans-serif',
-                    fontSize: '24px',
-                    color: '#ffffff',
-                    fontStyle: 'bold',
-                    align: 'center',
-                    shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 3, stroke: false, fill: true }
-                }).setOrigin(0.5);
-                containerItems.push(plusLabel);
-            } else {
-                const minusLabel = this.scene.add.text(0, -2, '-', {
-                    fontFamily: 'Oswald, sans-serif',
-                    fontSize: '28px',
-                    color: '#ffffff',
-                    fontStyle: 'bold',
-                    align: 'center',
-                    shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 3, stroke: false, fill: true }
-                }).setOrigin(0.5);
-                containerItems.push(minusLabel);
-            }
-
-            const mountPoint = this.scene.add.container(rotatedX, rotatedY, containerItems)
-                .setSize(30, 30)
-                .setInteractive({ useHandCursor: true });
-
-            if (isSelected && !currentlyEquippedId) {
-                this.scene.tweens.add({
-                    targets: mountPoint,
-                    alpha: 0.2,
-                    duration: 400,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut'
-                });
-            }
+            const mountPoint = new MountIconComponent({
+                scene: this.scene,
+                x: rotatedX,
+                y: rotatedY,
+                type: currentlyEquippedId ? 'minus' : 'plus',
+                interactive: true,
+                blink: isSelected && !currentlyEquippedId
+            });
 
             mountPoint.on('pointerdown', () => {
                 this.merchantAnimator?.speak();
@@ -146,7 +104,7 @@ export class ShipPreviewUI {
                 this.refreshUI();
             });
 
-            this.mountIconsContainer.add(mountPoint);
+            this.mountIconsContainer.add(mountPoint.container);
         });
 
         this.centerContainer.add(this.mountIconsContainer);
@@ -154,7 +112,10 @@ export class ShipPreviewUI {
         const shipHalfWidth = hull.height * 1.2 / 2;
         const textHalfHeight = (13 + 4 * 2) / 2;
         const toggleX = shipHalfWidth + 5 + textHalfHeight;
-        const toggleLabel = this.showMountIcons ? '[ HIDE MOUNTS ]' : '[ SHOW MOUNTS ]';
+        const locale = LocaleManager.getInstance().getLocale();
+        const hideLabel = getText('merchant', 'hide_mounts', locale) || '[ HIDE MOUNTS ]';
+        const showLabel = getText('merchant', 'show_mounts', locale) || '[ SHOW MOUNTS ]';
+        const toggleLabel = this.showMountIcons ? hideLabel : showLabel;
         const toggleBtn = this.scene.add.text(toggleX, 0, toggleLabel, {
             fontFamily: 'Oswald, sans-serif',
             fontSize: '13px',
