@@ -191,4 +191,36 @@ describe('GameStatus', () => {
             expect(gameStatus.getPlanetPosition('galaxy-2', 'planet-x')).toEqual(posB);
         });
     });
+
+    describe('Inventory and Loadout', () => {
+        it('should add to module inventory', () => {
+            gameStatus.addModule('laser-red', 2);
+            const inv = gameStatus.getModuleInventory();
+            expect(inv['laser-red']).toBe(2);
+        });
+
+        it('should handle removing modules correctly', () => {
+            gameStatus.addModule('laser-red', 5);
+
+            const success = gameStatus.removeModule('laser-red', 2);
+            expect(success).toBe(true);
+            expect(gameStatus.getModuleInventory()['laser-red']).toBe(3);
+
+            const fail = gameStatus.removeModule('laser-red', 5);
+            expect(fail).toBe(false);
+            expect(gameStatus.getModuleInventory()['laser-red']).toBe(3);
+        });
+
+        it('should manage ship loadout', () => {
+            gameStatus.setShipLoadout(0, 'laser-red');
+            gameStatus.setShipLoadout(1, 'drive-ion');
+
+            const loadout = gameStatus.getShipLoadout();
+            expect(loadout[0]).toBe('laser-red');
+            expect(loadout[1]).toBe('drive-ion');
+
+            gameStatus.setShipLoadout(1, null); // unequip
+            expect(gameStatus.getShipLoadout()[1]).toBeNull();
+        });
+    });
 });

@@ -18,6 +18,32 @@ const ICON_STYLE: Phaser.Types.GameObjects.Text.TextStyle = {
     shadow: { offsetX: 1, offsetY: 1, color: '#000000', blur: 2, stroke: true, fill: true }
 };
 
+/**
+ * Desaturates an emoji icon using a postFX color matrix.
+ * Shared by planet interaction icons and shipyard mount icons.
+ */
+export function applyIconGrayFilter(icon: Phaser.GameObjects.Text) {
+    if (icon.postFX) {
+        icon.postFX.clear();
+    }
+
+    const colorMatrix = icon.postFX.addColorMatrix();
+    colorMatrix.saturate(-1);
+
+    const tintColor = 0xFFFFFF;
+    const r = ((tintColor >> 16) & 0xFF) / 255;
+    const g = ((tintColor >> 8) & 0xFF) / 255;
+    const b = (tintColor & 0xFF) / 255;
+
+    const tintMatrix = icon.postFX.addColorMatrix();
+    tintMatrix.multiply([
+        r, 0, 0, 0, 0,
+        0, g, 0, 0, 0,
+        0, 0, b, 0, 0,
+        0, 0, 0, 1, 0
+    ]);
+}
+
 @SceneScoped()
 export class GalaxyInteractionManager {
     private interactionContainer!: Phaser.GameObjects.Container;
@@ -99,18 +125,13 @@ export class GalaxyInteractionManager {
         this.planetNameContainer.setVisible(true);
 
         const icons: Phaser.GameObjects.Text[] = [];
+        let rocketIcon: Phaser.GameObjects.Text | undefined;
 
-        // Play icon - show if planet has a level
+        // Play icon - show if planet has a level; put first in the row
         if (planet.interaction?.levelId) {
             const levelId = planet.interaction.levelId;
-            const rocketIcon = this.createIcon(InteractionIcon.Play, () => this.launchLevel(levelId, planet));
-
-            // Reverted to simple centering:
-            // Position centered on the planet
-            // Container is at (planet.x, iconY), where iconY is below the planet
-            // So we start at 0,0 locally and subtract the offset
-            rocketIcon.setPosition(0, -(planetRadius + 17));
-            this.interactionContainer.add(rocketIcon);
+            rocketIcon = this.createIcon(InteractionIcon.Play, () => this.launchLevel(levelId, planet));
+            icons.unshift(rocketIcon);
         }
 
         // Determine if "locked" icons should show
@@ -123,8 +144,15 @@ export class GalaxyInteractionManager {
         const showLockedIcons = !hasLevel || showAlways || isDefeated;
 
         // Shipyard icon
-        if (planet.interaction?.hasShipyard && showLockedIcons) {
-            icons.push(this.createIcon(InteractionIcon.Shipyard, () => this.scene.scene.start('ShipyardScene')));
+        if (planet.interaction?.shipyard && showLockedIcons) {
+            const shipyard = planet.interaction.shipyard;
+            icons.push(this.createIcon(InteractionIcon.Shipyard, () => {
+                this.scene.scene.start('ShipyardScene', {
+                    galaxyId: this.galaxyId,
+                    planetId: planet.id,
+                    shipyardConfig: shipyard
+                });
+            }));
         }
 
         // Warp icon
@@ -148,6 +176,18 @@ export class GalaxyInteractionManager {
             this.applyIconStyle(icon);
             this.interactionContainer.add(icon);
         });
+
+        // Animate rocket icon: scale up to 1.5 and back, to signal it is the primary action
+        if (rocketIcon) {
+            this.scene.tweens.add({
+                targets: rocketIcon,
+                scale: 1.5,
+                duration: 600,
+                yoyo: true,
+                repeat: -1,
+                ease: 'Sine.easeInOut'
+            });
+        }
 
         // Smooth fade-in animation
         this.scene.tweens.add({
@@ -319,24 +359,6 @@ export class GalaxyInteractionManager {
             return;
         }
 
-        if (icon.postFX) {
-            icon.postFX.clear();
-        }
-
-        const colorMatrix = icon.postFX.addColorMatrix();
-        colorMatrix.saturate(-1);
-
-        const tintColor = 0xFFFFFF; // Light Gray
-        const r = ((tintColor >> 16) & 0xFF) / 255;
-        const g = ((tintColor >> 8) & 0xFF) / 255;
-        const b = (tintColor & 0xFF) / 255;
-
-        const tintMatrix = icon.postFX.addColorMatrix();
-        tintMatrix.multiply([
-            r, 0, 0, 0, 0,
-            0, g, 0, 0, 0,
-            0, 0, b, 0, 0,
-            0, 0, 0, 1, 0
-        ]);
+        applyIconGrayFilter(icon);
     }
 }

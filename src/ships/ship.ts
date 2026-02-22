@@ -1,4 +1,4 @@
-import { injectable } from 'inversify';
+import { injectable, unmanaged } from 'inversify';
 import type { IShip } from '../di/interfaces/ship';
 import Phaser from 'phaser';
 import type { Drive } from './modules/drives/types';
@@ -24,11 +24,11 @@ export class Ship implements IShip {
     private healthIndicator?: HealthIndicator;
 
     constructor(
-        scene: Phaser.Scene,
-        x: number,
-        y: number,
-        public readonly config: ShipConfig,
-        collisionConfig: ShipCollisionConfig
+        @unmanaged() scene: Phaser.Scene,
+        @unmanaged() x: number,
+        @unmanaged() y: number,
+        @unmanaged() public readonly config: ShipConfig,
+        @unmanaged() collisionConfig: ShipCollisionConfig
     ) {
         // Determine texture
         const assetKey = config.definition.randomizeAssetKey

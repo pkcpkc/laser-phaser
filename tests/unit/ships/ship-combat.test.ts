@@ -24,12 +24,12 @@ vi.mock('../../../src/ships/effects/dust-explosion', () => ({
 }));
 
 vi.mock('../../../src/ships/loot', () => ({
-    Loot: vi.fn().mockImplementation(function () {
-        return {
+    Loot: {
+        getFromPool: vi.fn().mockReturnValue({
             setCollisionCategory: vi.fn(),
             setCollidesWith: vi.fn()
-        };
-    })
+        })
+    }
 }));
 
 import { Explosion } from '../../../src/ships/effects/explosion';
@@ -126,7 +126,7 @@ describe('ShipCombat', () => {
         const combat = new ShipCombat(mockSprite, mockDefinition, mockCollisionConfig, lootConfig);
         combat.takeDamage(100);
 
-        expect(Loot).toHaveBeenCalled();
+        expect(Loot.getFromPool).toHaveBeenCalled();
 
         vi.restoreAllMocks();
     });
@@ -142,7 +142,7 @@ describe('ShipCombat', () => {
         const combat = new ShipCombat(mockSprite, mockDefinition, mockCollisionConfig, lootConfig);
         combat.takeDamage(100);
 
-        expect(Loot).not.toHaveBeenCalled();
+        expect(Loot.getFromPool).not.toHaveBeenCalled();
 
         vi.restoreAllMocks();
     });

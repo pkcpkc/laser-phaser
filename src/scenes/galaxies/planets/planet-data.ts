@@ -16,7 +16,10 @@ export interface PlanetData {
 
     interaction?: {
         levelId?: string;
-        hasShipyard?: boolean;
+        shipyard?: {
+            image: string;
+            goods: Record<string, number>;
+        };
         warpGalaxyId?: string;
         showAlways?: boolean;
     };

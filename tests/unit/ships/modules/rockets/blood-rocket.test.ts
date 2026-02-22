@@ -17,12 +17,23 @@ vi.mock('phaser', () => ({
                     setOnCollide = vi.fn();
                     setScale = vi.fn();
                     setDepth = vi.fn();
+                    setActive = vi.fn();
+                    setVisible = vi.fn();
+                    setPosition = vi.fn();
+                    setAngularVelocity = vi.fn();
+                    setAwake = vi.fn();
                     destroy = vi.fn();
                     active = true;
                     body = { velocity: { x: 0, y: 0 } };
                     once = vi.fn();
                     on = vi.fn();
                     off = vi.fn();
+                    scene: any;
+                    hitColor = 0;
+                    isRocket = false;
+                    constructor(world: any, _x: number, _y: number, _texture: string) {
+                        if (world?.scene) this.scene = world.scene;
+                    }
                 }
             }
         },
@@ -68,13 +79,15 @@ describe('BloodRocket', () => {
 
         mockEvents = {
             on: vi.fn(),
-            off: vi.fn()
+            off: vi.fn(),
+            once: vi.fn()
         };
 
         mockParticles = {
             setTexture: vi.fn(),
             emitParticleAt: vi.fn(),
             destroy: vi.fn(),
+            setDepth: vi.fn(),
             scene: {}
         };
 

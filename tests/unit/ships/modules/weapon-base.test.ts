@@ -12,6 +12,11 @@ vi.mock('phaser', () => ({
                     setRotation = vi.fn();
                     setVelocity = vi.fn();
                     setScale = vi.fn();
+                    setActive = vi.fn();
+                    setVisible = vi.fn();
+                    setPosition = vi.fn();
+                    setAngularVelocity = vi.fn();
+                    setAwake = vi.fn();
                     hitColor = 0;
                     constructor() { }
                 }
@@ -24,13 +29,15 @@ vi.mock('phaser', () => ({
 }));
 
 // Mock Projectile
+const createMockProjectile = () => ({
+    setRotation: vi.fn(),
+    setVelocity: vi.fn(),
+    setScale: vi.fn(),
+    hitColor: 0,
+});
 vi.mock('../../../../src/ships/modules/lasers/projectile', () => ({
-    Projectile: class {
-        setRotation = vi.fn();
-        setVelocity = vi.fn();
-        setScale = vi.fn();
-        hitColor = 0;
-        constructor() { }
+    Projectile: {
+        getFromPool: vi.fn(() => createMockProjectile()),
     }
 }));
 
@@ -73,6 +80,9 @@ describe('WeaponBase', () => {
             },
             textures: {
                 exists: vi.fn().mockReturnValue(false) // Default to not existing
+            },
+            events: {
+                once: vi.fn()
             }
         };
 

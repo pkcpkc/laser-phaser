@@ -67,6 +67,9 @@ describe('BloodBossLevel', () => {
                 time: { now: 1000 },
                 add: {
                     existing: vi.fn()
+                },
+                cameras: {
+                    main: { width: 800, height: 600 }
                 }
             };
         });
@@ -98,7 +101,7 @@ describe('BloodBossLevel', () => {
             const args = shipSpy.mock.calls[0];
             expect(args[1]).toBeGreaterThanOrEqual(0);
             expect(args[1]).toBeLessThanOrEqual(800);
-            expect(args[2]).toBe(-200); // startY
+            expect(args[2]).toBe(-100); // startY
         });
     });
 });

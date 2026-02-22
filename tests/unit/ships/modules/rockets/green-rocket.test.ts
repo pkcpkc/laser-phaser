@@ -17,12 +17,25 @@ vi.mock('phaser', () => ({
                     setOnCollide = vi.fn();
                     setScale = vi.fn();
                     setDepth = vi.fn();
+                    setActive = vi.fn();
+                    setVisible = vi.fn();
+                    setPosition = vi.fn();
+                    setAngularVelocity = vi.fn();
+                    setAwake = vi.fn();
                     destroy = vi.fn();
                     active = true;
                     body = { velocity: { x: 0, y: 0 } };
                     once = vi.fn();
                     on = vi.fn();
                     off = vi.fn();
+                    scene: any;
+                    x = 0;
+                    y = 0;
+                    isRocket = false;
+                    hitColor = 0;
+                    constructor(world: any, _x: number, _y: number, _texture: string) {
+                        if (world?.scene) this.scene = world.scene;
+                    }
                 }
             }
         },
@@ -49,13 +62,15 @@ describe('GreenRocket', () => {
 
         mockEvents = {
             on: vi.fn(),
-            off: vi.fn()
+            off: vi.fn(),
+            once: vi.fn()
         };
 
         mockParticles = {
             setTexture: vi.fn(),
             emitParticleAt: vi.fn(),
-            destroy: vi.fn()
+            destroy: vi.fn(),
+            setDepth: vi.fn()
         };
 
         mockGraphics = {
@@ -92,7 +107,15 @@ describe('GreenRocket', () => {
                 particles: vi.fn().mockReturnValue(mockParticles),
                 rectangle: vi.fn().mockImplementation(() => mockRect)
             },
-            events: mockEvents
+            events: mockEvents,
+            cameras: {
+                main: {
+                    scrollX: 0,
+                    scrollY: 0,
+                    width: 800,
+                    height: 600
+                }
+            }
         };
         mockWorld.scene = mockScene;
 

@@ -67,6 +67,7 @@ vi.mock('../../../src/logic/game-status', () => ({
             updateLoot: vi.fn(),
             isPlanetRevealed: vi.fn().mockReturnValue(false),
             revealPlanet: vi.fn(),
+            getShipLoadout: vi.fn().mockReturnValue({}),
         })
     }
 }));
@@ -242,7 +243,7 @@ describe('BaseScene', () => {
         const mockLoot = {
             active: true,
             value: 10,
-            type: LootType.SILVER,
+            lootType: LootType.SILVER,
             config: { value: 10, type: LootType.SILVER },
             destroy: vi.fn(),
         };

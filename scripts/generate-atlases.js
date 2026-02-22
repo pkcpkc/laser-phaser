@@ -48,6 +48,10 @@ async function generateAtlases() {
                 continue;
             }
 
+            // Directories that must fit in a single atlas page (no multi-page splitting)
+            const singlePageDirs = ['merchants'];
+            const isSinglePage = singlePageDirs.includes(dir);
+
             const files = imageFiles.map(file => {
                 return {
                     path: file,
@@ -57,8 +61,8 @@ async function generateAtlases() {
 
             const options = {
                 textureName: dir,
-                width: 2048,
-                height: 2048,
+                width: isSinglePage ? 4096 : 2048,
+                height: isSinglePage ? 4096 : 2048,
                 fixedSize: false,
                 padding: 2,
                 allowRotation: false,

@@ -22,7 +22,7 @@ export interface IPlayerShipController {
 }
 
 export interface IPlanetNavigator {
-    moveToPlanet(planetId: string, instant?: boolean, delay?: number): void;
+    moveToPlanet(planetId: string, instant?: boolean): void;
     navigate(dx: number, dy: number): void;
     handlePlanetClick(planet: PlanetData): void;
     showStoryline(planet: PlanetData): void;

@@ -1,4 +1,3 @@
-import { Ship } from '../../../../ships/ship';
 import type { ShipConfig } from '../../../../ships/types';
 import type { FormationConfig } from '../level';
 import { PathTactic } from '../../tactics/path-tactic';

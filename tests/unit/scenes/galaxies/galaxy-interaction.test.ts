@@ -140,7 +140,7 @@ describe('GalaxyInteractionManager', () => {
             name: 'Peaceful Planet',
             x: 0, y: 0,
             interaction: {
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
                 warpGalaxyId: 'some-galaxy'
             }
         };
@@ -161,7 +161,7 @@ describe('GalaxyInteractionManager', () => {
             x: 0, y: 0,
             interaction: {
                 levelId: 'some-level',
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
                 warpGalaxyId: 'some-galaxy'
             }
         };
@@ -183,7 +183,7 @@ describe('GalaxyInteractionManager', () => {
             x: 0, y: 0,
             interaction: {
                 levelId: 'some-level',
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
                 warpGalaxyId: 'some-galaxy'
             }
         };
@@ -203,7 +203,7 @@ describe('GalaxyInteractionManager', () => {
             x: 0, y: 0,
             interaction: {
                 levelId: 'some-level',
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
                 warpGalaxyId: 'some-galaxy',
                 showAlways: true
             }
@@ -232,7 +232,7 @@ describe('GalaxyInteractionManager', () => {
             x: 0, y: 0,
             interaction: {
                 levelId: 'some-level',
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
             }
         };
 
@@ -266,7 +266,7 @@ describe('GalaxyInteractionManager', () => {
         expect(mockScene.add.text).toHaveBeenCalled();
     });
 
-    it('should position Play icon centered on planet, separate from other icons', () => {
+    it('should position Play icon in the horizontal icons row alongside other icons', () => {
         // Use unique mock objects
         const mockTexts: any[] = [];
         mockScene.add.text.mockImplementation(() => {
@@ -285,7 +285,7 @@ describe('GalaxyInteractionManager', () => {
             visualScale: 1.0, // Radius = 30
             interaction: {
                 levelId: 'level-1',
-                hasShipyard: true,
+                shipyard: { image: 'img', goods: {} },
             },
             gameObject: {
                 x: 100, y: 200,
@@ -303,12 +303,11 @@ describe('GalaxyInteractionManager', () => {
         expect(playIcon).toBeDefined();
         expect(shipyardIcon).toBeDefined();
 
-        // Check Play/Rocket icon position
-        // Should be at (0, -(30 + 17)) = (0, -47) relative to container
-        expect(playIcon.setPosition).toHaveBeenCalledWith(0, -47);
-
-        // Check Shipyard icon position
-        // Since it's the only one in the 'icons' list, it should be at (0, 0) relative to container center line
-        expect(shipyardIcon.setPosition).toHaveBeenCalledWith(0, 0);
+        // Rocket is first (index 0), Shipyard is second (index 1)
+        // spacing = 40, totalWidth = 1 * 40 = 40, startX = -20
+        // Rocket at startX + 0 * 40 = -20
+        // Shipyard at startX + 1 * 40 = 20
+        expect(playIcon.setPosition).toHaveBeenCalledWith(-20, 0);
+        expect(shipyardIcon.setPosition).toHaveBeenCalledWith(20, 0);
     });
 });

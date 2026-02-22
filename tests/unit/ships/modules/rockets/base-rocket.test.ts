@@ -33,9 +33,20 @@ vi.mock('phaser', () => {
                         setCollisionCategory = vi.fn();
                         setCollidesWith = vi.fn();
                         setOnCollide = vi.fn();
+                        setActive = vi.fn();
+                        setVisible = vi.fn();
+                        setPosition = vi.fn();
+                        setAngularVelocity = vi.fn();
+                        setAwake = vi.fn();
                         destroy = vi.fn();
                         once = vi.fn();
                         active = true;
+                        scene: any;
+                        hitColor = 0;
+                        isRocket = false;
+                        constructor(world: any, _x: number, _y: number, _texture: string) {
+                            if (world?.scene) this.scene = world.scene;
+                        }
                     }
                 }
             },
@@ -77,12 +88,14 @@ describe('BaseRocket', () => {
                 existing: vi.fn(),
                 particles: vi.fn().mockReturnValue({
                     emitParticleAt: vi.fn(),
-                    destroy: vi.fn()
+                    destroy: vi.fn(),
+                    setDepth: vi.fn()
                 })
             },
             events: {
                 on: vi.fn(),
-                off: vi.fn()
+                off: vi.fn(),
+                once: vi.fn()
             },
             cameras: {
                 main: {

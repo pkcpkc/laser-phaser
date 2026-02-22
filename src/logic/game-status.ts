@@ -27,6 +27,10 @@ export class GameStatus {
     // Key format: "galaxyId" -> number of victories
     private victories: Record<string, number> = {};
 
+    private moduleInventory: Record<string, number> = {};
+    private shipLoadout: Record<number, string | null> = {};
+    private merchantInventory: Record<string, number> = {};
+
     private constructor() {
         this.load();
     }
@@ -53,7 +57,79 @@ export class GameStatus {
 
     public updateLoot(type: LootType, amount: number) {
         this.loot[type] += amount;
+        if (this.loot[type] < 0) this.loot[type] = 0;
         this.save();
+    }
+
+    // --- Module Inventory ---
+
+    public getModuleInventory(): Record<string, number> {
+        return { ...this.moduleInventory };
+    }
+
+    public addModule(moduleId: string, amount: number = 1) {
+        if (!this.moduleInventory[moduleId]) {
+            this.moduleInventory[moduleId] = 0;
+        }
+        this.moduleInventory[moduleId] += amount;
+        this.save();
+    }
+
+    public removeModule(moduleId: string, amount: number = 1): boolean {
+        if (!this.moduleInventory[moduleId] || this.moduleInventory[moduleId] < amount) {
+            return false; // Not enough in inventory
+        }
+        this.moduleInventory[moduleId] -= amount;
+        this.save();
+        return true;
+    }
+
+    // --- Ship Loadout ---
+
+    public getShipLoadout(): Record<number, string | null> {
+        return { ...this.shipLoadout };
+    }
+
+    public setShipLoadout(mountIndex: number, moduleId: string | null) {
+        this.shipLoadout[mountIndex] = moduleId;
+        this.save();
+    }
+
+    // --- Merchant Inventory ---
+
+    public getMerchantInventory(): Record<string, number> {
+        return { ...this.merchantInventory };
+    }
+
+    public clearMerchantInventory() {
+        this.merchantInventory = {};
+        this.save();
+    }
+
+    public setMerchantStock(moduleId: string, amount: number) {
+        this.merchantInventory[moduleId] = amount;
+        this.save();
+    }
+
+    public removeMerchantStock(moduleId: string, amount: number = 1): boolean {
+        if (!this.merchantInventory[moduleId] || this.merchantInventory[moduleId] < amount) {
+            return false;
+        }
+        this.merchantInventory[moduleId] -= amount;
+        this.save();
+        return true;
+    }
+
+    public addMerchantStock(moduleId: string, amount: number = 1) {
+        if (!this.merchantInventory[moduleId]) {
+            this.merchantInventory[moduleId] = 0;
+        }
+        this.merchantInventory[moduleId] += amount;
+        this.save();
+    }
+
+    public isMerchantInitialized(): boolean {
+        return Object.keys(this.merchantInventory).length > 0;
     }
 
 
@@ -121,6 +197,9 @@ export class GameStatus {
         this.planetPositions.clear();
         this.defeatedPlanets.clear();
         this.victories = {};
+        this.moduleInventory = {};
+        this.shipLoadout = {};
+        this.merchantInventory = {};
         this.save();
     }
 }

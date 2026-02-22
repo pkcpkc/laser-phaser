@@ -9,7 +9,6 @@ import { LootUI } from '../../ui/loot-ui';
 import { GameStatus } from '../../logic/game-status';
 import { StorylineManager } from '../../logic/storyline-manager';
 import { Galaxy } from './galaxy';
-import { TimeUtils } from '../../utils/time-utils';
 
 /**
  * Handles planet navigation, travel animation, arrival, and intro coordination.
@@ -18,7 +17,6 @@ import { TimeUtils } from '../../utils/time-utils';
 export class PlanetNavigator implements IPlanetNavigator {
     private currentPlanetId: string = '';
     private controlsEnabled: boolean = true;
-    private introPending: boolean = false;
     private galaxy!: Galaxy;
     private currentLocale: string = 'en';
 
@@ -188,9 +186,9 @@ export class PlanetNavigator implements IPlanetNavigator {
     }
 
     /**
-     * Moves ship to planet position (instant or with intro delay).
+     * Moves ship to planet position instantly.
      */
-    moveToPlanet(planetId: string, instant: boolean = false, introDelay: number = 0): void {
+    moveToPlanet(planetId: string, instant: boolean = false): void {
         const planet = this.galaxy.getById(planetId);
         if (!planet) return;
 
@@ -202,43 +200,9 @@ export class PlanetNavigator implements IPlanetNavigator {
         if (instant) {
             this.shipController.setPosition(shipX, shipY);
 
-            const introRequired = StorylineManager.getInstance().getIntroText(
-                this.galaxy.id,
-                planet.id,
-                this.currentLocale
-            ) && !GameStatus.getInstance().hasSeenIntro(planet.id);
-
-            console.log(`PlanetNavigator: moveToPlanet ${planetId} (start). introRequired=${introRequired}, delay=${introDelay}`);
-
-            if (introRequired && introDelay > 0 && this.galaxy.scene) {
-                this.controlsEnabled = false;
-                this.introPending = true;
-                this.interactions.hide();
-                console.log('PlanetNavigator: Delaying controls. introPending=true');
-
-                TimeUtils.delayedCall(this.galaxy.scene, introDelay, () => {
-                    console.log('PlanetNavigator: Intro delay complete. Resuming controls.');
-                    this.introPending = false;
-                    this.controlsEnabled = true;
-
-                    const introStarted = this.checkAndShowIntro(planet);
-                    if (introStarted) {
-                        this.introOverlay.setVisible(true);
-                        this.introOverlay.setAlpha(1);
-                    } else {
-                        console.log('PlanetNavigator: Intro not started (maybe checks failed?), showing UI');
-                        this.interactions.showInteractionUI(planet);
-                    }
-                });
-            } else {
-                if (!this.introPending) {
-                    console.log('PlanetNavigator: No intro delay needed. Checking intro checkAndShowIntro');
-                    const introStarted = this.checkAndShowIntro(planet);
-                    if (!introStarted) {
-                        console.log('PlanetNavigator: No intro start, showing UI');
-                        this.interactions.showInteractionUI(planet);
-                    }
-                }
+            const introStarted = this.checkAndShowIntro(planet);
+            if (!introStarted) {
+                this.interactions.showInteractionUI(planet);
             }
         }
     }

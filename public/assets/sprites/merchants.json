@@ -1,0 +1,82 @@
+{
+	"textures": [
+		{
+			"image": "merchants.png",
+			"format": "RGBA8888",
+			"size": {
+				"w": 183,
+				"h": 104
+			},
+			"scale": 1,
+			"frames": [
+				{
+					"filename": "green-alien",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 100,
+						"h": 100
+					},
+					"spriteSourceSize": {
+						"x": 0,
+						"y": 0,
+						"w": 88,
+						"h": 100
+					},
+					"frame": {
+						"x": 2,
+						"y": 2,
+						"w": 88,
+						"h": 100
+					}
+				},
+				{
+					"filename": "green-alien-eyes",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 100,
+						"h": 100
+					},
+					"spriteSourceSize": {
+						"x": 35,
+						"y": 42,
+						"w": 50,
+						"h": 27
+					},
+					"frame": {
+						"x": 94,
+						"y": 2,
+						"w": 50,
+						"h": 27
+					}
+				},
+				{
+					"filename": "green-alien-mouth",
+					"rotated": false,
+					"trimmed": true,
+					"sourceSize": {
+						"w": 100,
+						"h": 100
+					},
+					"spriteSourceSize": {
+						"x": 45,
+						"y": 55,
+						"w": 33,
+						"h": 32
+					},
+					"frame": {
+						"x": 148,
+						"y": 2,
+						"w": 33,
+						"h": 32
+					}
+				}
+			]
+		}
+	],
+	"meta": {
+		"app": "",
+		"version": ""
+	}
+}

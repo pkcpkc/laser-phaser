@@ -256,41 +256,4 @@ describe('PlanetNavigator', () => {
         });
     });
 
-    describe('moveToPlanet', () => {
-        let mockScene: any;
-
-        beforeEach(() => {
-            mockScene = {
-                time: {
-                    delayedCall: vi.fn().mockImplementation((_delay, callback) => callback())
-                }
-            };
-            mockGalaxy.scene = mockScene;
-            // Re-instantiate with scene
-            navigator = new PlanetNavigator(
-                mockShipController,
-                mockInteractions,
-                mockIntroOverlay,
-                mockLootUI
-            );
-            navigator.config(mockGalaxy, 'en');
-        });
-
-        it('uses delayedCall for intro delay', () => {
-            const planet = createPlanet();
-            mockGalaxy.getById.mockReturnValue(planet);
-            mockStorylineManager.getIntroText.mockReturnValue('Intro');
-            mockGameStatus.hasSeenIntro.mockReturnValue(false);
-
-            // instant=true, delay=1000
-            navigator.moveToPlanet('p1', true, 1000);
-
-            expect(mockScene.time.delayedCall).toHaveBeenCalledWith(
-                1000,
-                expect.any(Function),
-                undefined,
-                mockScene
-            );
-        });
-    });
 });

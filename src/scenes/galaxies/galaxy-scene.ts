@@ -118,7 +118,7 @@ export default class GalaxyScene extends Phaser.Scene {
         }
 
         // Move to initial planet
-        this.navigator.moveToPlanet(currentPlanetId, true, this.autoStartLevel ? 0 : 1500);
+        this.navigator.moveToPlanet(currentPlanetId, true);
 
         if (this.autoStartLevel) {
             const planet = this.galaxy.getById(currentPlanetId);

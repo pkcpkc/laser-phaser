@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { BaseLaser } from '../../../../../src/ships/modules/lasers/base-laser';
-// import Phaser from 'phaser';
 
 // Mock Phaser
 vi.mock('phaser', () => {
@@ -18,25 +17,32 @@ vi.mock('phaser', () => {
                         setCollidesWith = vi.fn();
                         setOnCollide = vi.fn();
                         setVelocityX = vi.fn();
-                        setVelocityY = vi.fn(); // Projectile calls this
+                        setVelocityY = vi.fn();
                         setScale = vi.fn();
+                        setActive = vi.fn();
+                        setVisible = vi.fn();
+                        setPosition = vi.fn();
+                        setAngularVelocity = vi.fn();
+                        setAwake = vi.fn();
                         destroy = vi.fn();
                         once = vi.fn();
                         x = 0;
                         y = 0;
                         active = true;
                         scene: any;
+                        hitColor = 0;
+                        isRocket = false;
                         constructor(world: any, x: number, y: number, _texture: string) {
                             this.x = x;
                             this.y = y;
-                            this.scene = world.scene;
+                            if (world?.scene) this.scene = world.scene;
                         }
                     }
                 }
             },
             Scene: class { },
             Math: {
-                // ...
+                // ..
             }
         }
     };
@@ -58,14 +64,19 @@ describe('BaseLaser', () => {
     let mockEvents: any;
 
     beforeEach(() => {
+        // Reset BaseLaser static state between tests
+        (BaseLaser as any).globalEmitters = new Map();
+
         mockEvents = {
             on: vi.fn(),
-            off: vi.fn()
+            off: vi.fn(),
+            once: vi.fn()
         };
 
         mockParticles = {
             emitParticleAt: vi.fn(),
-            destroy: vi.fn()
+            destroy: vi.fn(),
+            setDepth: vi.fn()
         };
 
         const mockWorld = { scene: null };
@@ -136,51 +147,39 @@ describe('BaseLaser', () => {
         expect(result?.setCollisionCategory).toHaveBeenCalledWith(2);
         expect(result?.setCollidesWith).toHaveBeenCalledWith(4);
 
-        // Check Trail Effect
+        // Check Trail Effect - particles emitter created
         expect(mockScene.add.particles).toHaveBeenCalledWith(0, 0, 'test-laser-trail', expect.objectContaining({
             lifespan: 150,
             blendMode: 'ADD',
             emitting: false
         }));
 
-        // Check Update Listener registration
-        expect(mockEvents.on).toHaveBeenCalledWith('update', expect.any(Function));
+        // Check that particles depth is set
+        expect(mockParticles.setDepth).toHaveBeenCalledWith(-1);
+
+        // Check that emitTrail hook was added to the projectile
+        expect(typeof result.emitTrail).toBe('function');
     });
 
-    it('should emit particles during update', () => {
+    it('should emit particles via preUpdate hook', () => {
         const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
-
-        // Get the update listener
-        const updateListener = mockEvents.on.mock.calls.find((call: any[]) => call[0] === 'update')[1];
-
 
         // Simulate update with active laser
         result.active = true;
         result.x = 150;
         result.y = 150;
-        updateListener();
+
+        // Call preUpdate which should trigger emitTrail
+        result.preUpdate(2000, 16);
 
         expect(mockParticles.emitParticleAt).toHaveBeenCalledWith(150, 150);
     });
 
-    it('should clean up trail effects on destroy', () => {
-        const result: any = laser.fire(mockScene, 100, 100, 0, 2, 4);
+    it('should register shutdown cleanup for emitters', () => {
+        laser.fire(mockScene, 100, 100, 0, 2, 4);
 
-        // Get the destroy listener (laser.once('destroy', ...))
-        // Since we are mocking Phaser Image which keeps event emitters, we need to check how we can trigger 'destroy' event.
-        // However, we mock Phaser.Physics.Matter.Image class in file scope. 
-        // We need to spy on 'once' properly or just call the callback passed to it.
-
-        const destroyListener = result.once.mock.calls.find((call: any[]) => call[0] === 'destroy')[1];
-
-
-        // Trigger destroy
-        destroyListener();
-
-        expect(mockEvents.off).toHaveBeenCalledWith('update', expect.any(Function));
-        expect(mockScene.time.delayedCall).toHaveBeenCalledWith(200, expect.any(Function), undefined, mockScene);
-        // mocked delayedCall executes callback immediately
-        expect(mockParticles.destroy).toHaveBeenCalled();
+        // Check that shutdown cleanup was registered
+        expect(mockEvents.once).toHaveBeenCalledWith('shutdown', expect.any(Function));
     });
 
     it('should handle boundary checks', () => {

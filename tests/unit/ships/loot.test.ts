@@ -13,6 +13,18 @@ vi.mock('phaser', () => {
                         setFrictionAir = vi.fn();
                         setBounce = vi.fn();
                         setSensor = vi.fn();
+                        setIgnoreGravity = vi.fn();
+                        setActive = vi.fn();
+                        setVisible = vi.fn();
+                        setPosition = vi.fn();
+                        setVelocity = vi.fn();
+                        setAngularVelocity = vi.fn();
+                        setRotation = vi.fn();
+                        setCollidesWith = vi.fn();
+                        setCollisionCategory = vi.fn();
+                        setAlpha = vi.fn();
+                        setScale = vi.fn();
+                        setAwake = vi.fn();
                         destroy() { }
                         scene = {
                             tweens: {
@@ -23,7 +35,8 @@ vi.mock('phaser', () => {
                         };
                         active = true;
                         on = vi.fn();
-
+                        texture = { key: 'loot-test' };
+                        lootType: any;
                     }
                 }
             },
@@ -38,7 +51,6 @@ vi.mock('phaser', () => {
 describe('Loot', () => {
     let loot: Loot;
     let mockScene: any;
-    let mockType: LootType;
 
     beforeEach(() => {
         mockScene = {
@@ -47,7 +59,7 @@ describe('Loot', () => {
             },
             add: {
                 existing: vi.fn(),
-                particles: vi.fn().mockReturnValue({ destroy: vi.fn() })
+                particles: vi.fn().mockReturnValue({ destroy: vi.fn(), stop: vi.fn(), start: vi.fn() })
             },
             make: {
                 text: vi.fn().mockReturnValue({
@@ -64,10 +76,14 @@ describe('Loot', () => {
                 add: vi.fn(),
                 chain: vi.fn(),
                 killTweensOf: vi.fn()
+            },
+            events: {
+                once: vi.fn()
+            },
+            time: {
+                now: 1000
             }
         };
-
-        mockType = LootType.GEM;
 
         // Mock canvas (JSDOM should handle this, but for explicit control)
         const mockContext = {
@@ -84,40 +100,37 @@ describe('Loot', () => {
         };
         vi.spyOn(document, 'createElement').mockReturnValue(mockCanvas as any);
 
-        loot = new Loot(mockScene, 100, 100, mockType);
+        loot = new Loot(mockScene, 'loot-test');
         // Simulate scene compatibility
         (loot as any).scene = mockScene;
     });
 
     it('should initialize correctly', () => {
         expect(mockScene.add.existing).toHaveBeenCalledWith(loot);
-        expect(loot.type).toBe(mockType);
         expect(loot.setFrictionAir).toHaveBeenCalledWith(0.05);
         expect(loot.setBounce).toHaveBeenCalledWith(0.5);
         expect(loot.setSensor).toHaveBeenCalledWith(true);
     });
 
-    it('should generate texture if not exists', () => {
+    it('should generate texture if not exists via getFromPool', () => {
+        mockScene.textures.exists.mockReturnValue(false);
+        Loot.getFromPool(mockScene, 100, 100, LootType.GEM);
         expect(mockScene.textures.exists).toHaveBeenCalled();
         expect(mockScene.make.text).toHaveBeenCalled();
         expect(mockScene.textures.addCanvas).toHaveBeenCalled();
     });
 
-    it('should use existing texture if available', () => {
+    it('should use existing texture if available via getFromPool', () => {
         mockScene.textures.exists.mockReturnValue(true);
-        // Clear previous calls
         mockScene.textures.addCanvas.mockClear();
 
-        new Loot(mockScene, 100, 100, LootType.GEM);
+        Loot.getFromPool(mockScene, 100, 100, LootType.GEM);
         expect(mockScene.textures.addCanvas).not.toHaveBeenCalled();
     });
 
-    it('should handle mount loot type specific logic', () => {
-        const mountType = LootType.MODULE;
-        loot = new Loot(mockScene, 100, 100, mountType);
-
+    it('should handle mount loot type specific logic via spawn', () => {
+        loot.spawn(100, 100, LootType.MODULE);
         expect(mockScene.add.particles).toHaveBeenCalled();
-        expect(loot.on).toHaveBeenCalledWith('destroy', expect.any(Function));
     });
 
     it('should cleanup on destroy', () => {

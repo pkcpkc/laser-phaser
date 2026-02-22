@@ -28,7 +28,11 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             centralPlanet: true,
             interaction: {
                 warpGalaxyId: 'blood-hunters-galaxy', // Warp to Blood Hunter Galaxy
-                showAlways: true
+                showAlways: true,
+                shipyard: {
+                    image: 'green-alien',
+                    goods: { 'laser-red': 3, 'laser-white': 3, 'drive-ion': 2 }
+                }
             },
             effects: [
                 { type: 'hurricane', color: 0xffffff },
@@ -97,7 +101,6 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             hidden: false,
             interaction: {
                 levelId: 'blood-boss-level',
-                hasShipyard: true,
                 showAlways: true
             },
             effects: [
@@ -114,7 +117,10 @@ export const DemoGalaxyConfig: GalaxyConfig = {
             hidden: false,
             interaction: {
                 levelId: 'path-tactic-debug-level',
-                hasShipyard: true,
+                shipyard: {
+                    image: 'green-alien',
+                    goods: { 'laser-green': 3, 'rocket-green': 2, 'drive-dust': 2 }
+                },
                 showAlways: true
             },
             effects: [

@@ -22,7 +22,10 @@ export interface PlanetConfig {
 
     interaction?: {
         levelId?: string;
-        hasShipyard?: boolean;
+        shipyard?: {
+            image: string;
+            goods: Record<string, number>;
+        };
         warpGalaxyId?: string;
         showAlways?: boolean; // Show shipyard/warp icons even if planet not defeated
     };

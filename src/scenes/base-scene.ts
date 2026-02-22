@@ -12,6 +12,7 @@ import type { IGameManager, ICollisionManager, IPlayerController } from '../di/i
 import type { IShip } from '../di/interfaces/ship';
 import type { IStarfield } from '../backgrounds/starfield';
 import type { ILootUI } from '../di/interfaces/ui-effects';
+import { ModuleRegistry } from '../ships/modules/module-registry';
 import { GameManager } from '../logic/game-manager';
 import { CollisionManager } from '../logic/collision-manager';
 import { PlayerController } from '../logic/player-controller';
@@ -89,12 +90,44 @@ export default class BaseScene extends Phaser.Scene {
     protected createPlayerShip() {
         const { width, height } = this.scale;
 
-
         const collisionConfig = this.getShipCollisionConfig();
 
-
         const validConfig = this.registry.get('playerShipConfig') as ShipConfig || BigCruiserWhiteLaserConfig;
-        this.ship = new Ship(this, width * 0.5, height - 50, validConfig, collisionConfig);
+
+        let finalConfig = { ...validConfig };
+
+        const gameStatus = GameStatus.getInstance();
+        const loadout = gameStatus.getShipLoadout();
+
+        // If loadout has ever been set (not completely empty/uninitialized for a new game)
+        // We will build the modules array from it.
+        // We can check if any key exists in the loadout. To avoid the issue where a user unequips
+        // everything and gets defaults back, we rely on the fact that GameStatus persists the loadout
+        // even if it has explicit `null` values for unequipped slots.
+        const hasCustomLoadout = Object.keys(loadout).length > 0;
+
+        if (hasCustomLoadout) {
+            const newModules: { marker: any; module: any }[] = [];
+
+            finalConfig.definition.markers.forEach((marker, index) => {
+                const moduleId = loadout[index];
+                if (moduleId && ModuleRegistry[moduleId as keyof typeof ModuleRegistry]) {
+                    newModules.push({
+                        marker: marker,
+                        module: ModuleRegistry[moduleId as keyof typeof ModuleRegistry].moduleClass
+                    });
+                }
+            });
+
+            finalConfig.modules = newModules;
+            this.instantiateShip(finalConfig, collisionConfig, width, height);
+        } else {
+            this.instantiateShip(finalConfig, collisionConfig, width, height);
+        }
+    }
+
+    private instantiateShip(finalConfig: ShipConfig, collisionConfig: any, width: number, height: number) {
+        this.ship = new Ship(this, width * 0.5, height - 50, finalConfig, collisionConfig);
 
         // Bind the specific ship instance to the container so PlayerController can inject it
         if (container.isBound(Ship)) {
