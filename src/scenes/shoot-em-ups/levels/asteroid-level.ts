@@ -61,32 +61,23 @@ function createAsteroidWave(
  * Perfect for learning controls without being shot at.
  *
  * Structure:
- * 1. Warmup (1 asteroid)
- * 2. Duo (2 asteroids)
- * 3. Squad (4 asteroids)
- * 4-7. Increasing intensity (6 -> 12 asteroids)
+ * 1. Warmup (4 asteroids)
+ * 2. Intense (12 asteroids)
+ * 3. Heavy (20 asteroids)
  *
  * Refactored to use individual formations per asteroid for independent speeds.
  */
 export const AsteroidLevel: LevelConfig = {
     name: 'Asteroid Field',
     formations: [
-        // Wave 1: Warmup - 1 Asteroid
-        createAsteroidWave(1, 0, 0.3, { small: 0.0, medium: 0.5, large: 0.5 }),
+        // Wave 1: Warmup - 4 Asteroids
+        createAsteroidWave(4, 0, 0.7, { small: 0.3, medium: 0.5, large: 0.2 }),
 
-        // Wave 2: Duo - 2 Asteroids
-        createAsteroidWave(2, 1000, 0.5, { small: 0.2, medium: 0.6, large: 0.2 }),
+        // Wave 2: Intense - 12 Asteroids
+        createAsteroidWave(12, 1500, 0.9, { small: 0.3, medium: 0.4, large: 0.3 }, 100, 300),
 
-        // Wave 3: Squad - 4 Asteroids
-        createAsteroidWave(4, 1000, 0.7, { small: 0.3, medium: 0.5, large: 0.2 }),
-
-        // Wave 4: Ramp Up - 8 Asteroids (Previous count 8)
-        createAsteroidWave(8, 1500, 0.8, { small: 0.4, medium: 0.4, large: 0.2 }, 150, 400),
-
-        // Wave 5: Intense - 12 Asteroids
-        createAsteroidWave(12, 1200, 0.9, { small: 0.3, medium: 0.4, large: 0.3 }, 100, 300),
-
-        // Wave 6: Heavy - 20 Asteroids
-        createAsteroidWave(20, 900, 0.95, { small: 0.2, medium: 0.5, large: 0.3 }, 80, 250)
+        // Wave 3: Heavy - 20 Asteroids
+        createAsteroidWave(20, 1200, 0.95, { small: 0.2, medium: 0.5, large: 0.3 }, 80, 250)
     ]
 };
+

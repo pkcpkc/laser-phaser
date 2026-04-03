@@ -39,7 +39,7 @@ export const ModuleRegistry: Record<string, ModuleRegistryEntry> = {
         description: 'A basic red laser. Reliable, but weak.',
         moduleClass: RedLaser,
         buyPrice: { type: LootType.SILVER, amount: 20 },
-        stats: { damage: 5, fireRate: 650 }
+        stats: { damage: 5, fireRate: 950 }
     },
     'laser-green': {
         id: 'laser-green',
