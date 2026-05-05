@@ -6,13 +6,13 @@
 
 ## 🚀 The Vision
 
-**Laser Phaser** is born from the wild imaginations of **Leopold** and **Thaddeus**—two young Star Wars fans who spent their days drawing epic spaceships and dreaming of galactic battles. 
+**Laser Phaser** is born from the wild imaginations of my kids young Star Wars fans who spent their days drawing epic spaceships and dreaming of galactic battles. 
 
 What started as sketches on paper has been brought to life through the incredible power of **Agentic Coding**. Using [**Google Antigravity**](https://antigravity.google/) and [**Phaser.io**](https://phaser.io/), we've turned those childhood dreams into a high-octane reality. (With a little help from **Paul** to keep the engines running! 😉)
 
 ## 🎨 From Sketch to Starship
 
-Experience the transition from hand-drawn imagination to high-tech digital assets. Here are some of the best original sketches by Leopold and Thaddeus, side-by-side with their AI-enhanced versions:
+Experience the transition from hand-drawn imagination to high-tech digital assets. Here are some of the best original sketches by my kids, side-by-side with their AI-enhanced versions:
 
 | Original Sketch | AI-Pimped Ship |
 | :---: | :---: |

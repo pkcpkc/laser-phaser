@@ -2,7 +2,7 @@
 
 This document provides technical details for developers working on **Laser Phaser**.
 
-> Everything in the universe—from galaxies and star systems to planet visuals and effects—is **procedurally created**. The only exceptions are the **ships**, which are hand-drawn by the kids (Leopold & Thaddeus) and then "pimped" for the digital realm by [**Nano Banana**](https://gemini.google/overview/image-generation/).
+> Everything in the universe—from galaxies and star systems to planet visuals and effects—is **procedurally created**. The only exceptions are the **ships**, which are hand-drawn by the kids and then "pimped" for the digital realm by [**Nano Banana**](https://gemini.google/overview/image-generation/).
 
 ## Tech Stack
 
