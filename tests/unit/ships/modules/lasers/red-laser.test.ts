@@ -25,7 +25,7 @@ describe('RedLaser', () => {
         expect(laser.damage).toBe(5);
         expect(laser.width).toBe(3);
         expect(laser.height).toBe(3);
-        expect(laser.reloadTime).toBe(650);
+        expect(laser.reloadTime).toBe(950);
         expect(laser.type).toBe(ModuleType.LASER);
     });
 });
