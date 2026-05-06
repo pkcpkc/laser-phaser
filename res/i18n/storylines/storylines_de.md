@@ -1,4 +1,4 @@
-﻿# Storyline
+# Storyline
 
 ## blood-hunters-galaxy
 
@@ -55,3 +55,6 @@ DEMO: Versteckter Planet. Blood Hunters Level. Grau (Skalierung 0.9) mit schimme
 
 ### umbra
 DEMO: Versteckter Planet. Kein Level. Dunkelgrau (Skalierung 0.6) mit nicht-pulsierendem weißen Geisterschatteneffekt.
+
+### aquatica
+DEMO: Blauer Planet (Skalierung 1.2), der den Blaseneffekt zeigt. Simuliert eine flüssige Oberfläche mit organischer Blasenbewegung und kontrastreichen Highlights.

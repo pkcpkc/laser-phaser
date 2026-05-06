@@ -55,3 +55,6 @@ DEMO: Hidden planet. Blood Hunters level. Grey (0.9 scale) with glimmering white
 
 ### umbra
 DEMO: Hidden planet. No level. Dark grey (0.6 scale) with non-pulsing white ghost-shade effect.
+
+### aquatica
+DEMO: Blue planet (1.2 scale) showcasing the bubble effect. Simulates a liquid surface with organic bubble movement and high-contrast highlights.

@@ -50,7 +50,7 @@ export class BubbleEffect extends BaseSurfaceStructureEffect<BubbleConfig, Bubbl
         }
     }
 
-    protected drawItem(_graphics: Phaser.GameObjects.Graphics, cell: BubbleCell, cx: number, cy: number, planetRadius: number, scale: number) {
+    protected drawItem(graphics: Phaser.GameObjects.Graphics, cell: BubbleCell, cx: number, cy: number, planetRadius: number, scale: number) {
         const nx = cell.position.x;
         const ny = cell.position.y;
         const nz = cell.position.z;
@@ -124,19 +124,19 @@ export class BubbleEffect extends BaseSurfaceStructureEffect<BubbleConfig, Bubbl
 
         const finalColor = (rLit << 16) | (gLit << 8) | bLit;
 
-        this.graphics.fillStyle(finalColor, alpha);
+        graphics.fillStyle(finalColor, alpha);
 
         // Project position
         const px = cx + nx * planetRadius;
         const py = cy + ny * planetRadius;
 
         // Draw Blob
-        this.graphics.fillCircle(px, py, drawRadius);
+        graphics.fillCircle(px, py, drawRadius);
 
         // Extreme Highlight
         if (peakVal > 0.7 && alpha > 0.4) {
-            this.graphics.fillStyle(0xffffff, alpha * 0.6);
-            this.graphics.fillCircle(px - drawRadius * 0.2, py - drawRadius * 0.2, drawRadius * 0.4);
+            graphics.fillStyle(0xffffff, alpha * 0.6);
+            graphics.fillCircle(px - drawRadius * 0.2, py - drawRadius * 0.2, drawRadius * 0.4);
         }
     }
 }

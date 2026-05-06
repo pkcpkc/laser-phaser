@@ -23,8 +23,8 @@ describe('AsteroidLevel', () => {
         expect(AsteroidLevel).toBeDefined();
     });
 
-    it('should have 6 waves', () => {
-        expect(AsteroidLevel.formations.length).toBe(6);
+    it('should have 3 waves', () => {
+        expect(AsteroidLevel.formations.length).toBe(3);
     });
 
     it('should use DiamondFormation for all waves', () => {
@@ -37,14 +37,14 @@ describe('AsteroidLevel', () => {
 
     it('should configure wave 1 (warmup) correctly', () => {
         const wave = AsteroidLevel.formations[0];
-        expect(wave).toHaveLength(1);
+        expect(wave).toHaveLength(4); // 4 asteroids
         expect(wave[0].config?.shipFormationGrid).toBeDefined();
         expect(wave[0].config?.shipFormationGrid).toHaveLength(1);
         expect(wave[0].formationType).toBe(DiamondFormation);
     });
 
-    it('should decrease start delay for later waves', () => {
-        const delays = AsteroidLevel.formations.slice(3).map(wave => wave[0].startDelay);
-        expect(delays).toEqual([1500, 1200, 900]);
+    it('should have correct start delays for waves', () => {
+        const delays = AsteroidLevel.formations.map(wave => wave[0].startDelay);
+        expect(delays).toEqual([0, 1500, 1200]);
     });
 });

@@ -1,4 +1,4 @@
-﻿# Storyline
+# Storyline
 
 ## blood-hunters-galaxy
 
@@ -55,3 +55,6 @@ DEMO: Planeta oculto. Nivel Blood Hunters. Gris (escala 0.9) con efecto de nieve
 
 ### umbra
 DEMO: Planeta oculto. Sin nivel. Gris oscuro (escala 0.6) con efecto de sombra fantasma blanca no pulsante.
+
+### aquatica
+DEMO: Planeta azul (escala 1.2) que muestra el efecto de burbuja. Simula una superficie líquida con movimiento orgánico de burbujas y reflejos de alto contraste.

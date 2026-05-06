@@ -1,4 +1,4 @@
-﻿# Storyline
+# Storyline
 
 ## blood-hunters-galaxy
 
@@ -55,3 +55,6 @@ DEMO : Planète cachée. Niveau Blood Hunters. Gris (échelle 0.9) avec effet de
 
 ### umbra
 DEMO : Planète cachée. Aucun niveau. Gris foncé (échelle 0.6) avec effet d'ombre fantôme blanche non pulsante.
+
+### aquatica
+DEMO: Planète bleue (échelle 1.2) présentant l'effet de bulle. Simule une surface liquide avec un mouvement de bulles organique et des reflets contrastés.

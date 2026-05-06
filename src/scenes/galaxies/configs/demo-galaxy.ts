@@ -176,6 +176,20 @@ export const DemoGalaxyConfig: GalaxyConfig = {
                     color: 0xffffff
                 }
             ]
+        },
+        {
+            id: 'aquatica',
+            name: 'Aquatica',
+            tint: 0x00AAFF,
+            visualScale: 1.2,
+            hidden: false,
+            effects: [
+                {
+                    type: 'bubble',
+                    liquidDensity: 600,
+                    flowSpeed: 1.0
+                }
+            ]
         }
     ]
 };
