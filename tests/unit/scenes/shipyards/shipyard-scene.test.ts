@@ -92,15 +92,33 @@ describe('ShipyardScene', () => {
             on: vi.fn().mockReturnThis(),
             setText: vi.fn(),
             setPosition: vi.fn(),
+            setWordWrapWidth: vi.fn().mockReturnThis(),
             width: 100,
             height: 100,
             active: true,
+            clear: vi.fn().mockReturnThis(),
+            fillStyle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            lineStyle: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis(),
+            setColor: vi.fn().mockReturnThis(),
+            beginPath: vi.fn().mockReturnThis(),
+            moveTo: vi.fn().mockReturnThis(),
+            lineTo: vi.fn().mockReturnThis(),
+            closePath: vi.fn().mockReturnThis(),
+            fillPath: vi.fn().mockReturnThis(),
+            strokePath: vi.fn().mockReturnThis(),
+            setVisible: vi.fn().mockReturnThis(),
         };
 
         const mockContainer = {
             add: vi.fn(),
             removeAll: vi.fn(),
             setVisible: vi.fn().mockReturnThis(),
+            setPosition: vi.fn(),
+            setX: vi.fn().mockReturnThis(),
+            setY: vi.fn().mockReturnThis(),
+            list: []
         };
 
         scene.add = {
@@ -111,6 +129,7 @@ describe('ShipyardScene', () => {
             particles: vi.fn().mockReturnValue({ emitParticle: vi.fn(), active: true }),
             tileSprite: vi.fn().mockReturnValue(mockGameObject),
             nineslice: vi.fn().mockReturnValue(mockGameObject),
+            graphics: vi.fn().mockReturnValue(mockGameObject),
         } as any;
 
         scene.tweens = {
@@ -146,6 +165,12 @@ describe('ShipyardScene', () => {
             }
         } as any;
 
+        scene.events = {
+            on: vi.fn(),
+            off: vi.fn(),
+            emit: vi.fn()
+        } as any;
+
         mockScenePlugin = {
             start: vi.fn(),
         };
@@ -159,7 +184,7 @@ describe('ShipyardScene', () => {
         expect(scene.add.tileSprite).toHaveBeenCalledWith(0, 0, 800, 600, 'metal-bg');
 
         // Verify back button
-        expect(scene.add.text).toHaveBeenCalledWith(10, 30, '◀ Back', expect.any(Object));
+        expect(scene.add.text).toHaveBeenCalledWith(20, 20, '◀ Back', expect.any(Object));
 
         // Verify back button interaction
         expect(mockGameObject.setInteractive).toHaveBeenCalled();

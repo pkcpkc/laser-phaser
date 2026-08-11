@@ -103,25 +103,25 @@ describe('InventoryTableUI', () => {
     });
 
     it('should create layout properly', () => {
-        const ui = new InventoryTableUI(scene, null, 10, 10, 300, onMountCleared, refreshUI);
+        const ui = new InventoryTableUI(scene, null, 10, 410, 10, 370, 310, true, onMountCleared, refreshUI, vi.fn(), vi.fn());
         ui.create();
 
         expect(scene.add.container).toHaveBeenCalledWith(0, 0);
     });
 
     it('should render items for merchant and player', () => {
-        const ui = new InventoryTableUI(scene, null, 10, 10, 300, onMountCleared, refreshUI);
+        const ui = new InventoryTableUI(scene, null, 10, 410, 10, 370, 310, true, onMountCleared, refreshUI, vi.fn(), vi.fn());
         ui.create();
-        ui.render(null, null);
+        ui.render(null, null, 'shop');
 
-        // Merchant header + items
-        expect(scene.add.text).toHaveBeenCalledWith(10, 10, 'MERCHANT WARES', expect.any(Object));
+        // Table headers should be drawn
+        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), 10, 'MODULE', expect.any(Object));
     });
 
     it('should allow buying if affordable', () => {
-        const ui = new InventoryTableUI(scene, null, 10, 10, 300, onMountCleared, refreshUI);
+        const ui = new InventoryTableUI(scene, null, 10, 410, 10, 370, 310, true, onMountCleared, refreshUI, vi.fn(), vi.fn());
         ui.create();
-        ui.render(null, null);
+        ui.render(null, null, 'shop');
 
         // Find the "pointerdown" callback for buy button. It's bound to a rectangle object in render().
         const pointerdownCalls = mockGameObject.on.mock.calls.filter((c: any) => c[0] === 'pointerdown');

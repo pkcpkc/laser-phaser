@@ -78,7 +78,20 @@ describe('ShipPreviewUI', () => {
             setVisible: vi.fn().mockReturnThis(),
             setSize: vi.fn().mockReturnThis(),
             setInteractive: vi.fn().mockReturnThis(),
-            on: vi.fn().mockReturnThis()
+            on: vi.fn().mockReturnThis(),
+            list: []
+        };
+
+        const mockGraphics = {
+            clear: vi.fn().mockReturnThis(),
+            fillStyle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            lineStyle: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis(),
+            fillRect: vi.fn().mockReturnThis(),
+            strokeCircle: vi.fn().mockReturnThis(),
+            fillCircle: vi.fn().mockReturnThis(),
+            lineBetween: vi.fn().mockReturnThis(),
         };
 
         scene = {
@@ -86,7 +99,8 @@ describe('ShipPreviewUI', () => {
                 image: vi.fn().mockReturnValue(mockGameObject),
                 text: vi.fn().mockReturnValue(mockGameObject),
                 container: vi.fn().mockReturnValue(mockContainer),
-                particles: vi.fn().mockReturnValue(mockGameObject)
+                particles: vi.fn().mockReturnValue(mockGameObject),
+                graphics: vi.fn().mockReturnValue(mockGraphics)
             },
             make: {
                 graphics: vi.fn().mockReturnValue({
@@ -112,14 +126,14 @@ describe('ShipPreviewUI', () => {
     });
 
     it('should create layout properly', () => {
-        const ui = new ShipPreviewUI(scene, null, 10, 300, onMountSelectionChanged, refreshUI);
+        const ui = new ShipPreviewUI(scene, null, 10, 300, 370, true, onMountSelectionChanged, refreshUI);
         ui.create();
 
         expect(scene.add.container).toHaveBeenCalledWith(10, 300);
     });
 
     it('should render ship hull and effects based on loadout', () => {
-        const ui = new ShipPreviewUI(scene, null, 10, 300, onMountSelectionChanged, refreshUI);
+        const ui = new ShipPreviewUI(scene, null, 10, 300, 370, true, onMountSelectionChanged, refreshUI);
         ui.create();
         ui.render();
 
@@ -132,7 +146,7 @@ describe('ShipPreviewUI', () => {
     });
 
     it('should select mount point properly', () => {
-        const ui = new ShipPreviewUI(scene, null, 10, 300, onMountSelectionChanged, refreshUI);
+        const ui = new ShipPreviewUI(scene, null, 10, 300, 370, true, onMountSelectionChanged, refreshUI);
         ui.create();
         ui.render();
 

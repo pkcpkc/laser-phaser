@@ -33,13 +33,38 @@ describe('MerchantPortraitUI', () => {
         vi.clearAllMocks();
 
         mockGameObject = {
-            setOrigin: vi.fn().mockReturnThis()
+            setOrigin: vi.fn().mockReturnThis(),
+            setPosition: vi.fn(),
+            setWordWrapWidth: vi.fn().mockReturnThis()
+        };
+
+        const mockContainer = {
+            add: vi.fn(),
+            setVisible: vi.fn(),
+            setPosition: vi.fn(),
+            list: []
+        };
+
+        const mockGraphics = {
+            clear: vi.fn().mockReturnThis(),
+            fillStyle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            lineStyle: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis(),
+            beginPath: vi.fn().mockReturnThis(),
+            moveTo: vi.fn().mockReturnThis(),
+            lineTo: vi.fn().mockReturnThis(),
+            closePath: vi.fn().mockReturnThis(),
+            fillPath: vi.fn().mockReturnThis(),
+            strokePath: vi.fn().mockReturnThis(),
         };
 
         scene = {
             add: {
                 image: vi.fn().mockReturnValue(mockGameObject),
-                text: vi.fn().mockReturnValue(mockGameObject)
+                text: vi.fn().mockReturnValue(mockGameObject),
+                container: vi.fn().mockReturnValue(mockContainer),
+                graphics: vi.fn().mockReturnValue(mockGraphics),
             },
             textures: {
                 get: vi.fn().mockReturnValue({ has: vi.fn().mockReturnValue(false) })
@@ -48,7 +73,7 @@ describe('MerchantPortraitUI', () => {
     });
 
     it('should create text portrait when atlas texture does not exist', () => {
-        const ui = new MerchantPortraitUI(scene, 150, 150);
+        const ui = new MerchantPortraitUI(scene, 150, 150, 370);
 
         ui.create();
 
@@ -61,22 +86,23 @@ describe('MerchantPortraitUI', () => {
         const mockHas = vi.fn().mockReturnValue(true);
         scene.textures.get.mockReturnValue({ has: mockHas });
 
-        const ui = new MerchantPortraitUI(scene, 150, 150, { image: '👩‍🔧', goods: {} });
+        const ui = new MerchantPortraitUI(scene, 150, 150, 370, { image: '👩‍🔧', goods: {} });
 
         ui.create();
 
         expect(scene.textures.get).toHaveBeenCalledWith('merchants');
         expect(mockHas).toHaveBeenCalledWith('👩‍🔧');
         expect(scene.add.image).toHaveBeenCalledWith(150, 150, 'merchants', '👩‍🔧');
-        expect(MerchantAnimator).toHaveBeenCalledWith(scene, '👩‍🔧', 150, 150);
-        expect(scene.add.text).not.toHaveBeenCalled();
+        expect(MerchantAnimator).toHaveBeenCalledWith(scene, '👩‍🔧', 150, 150, expect.any(Object));
+        // Fallback text should not be called at portrait position
+        expect(scene.add.text).not.toHaveBeenCalledWith(150, 150, '👩‍🔧', expect.any(Object));
     });
 
     it('should delegate speak to animator if created', () => {
         const mockHas = vi.fn().mockReturnValue(true);
         scene.textures.get.mockReturnValue({ has: mockHas });
 
-        const ui = new MerchantPortraitUI(scene, 150, 150, { image: '🧔', goods: {} });
+        const ui = new MerchantPortraitUI(scene, 150, 150, 370, { image: '🧔', goods: {} });
         ui.create();
 
         const animator = ui.getAnimator();
@@ -90,7 +116,7 @@ describe('MerchantPortraitUI', () => {
     });
 
     it('should not throw on speak if animator is not created', () => {
-        const ui = new MerchantPortraitUI(scene, 150, 150, undefined);
+        const ui = new MerchantPortraitUI(scene, 150, 150, 370, undefined);
         ui.create();
 
         // Since no image, animator shouldn't be created

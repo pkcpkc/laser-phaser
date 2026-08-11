@@ -37,9 +37,23 @@ describe('CurrencyHeaderUI', () => {
             setText: vi.fn()
         };
 
+        const mockContainer = {
+            add: vi.fn()
+        };
+
+        const mockGraphics = {
+            clear: vi.fn().mockReturnThis(),
+            fillStyle: vi.fn().mockReturnThis(),
+            fillRoundedRect: vi.fn().mockReturnThis(),
+            lineStyle: vi.fn().mockReturnThis(),
+            strokeRoundedRect: vi.fn().mockReturnThis()
+        };
+
         scene = {
             add: {
-                text: vi.fn().mockReturnValue(mockGameObject)
+                text: vi.fn().mockReturnValue(mockGameObject),
+                container: vi.fn().mockReturnValue(mockContainer),
+                graphics: vi.fn().mockReturnValue(mockGraphics)
             },
             scale: {
                 width: 800,
@@ -57,9 +71,9 @@ describe('CurrencyHeaderUI', () => {
         expect(scene.add.text).toHaveBeenCalledTimes(6);
 
         // Assert creation logic of icons
-        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), 30, LootType.SILVER, expect.any(Object));
-        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), 30, LootType.GOLD, expect.any(Object));
-        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), 30, LootType.GEM, expect.any(Object));
+        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), LootType.SILVER, expect.any(Object));
+        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), LootType.GOLD, expect.any(Object));
+        expect(scene.add.text).toHaveBeenCalledWith(expect.any(Number), expect.any(Number), LootType.GEM, expect.any(Object));
 
         // It sets initial text to string values of mock
         expect(mockGameObject.setText).toHaveBeenCalledWith('100');
