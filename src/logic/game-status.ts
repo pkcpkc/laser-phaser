@@ -42,12 +42,70 @@ export class GameStatus {
         return GameStatus.instance;
     }
 
+    public static readonly STORAGE_KEY = 'laser_phaser_game_status';
+
     private load() {
-        // No-op: persistence disabled
+        try {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            const serialized = window.localStorage.getItem(GameStatus.STORAGE_KEY);
+            if (!serialized) {
+                return;
+            }
+            const data = JSON.parse(serialized);
+            if (data.loot) {
+                this.loot = { ...this.loot, ...data.loot };
+            }
+            if (Array.isArray(data.revealedPlanets)) {
+                this.revealedPlanets = new Set(data.revealedPlanets);
+            }
+            if (Array.isArray(data.seenIntroPlanetIds)) {
+                this.seenIntroPlanetIds = new Set(data.seenIntroPlanetIds);
+            }
+            if (Array.isArray(data.defeatedPlanets)) {
+                this.defeatedPlanets = new Set(data.defeatedPlanets);
+            }
+            if (Array.isArray(data.planetPositions)) {
+                this.planetPositions = new Map(data.planetPositions);
+            }
+            if (data.victories) {
+                this.victories = { ...data.victories };
+            }
+            if (data.moduleInventory) {
+                this.moduleInventory = { ...data.moduleInventory };
+            }
+            if (data.shipLoadout) {
+                this.shipLoadout = { ...data.shipLoadout };
+            }
+            if (data.merchantInventory) {
+                this.merchantInventory = { ...data.merchantInventory };
+            }
+        } catch (e) {
+            console.warn('Failed to load GameStatus from localStorage:', e);
+        }
     }
 
     private save() {
-        // No-op: persistence disabled
+        try {
+            if (typeof window === 'undefined' || !window.localStorage) {
+                return;
+            }
+            const data = {
+                loot: this.loot,
+                revealedPlanets: Array.from(this.revealedPlanets),
+                seenIntroPlanetIds: Array.from(this.seenIntroPlanetIds),
+                defeatedPlanets: Array.from(this.defeatedPlanets),
+                planetPositions: Array.from(this.planetPositions.entries()),
+                victories: this.victories,
+                moduleInventory: this.moduleInventory,
+                shipLoadout: this.shipLoadout,
+                merchantInventory: this.merchantInventory
+            };
+            window.localStorage.setItem(GameStatus.STORAGE_KEY, JSON.stringify(data));
+        } catch (e) {
+            console.warn('Failed to save GameStatus to localStorage:', e);
+        }
     }
 
 

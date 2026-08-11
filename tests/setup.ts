@@ -22,3 +22,25 @@ if (typeof HTMLCanvasElement !== 'undefined') {
         stroke: vi.fn(),
     })) as any;
 }
+
+// Ensure localStorage is available and fully functional in test environment (handling Node 22+ quirks)
+const createInMemoryStorage = () => {
+    let store: Record<string, string> = {};
+    return {
+        getItem: (key: string) => store[key] ?? null,
+        setItem: (key: string, value: string) => { store[key] = String(value); },
+        removeItem: (key: string) => { delete store[key]; },
+        clear: () => { store = {}; },
+        key: (index: number) => Object.keys(store)[index] ?? null,
+        get length() { return Object.keys(store).length; },
+    };
+};
+
+if (typeof window !== 'undefined') {
+    if (!window.localStorage || typeof window.localStorage.clear !== 'function') {
+        const mockStorage = createInMemoryStorage();
+        Object.defineProperty(window, 'localStorage', { value: mockStorage, writable: true, configurable: true });
+        Object.defineProperty(globalThis, 'localStorage', { value: mockStorage, writable: true, configurable: true });
+    }
+}
+

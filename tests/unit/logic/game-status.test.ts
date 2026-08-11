@@ -51,6 +51,7 @@ describe('GameStatus', () => {
     let gameStatus: GameStatus;
 
     beforeEach(() => {
+        localStorage.clear();
         // Reset the singleton by accessing the private instance
         // We need to reset to get a clean state for each test
         (GameStatus as any).instance = undefined;
@@ -221,6 +222,59 @@ describe('GameStatus', () => {
 
             gameStatus.setShipLoadout(1, null); // unequip
             expect(gameStatus.getShipLoadout()[1]).toBeNull();
+        });
+    });
+
+    describe('Persistence (localStorage)', () => {
+        it('should save state to localStorage on updates', () => {
+            gameStatus.updateLoot(LootType.GOLD, 500);
+            gameStatus.addModule('laser-red', 3);
+            gameStatus.setShipLoadout(0, 'laser-red');
+            gameStatus.revealPlanet('planet-alpha');
+            gameStatus.markPlanetDefeated('galaxy-1', 'planet-alpha');
+            gameStatus.setPlanetPosition('galaxy-1', 'planet-alpha', { orbitAngle: 90, orbitRadius: 200 });
+            gameStatus.addVictory('galaxy-1');
+
+            const savedRaw = localStorage.getItem(GameStatus.STORAGE_KEY);
+            expect(savedRaw).not.toBeNull();
+            const savedData = JSON.parse(savedRaw!);
+            expect(savedData.loot[LootType.GOLD]).toBe(500);
+            expect(savedData.moduleInventory['laser-red']).toBe(3);
+            expect(savedData.shipLoadout[0]).toBe('laser-red');
+            expect(savedData.revealedPlanets).toContain('planet-alpha');
+            expect(savedData.defeatedPlanets).toContain('galaxy-1:planet-alpha');
+            expect(savedData.victories['galaxy-1']).toBe(1);
+        });
+
+        it('should load persisted state when a new GameStatus instance is created', () => {
+            gameStatus.updateLoot(LootType.GOLD, 750);
+            gameStatus.addModule('shield-v1', 2);
+            gameStatus.setShipLoadout(0, 'shield-v1');
+            gameStatus.revealPlanet('planet-beta');
+            gameStatus.markPlanetDefeated('galaxy-2', 'planet-beta');
+            gameStatus.setPlanetPosition('galaxy-2', 'planet-beta', { orbitAngle: 180, orbitRadius: 300 });
+            gameStatus.addVictory('galaxy-2');
+
+            // Re-instantiate without clearing localStorage
+            (GameStatus as any).instance = undefined;
+            const reloadedStatus = GameStatus.getInstance();
+
+            expect(reloadedStatus.getLoot()[LootType.GOLD]).toBe(750);
+            expect(reloadedStatus.getModuleInventory()['shield-v1']).toBe(2);
+            expect(reloadedStatus.getShipLoadout()[0]).toBe('shield-v1');
+            expect(reloadedStatus.isPlanetRevealed('planet-beta')).toBe(true);
+            expect(reloadedStatus.isPlanetDefeated('galaxy-2', 'planet-beta')).toBe(true);
+            expect(reloadedStatus.getPlanetPosition('galaxy-2', 'planet-beta')).toEqual({ orbitAngle: 180, orbitRadius: 300 });
+            expect(reloadedStatus.getVictories('galaxy-2')).toBe(1);
+        });
+
+        it('should handle corrupted localStorage gracefully', () => {
+            localStorage.setItem(GameStatus.STORAGE_KEY, '{ invalid json ...');
+
+            (GameStatus as any).instance = undefined;
+            expect(() => GameStatus.getInstance()).not.toThrow();
+            const freshStatus = GameStatus.getInstance();
+            expect(freshStatus.getLoot()[LootType.GOLD]).toBe(0);
         });
     });
 });
